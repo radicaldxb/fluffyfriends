@@ -1,0 +1,3 @@
+# Place the FluffyFriends logo here.
+# The navbar can use e.g. FluffyFriends-Footer-Logo.webp or your main logo file.
+# Update components/navbar.tsx src to match the filename you use.
