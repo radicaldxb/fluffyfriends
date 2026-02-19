@@ -1,3 +1,7 @@
+# Required for Next.js routes (e.g. /create) and API routes to work on Netlify
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [build]
   command = "npm run build"
   publish = ".next"

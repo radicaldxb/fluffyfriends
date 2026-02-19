@@ -49,7 +49,7 @@ export function Navbar() {
             className="hidden bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm px-4 sm:inline-flex"
             asChild
           >
-            <a href="#pricing">Create My Portrait</a>
+            <a href="/create">Create My Portrait</a>
           </Button>
           <button
             className="text-foreground p-2 md:hidden -m-2"
@@ -81,7 +81,7 @@ export function Navbar() {
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm"
                 asChild
               >
-                <a href="#pricing" onClick={() => setMobileOpen(false)}>Create My Portrait</a>
+                <a href="/create" onClick={() => setMobileOpen(false)}>Create My Portrait</a>
               </Button>
             </li>
           </ul>

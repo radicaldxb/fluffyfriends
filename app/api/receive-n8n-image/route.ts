@@ -5,8 +5,24 @@ const BUCKET = "images"
 const WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET // Optional: for security
 
 export async function POST(request: NextRequest) {
+  let body: Record<string, unknown>
   try {
-    const body = await request.json()
+    const raw = await request.text()
+    if (!raw?.trim()) {
+      return NextResponse.json(
+        { error: "Empty request body. In n8n, ensure the HTTP Request node has Send Body enabled and a valid JSON body with image_base64." },
+        { status: 400 }
+      )
+    }
+    body = JSON.parse(raw) as Record<string, unknown>
+  } catch (e) {
+    return NextResponse.json(
+      { error: "Invalid JSON body. In n8n, ensure the body is valid JSON and image_base64 is a string (no leading = in body).", details: e instanceof Error ? e.message : "Parse error" },
+      { status: 400 }
+    )
+  }
+
+  try {
 
     // n8n can send image as base64, binary data URL, or URL
     let imageBuffer: Buffer | null = null
@@ -107,6 +123,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    let tableError: string | null = null
+
     if (recordId) {
       // Update existing record with generated image
       const { error: updateError } = await supabase
@@ -119,10 +137,10 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error("Update error:", updateError)
-        // Continue anyway - at least the image is stored
+        tableError = updateError.message
       }
     } else {
-      // Insert new record
+      // Insert new record (requires anon insert policy – see supabase/run-allow-anon-insert-pet-portraits.sql)
       const { error: insertError } = await supabase.from("pet_portraits").insert({
         image_url: publicUrl,
         pet_name: petName,
@@ -132,7 +150,7 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error("Insert error:", insertError)
-        // Continue anyway - at least the image is stored
+        tableError = insertError.message
       }
     }
 
@@ -141,6 +159,7 @@ export async function POST(request: NextRequest) {
       image_url: publicUrl,
       path,
       message: "Image stored successfully",
+      ...(tableError && { table_error: tableError }),
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : "Request failed"

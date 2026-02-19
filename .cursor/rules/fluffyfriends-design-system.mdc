@@ -1,0 +1,66 @@
+---
+description: FluffyFriends baseline design system — Digital Sketchbook aesthetic for all pages
+alwaysApply: true
+---
+
+# FluffyFriends Design System (Baseline)
+
+Use this as the single source of truth for layout, colors, typography, and components on all pages.
+
+## Aesthetic
+
+- **Direction:** "Digital Sketchbook" — warm, personal, human; aligned with the hand-drawn logo.
+- **Avoid:** Tech/generic UI, glassmorphism, sharp corners, pure black.
+
+## Colors (use semantic tokens only)
+
+- **Background:** `bg-background` — off-white/cream (`--brand-paper`).
+- **Text:** `text-foreground` (earthy charcoal/ink), `text-muted-foreground` for secondary.
+- **Primary / CTAs / accents:** `bg-primary` `text-primary-foreground`, `text-primary`, `border-primary` — warm orange.
+- **Cards / surfaces:** `bg-card`, `bg-secondary`, `bg-muted`; borders `border-border`.
+- **Ring / focus:** `ring-ring` (orange). Do not introduce new hex colors; use tokens from `app/globals.css`.
+
+## Typography
+
+- **Headings (h1–h6):** Use the heading font (Nunito) — applied globally in `globals.css`. Use `font-extrabold` or `font-bold` with `tracking-tight` and responsive sizes (e.g. `text-3xl sm:text-4xl`).
+- **Body:** `font-sans` (Geist). Normal/medium weight, comfortable line-height (`leading-relaxed` / `text-pretty` where appropriate).
+- **Small labels / overlines:** `text-sm font-medium uppercase tracking-widest text-primary`.
+
+## Shapes (organic, not sharp)
+
+- **Cards / panels:** `rounded-organic` (utility from globals).
+- **Buttons, badges, small surfaces:** `rounded-organic-sm`.
+- **Do not use** `rounded-full` or `rounded-3xl` for new UI; prefer organic utilities so the system stays consistent.
+
+## Buttons
+
+- Primary CTA: `bg-primary text-primary-foreground hover:bg-primary/90` + `rounded-organic-sm`.
+- Outline: `border border-border` + `rounded-organic-sm`, hover `hover:bg-secondary/50`.
+- Use the shared `Button` component from `components/ui/button.tsx` (already uses organic radius).
+
+## Section layout (all pages)
+
+- **Container:** `mx-auto max-w-7xl px-4 sm:px-6` (or `px-6`).
+- **Section padding:** `py-14 md:py-20` (baseline; avoid larger unless hero).
+- **Between sections:** Use `<SketchDivider />` from `@/components/sketch-divider` — do not use `h-px` or plain horizontal rules.
+
+## Page shell (baseline for every page)
+
+1. **Navbar** — `components/navbar.tsx`: single row, logo (FluffyFriends-Footer-Logo) left, nav links center, CTA right. No strip above nav.
+2. **Main content** — `<main className="min-h-screen bg-background">` with sections and `SketchDivider` between them.
+3. **Footer** — `components/footer.tsx`: centered column — logo (FluffyFriends-logo round icon), nav links, “We never sell…”, copyright.
+
+## Logos
+
+- **Navbar:** `/logos/FluffyFriends-Footer-Logo.webp` — horizontal wordmark. Height: `h-[2.875rem] sm:h-[3.45rem]`, `w-auto`.
+- **Footer:** `/logos/FluffyFriends-logo.webp` — round icon. Size: `h-[4.6rem] w-[4.6rem] sm:h-[5.75rem] sm:w-[5.75rem]`.
+
+## Components to reuse
+
+- `Navbar`, `Footer`, `SketchDivider`, `Button` — use as-is. New pages should include the same Navbar and Footer and follow the same section/divider pattern.
+
+## Files that define the baseline
+
+- `app/globals.css` — palette, radii, fonts, utilities (`rounded-organic`, `rounded-organic-sm`).
+- `app/layout.tsx` — fonts (Geist, Nunito), viewport themeColor, body classes.
+- Do not change these without updating this rule and `docs/DESIGN_BASELINE.md`.

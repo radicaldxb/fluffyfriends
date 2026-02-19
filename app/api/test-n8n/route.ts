@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
 
   const payload = { test_image, name }
 
-  // Fire-and-forget: do not wait for n8n to finish (avoids Netlify timeouts)
   fetch(WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

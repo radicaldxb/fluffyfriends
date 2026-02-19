@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -16,35 +16,37 @@ export default function TestN8nPage() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null)
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
 
-  // Poll for generated image
+  // Upload and run n8n (same as /create flow)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadPreviewUrl, setUploadPreviewUrl] = useState<string | null>(null)
+  const [uploadName, setUploadName] = useState("Test Pet")
+  const uploadInputRef = useRef<HTMLInputElement>(null)
+
+  // Quick bypass state (no n8n – direct API)
+  const [bypassUrl, setBypassUrl] = useState("")
+  const [bypassName, setBypassName] = useState("Quick Test Pet")
+  const [bypassStatus, setBypassStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [bypassResult, setBypassResult] = useState<{ image_url?: string; table_error?: string; error?: string } | null>(null)
+
+  // Poll for the most recent generated image in pet_portraits
   useEffect(() => {
-    if (submittedImageUrl && status === "processing") {
+    if (status === "processing") {
       const interval = setInterval(async () => {
         try {
-          // Check pet_portraits table for recently created images
-          // Look for images created in the last 10 minutes with matching pet name
-          const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
-
           const { data, error } = await supabase
             .from("pet_portraits")
             .select("image_url, created_at, status, pet_name")
-            .gte("created_at", tenMinutesAgo)
-            .eq("pet_name", name)
             .order("created_at", { ascending: false })
-            .limit(5)
+            .limit(1)
+            .maybeSingle()
 
           if (error) {
             console.error("Poll error:", error)
             return
           }
 
-          // Find image that's different from the submitted one (likely the generated one)
-          const generated = data?.find(
-            (item) => item.image_url && !item.image_url.includes(submittedImageUrl.split("/").pop() || "")
-          )
-
-          if (generated && generated.image_url) {
-            setGeneratedImageUrl(generated.image_url)
+          if (data && data.image_url) {
+            setGeneratedImageUrl(data.image_url)
             setStatus("success")
             setMessage("Image generated successfully!")
             clearInterval(interval)
@@ -72,7 +74,7 @@ export default function TestN8nPage() {
         clearTimeout(timeout)
       }
     }
-  }, [submittedImageUrl, status, name])
+  }, [status])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -117,6 +119,90 @@ export default function TestN8nPage() {
     }
   }
 
+  useEffect(() => {
+    return () => {
+      if (uploadPreviewUrl) URL.revokeObjectURL(uploadPreviewUrl)
+    }
+  }, [uploadPreviewUrl])
+
+  function handleUploadFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    if (uploadPreviewUrl) {
+      URL.revokeObjectURL(uploadPreviewUrl)
+      setUploadPreviewUrl(null)
+    }
+    if (!f) {
+      setUploadFile(null)
+      return
+    }
+    if (!f.type.startsWith("image/")) {
+      setUploadFile(null)
+      return
+    }
+    setUploadFile(f)
+    setUploadPreviewUrl(URL.createObjectURL(f))
+  }
+
+  async function handleUploadSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!uploadFile) return
+    setStatus("loading")
+    setMessage("")
+    setGeneratedImageUrl(null)
+    try {
+      const formData = new FormData()
+      formData.set("file", uploadFile)
+      if (uploadName.trim()) formData.set("pet_name", uploadName.trim())
+      const res = await fetch("/api/create-portrait", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setStatus("error")
+        setMessage(data.error || `HTTP ${res.status}`)
+        return
+      }
+      setStatus("processing")
+      setMessage("Image uploaded and sent to n8n. Waiting for generated portrait…")
+    } catch (err) {
+      setStatus("error")
+      setMessage(err instanceof Error ? err.message : "Request failed")
+    }
+  }
+
+  async function handleBypassSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setBypassStatus("loading")
+    setBypassResult(null)
+    const url = bypassUrl.trim() || "https://placehold.co/400x300?text=Test+Pet"
+    try {
+      const res = await fetch("/api/receive-n8n-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_url: url,
+          pet_name: bypassName.trim() || "Quick Test Pet",
+          status: "completed",
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setBypassStatus("error")
+        setBypassResult({ error: data.error || `HTTP ${res.status}` })
+        return
+      }
+      setBypassStatus("success")
+      setBypassResult({
+        image_url: data.image_url,
+        table_error: data.table_error ?? undefined,
+      })
+    } catch (err) {
+      setBypassStatus("error")
+      setBypassResult({ error: err instanceof Error ? err.message : "Request failed" })
+    }
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -128,7 +214,134 @@ export default function TestN8nPage() {
           Send a test payload to your n8n webhook (N8N_WEBHOOK_URL in .env.local).
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        {/* Quick bypass: no n8n, no Gemini – direct to API → storage + table */}
+        <section className="mt-8 rounded-organic border border-primary/30 bg-primary/5 p-6">
+          <h2 className="font-heading text-lg font-bold text-foreground">Quick test (bypass n8n)</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Send an image URL straight to the API. Storage + table only, no Gemini wait.
+          </p>
+          <form onSubmit={handleBypassSubmit} className="mt-4 space-y-4">
+            <div>
+              <label htmlFor="bypass_url" className="block text-sm font-medium text-foreground">
+                Image URL
+              </label>
+              <input
+                id="bypass_url"
+                type="url"
+                value={bypassUrl}
+                onChange={(e) => setBypassUrl(e.target.value)}
+                placeholder="https://placehold.co/400x300?text=Test+Pet"
+                className="mt-1 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="bypass_name" className="block text-sm font-medium text-foreground">
+                Pet name
+              </label>
+              <input
+                id="bypass_name"
+                type="text"
+                value={bypassName}
+                onChange={(e) => setBypassName(e.target.value)}
+                placeholder="Quick Test Pet"
+                className="mt-1 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={bypassStatus === "loading"}
+              variant="outline"
+              className="rounded-organic-sm"
+            >
+              {bypassStatus === "loading" ? "Sending…" : "Send to API (no n8n)"}
+            </Button>
+          </form>
+          {bypassResult && (
+            <div className="mt-4 space-y-2">
+              {bypassResult.error && (
+                <p className="text-sm text-destructive">{bypassResult.error}</p>
+              )}
+              {bypassResult.table_error && (
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  Table error: {bypassResult.table_error}
+                </p>
+              )}
+              {bypassResult.image_url && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted-foreground">Stored image:</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={bypassResult.image_url}
+                    alt="Stored"
+                    className="h-auto max-h-48 w-auto rounded-organic-sm border border-border object-contain"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Upload and run n8n (same as /create) */}
+        <section className="mt-10 rounded-organic border border-border bg-muted/20 p-6">
+          <h2 className="font-heading text-lg font-bold text-foreground">Upload and run n8n</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Upload a pet photo; it goes to storage and triggers the full n8n flow (like /create).
+          </p>
+          <form onSubmit={handleUploadSubmit} className="mt-4 space-y-4">
+            <div>
+              <label htmlFor="upload-file" className="block text-sm font-medium text-foreground">
+                Pet photo
+              </label>
+              <input
+                ref={uploadInputRef}
+                id="upload-file"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleUploadFileChange}
+                disabled={status === "loading" || status === "processing"}
+                className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:rounded-organic-sm file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground file:hover:bg-primary/90"
+              />
+            </div>
+            {uploadPreviewUrl && uploadFile && (
+              <div className="overflow-hidden rounded-organic border border-border">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={uploadPreviewUrl}
+                  alt="Preview"
+                  className="h-auto max-h-48 w-full object-contain"
+                />
+              </div>
+            )}
+            <div>
+              <label htmlFor="upload-name" className="block text-sm font-medium text-foreground">
+                Pet name (optional)
+              </label>
+              <input
+                id="upload-name"
+                type="text"
+                value={uploadName}
+                onChange={(e) => setUploadName(e.target.value)}
+                placeholder="Test Pet"
+                disabled={status === "loading" || status === "processing"}
+                className="mt-1 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={!uploadFile || status === "loading" || status === "processing"}
+              variant="outline"
+              className="rounded-organic-sm"
+            >
+              {status === "loading" ? "Uploading…" : status === "processing" ? "Processing…" : "Upload and run n8n"}
+            </Button>
+          </form>
+        </section>
+
+        <h2 className="mt-12 font-heading text-lg font-bold text-foreground">Full flow with URL (n8n + Gemini)</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          If the result is the original image (no style), enable the style branch in n8n (Edit Fields → Download file → Master_Fireman) and ensure Merge → GEMINI → Convert to File → Supabase. If nothing runs, use the Test URL in N8N_WEBHOOK_URL and click Execute Workflow in n8n, then submit here within 30s.
+        </p>
+        <form onSubmit={handleSubmit} className="mt-4 space-y-6">
           <div>
             <label htmlFor="test_image" className="block text-sm font-medium text-foreground">
               Image URL

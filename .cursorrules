@@ -1,0 +1,17 @@
+FluffyFriends Design System (Cursor Guidance)
+
+- Always use the brand color palette:
+  - background (brand-ink): #000000
+  - text (white): #FFFFFF
+  - primary accent / CTAs / borders: #F09A54
+  - brand-cream (off-white accent): #F2EEE2
+- Buttons:
+  - Use `rounded-full` for all primary and secondary buttons.
+  - Prefer solid #F09A54 buttons with clear hover states.
+- Sections:
+  - Use generous vertical padding with at least `py-20` (or equivalent) for main homepage sections.
+  - Keep content within a centered max-width container (e.g. `max-w-7xl mx-auto px-6`).
+- Typography:
+  - Headings use a bold, premium sans-serif at weight 800 (Tailwind `font-extrabold`).
+  - Body text uses a clean, readable sans-serif (`font-sans`) at normal or medium weight.
+
