@@ -5,7 +5,10 @@ const WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
 export async function POST(request: NextRequest) {
   if (!WEBHOOK_URL?.trim()) {
     return NextResponse.json(
-      { error: "N8N_WEBHOOK_URL is not set in .env.local" },
+      {
+        error: "N8N_WEBHOOK_URL is not set",
+        hint: "Add N8N_WEBHOOK_URL in Netlify: Site settings → Build & deploy → Environment variables",
+      },
       { status: 500 }
     )
   }
