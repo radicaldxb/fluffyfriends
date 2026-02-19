@@ -3,14 +3,11 @@
   publish = ".next"
 
 [build.environment]
-  # Build-time env vars
+  # Environment variables available at build and runtime
   NEXT_PUBLIC_SUPABASE_URL = "https://mblnpneghvkfmbgmbrco.supabase.co"
   NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_eigN9VshsqrTV5jXD4nFjw_9CKI6pnQ"
-
-[context.production.environment]
-  # Runtime env vars for production
   N8N_WEBHOOK_URL = "https://n8n.srv943460.hstgr.cloud/webhook-test/transform-pet"
 
-# Note: For best practice, add these in Netlify UI:
+# IMPORTANT: Also add these in Netlify UI for reliability:
 # Site settings → Build & deploy → Environment variables
-# UI vars override netlify.toml
+# UI vars override netlify.toml and are more reliable
