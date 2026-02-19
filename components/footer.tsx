@@ -1,17 +1,20 @@
-import { Sparkles } from "lucide-react"
+import Image from "next/image"
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-6 py-12 md:flex-row md:justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <span className="text-sm font-medium text-foreground">
-            FluffyFriends<span className="text-primary">.online</span>
-          </span>
-        </div>
+    <footer className="border-t border-border bg-secondary/60">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-8 text-center">
+        <a href="/" className="shrink-0">
+          <Image
+            src="/logos/FluffyFriends-logo.webp"
+            alt="FluffyFriends.online"
+            width={80}
+            height={80}
+            className="h-[4.6rem] w-[4.6rem] object-contain sm:h-[5.75rem] sm:w-[5.75rem]"
+          />
+        </a>
 
-        <nav className="flex flex-wrap justify-center gap-6">
+        <nav className="flex flex-wrap justify-center gap-x-6 gap-y-1">
           {["Privacy", "Terms", "Support", "Instagram"].map((link) => (
             <a
               key={link}
@@ -23,9 +26,14 @@ export function Footer() {
           ))}
         </nav>
 
-        <p className="text-xs text-muted-foreground">
-          {`\u00A9 ${new Date().getFullYear()} FluffyFriends.online. All rights reserved.`}
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground/90">
+            We never sell or share your photos. Secure checkout. Happiness guarantee.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {`\u00A9 ${new Date().getFullYear()} FluffyFriends.online`}
+          </p>
+        </div>
       </div>
     </footer>
   )

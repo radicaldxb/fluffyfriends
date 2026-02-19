@@ -1,32 +1,36 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X, Sparkles } from "lucide-react"
+import { Menu, X } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
   { label: "How It Works", href: "#process" },
   { label: "Gallery", href: "#gallery" },
+  { label: "Print Options", href: "#print-options" },
   { label: "Pricing", href: "#pricing" },
+  { label: "Reviews", href: "#reviews" },
 ]
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 backdrop-blur-xl bg-background/70">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        {/* Logo */}
-        <a href="#" className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold tracking-tight text-foreground">
-            FluffyFriends
-            <span className="text-primary">.online</span>
-          </span>
+    <header className="sticky top-0 z-50 border-b border-border bg-background shadow-sm">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <a href="/" className="flex shrink-0 items-center" aria-label="FluffyFriends home">
+          <Image
+            src="/logos/FluffyFriends-Footer-Logo.webp"
+            alt=""
+            width={180}
+            height={48}
+            className="h-[2.875rem] w-auto object-contain sm:h-[3.45rem]"
+            priority
+          />
         </a>
 
-        {/* Desktop links */}
-        <ul className="hidden items-center gap-8 md:flex">
+        <ul className="hidden items-center justify-center gap-5 md:flex md:flex-1 md:max-w-2xl">
           {navLinks.map((link) => (
             <li key={link.label}>
               <a
@@ -39,47 +43,45 @@ export function Navbar() {
           ))}
         </ul>
 
-        {/* CTA */}
-        <div className="hidden md:block">
+        <div className="flex items-center gap-3">
           <Button
             size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5"
+            className="hidden bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm px-4 sm:inline-flex"
+            asChild
           >
-            Get Started
+            <a href="#pricing">Create My Portrait</a>
           </Button>
+          <button
+            className="text-foreground p-2 md:hidden -m-2"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
-
-        {/* Mobile toggle */}
-        <button
-          className="text-foreground md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
       </nav>
 
-      {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-border/50 bg-background/95 backdrop-blur-xl md:hidden">
-          <ul className="flex flex-col gap-4 px-6 py-6">
+        <div className="border-t border-border/50 bg-background md:hidden">
+          <ul className="flex flex-col gap-1 px-4 py-4">
             {navLinks.map((link) => (
               <li key={link.label}>
                 <a
                   href={link.href}
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  className="block py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
                 </a>
               </li>
             ))}
-            <li>
+            <li className="mt-2 pt-2 border-t border-border/50">
               <Button
                 size="sm"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm"
+                asChild
               >
-                Get Started
+                <a href="#pricing" onClick={() => setMobileOpen(false)}>Create My Portrait</a>
               </Button>
             </li>
           </ul>

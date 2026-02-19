@@ -40,19 +40,18 @@ export function GallerySection() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
-    <section id="gallery" className="relative py-24 md:py-32">
+    <section id="gallery" className="relative py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-6">
         {/* Section header */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
             The Gallery
           </p>
-          <h2 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             Every pet deserves a portrait
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Browse real transformations from our community. Each piece is unique,
-            crafted by AI, and inspired by your pet.
+            Real portraits from our community. Each piece is unique and inspired by your pet.
           </p>
         </div>
 
@@ -61,7 +60,7 @@ export function GallerySection() {
           {portraits.map((portrait, index) => (
             <div
               key={portrait.theme}
-              className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-border/50"
+              className="group relative aspect-[4/5] overflow-hidden rounded-organic border border-border/50"
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
@@ -88,7 +87,7 @@ export function GallerySection() {
               </div>
 
               {/* Always-visible theme badge */}
-              <div className="absolute top-4 left-4 rounded-full bg-background/70 px-3 py-1 backdrop-blur-sm">
+              <div className="absolute top-4 left-4 rounded-organic-sm bg-background/70 px-3 py-1 backdrop-blur-sm">
                 <span className="text-xs font-medium text-foreground">
                   {portrait.theme}
                 </span>

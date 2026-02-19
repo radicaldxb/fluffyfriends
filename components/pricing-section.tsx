@@ -3,80 +3,86 @@ import { Button } from "@/components/ui/button"
 
 const plans = [
   {
-    name: "Single",
-    price: "$19",
-    description: "Perfect for trying out your first portrait.",
+    name: "4K Digital Download",
+    price: "$29",
+    priceNote: "one-time",
+    description: "Print‑ready, ultra‑sharp file delivered to your inbox.",
     features: [
-      "1 AI portrait",
-      "Choose from all themes",
-      "High-resolution download",
-      "Commercial license",
+      "One museum‑quality portrait of your pet",
+      "4K+ resolution (print‑ready up to A2)",
+      "Instant delivery to your inbox",
+      "Full personal print rights",
     ],
-    cta: "Get Started",
+    cta: "Get 4K Download",
     featured: false,
   },
   {
-    name: "Bundle",
-    price: "$39",
-    description: "Our most popular option for multi-pet families.",
+    name: "Premium Print + 5 Pack",
+    price: "$99",
+    priceNote: "one-time",
+    description:
+      "One framed hero print plus five unique portraits in different styles.",
     features: [
-      "5 AI portraits",
-      "Choose from all themes",
-      "High-resolution download",
-      "Commercial license",
-      "Priority processing",
+      "1 premium framed print of your favorite",
+      "5 unique portraits in different themes",
+      "All files in 4K+ resolution",
+      "Perfect as a gift set or gallery wall",
     ],
-    cta: "Get the Bundle",
+    cta: "Get Premium Bundle",
+    featured: false,
+  },
+  {
+    name: "Printed & Delivered",
+    price: "From $59",
+    priceNote: "+ shipping",
+    description:
+      "We print, frame, and ship your artwork straight to your door.",
+    features: [
+      "Premium print on archival paper",
+      "Multiple sizes & finishes available",
+      "Shipped by trusted print partners",
+      "Includes 4K digital file",
+      "Perfect as a gift or wall centerpiece",
+    ],
+    cta: "Get Printed Art",
     featured: true,
-  },
-  {
-    name: "Unlimited",
-    price: "$79",
-    description: "For the ultimate pet art collector.",
-    features: [
-      "Unlimited portraits for 30 days",
-      "Choose from all themes",
-      "High-resolution download",
-      "Commercial license",
-      "Priority processing",
-      "Early access to new themes",
-    ],
-    cta: "Go Unlimited",
-    featured: false,
   },
 ]
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="relative py-24 md:py-32">
+    <section id="pricing" className="relative py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-6">
         {/* Section header */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
             Pricing
           </p>
-          <h2 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Invest in timeless memories
+          <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Choose how you want your art
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Simple, transparent pricing with no hidden fees. Every plan includes
-            your full-resolution artwork.
+            Start with a print‑ready 4K download, or let us handle the printing
+            and shipping for you.
+          </p>
+          <p className="mt-2 text-sm font-medium text-foreground">
+            No subscription • No hidden fees • Price shown is final (ex. local tax)
           </p>
         </div>
 
-        {/* Cards */}
+        {/* Cards — glassmorphism */}
         <div className="mt-16 grid gap-6 md:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative overflow-hidden rounded-2xl border p-8 backdrop-blur-md transition-all ${
+              className={`relative overflow-hidden rounded-organic border border-border bg-card p-8 shadow-md transition-all ${
                 plan.featured
-                  ? "border-primary/60 bg-card/80 shadow-[0_0_40px_-12px] shadow-primary/20"
-                  : "border-border/50 bg-card/50"
+                  ? "ring-2 ring-primary/30 shadow-lg"
+                  : "hover:shadow-lg"
               }`}
             >
               {plan.featured && (
-                <div className="absolute top-0 right-0 rounded-bl-xl bg-primary px-4 py-1">
+                <div className="absolute top-0 right-0 rounded-bl-organic bg-primary px-4 py-1">
                   <span className="text-xs font-semibold text-primary-foreground">
                     Most Popular
                   </span>
@@ -94,10 +100,10 @@ export function PricingSection() {
                 <span className="text-4xl font-bold text-foreground">
                   {plan.price}
                 </span>
-                <span className="text-sm text-muted-foreground">/one-time</span>
+                <span className="text-sm text-muted-foreground">{plan.priceNote}</span>
               </div>
 
-              <ul className="mt-8 flex flex-col gap-3">
+              <ul className="mt-6 flex flex-col gap-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
                     <Check className="h-4 w-4 shrink-0 text-primary" />
@@ -109,13 +115,10 @@ export function PricingSection() {
               </ul>
 
               <Button
-                className={`mt-8 w-full rounded-full ${
-                  plan.featured
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
+                className="mt-8 w-full rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90"
+                asChild
               >
-                {plan.cta}
+                <a href="#pricing">{plan.cta}</a>
               </Button>
             </div>
           ))}

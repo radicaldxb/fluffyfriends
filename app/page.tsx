@@ -3,7 +3,10 @@ import { HeroSection } from "@/components/hero-section"
 import { ProcessSection } from "@/components/process-section"
 import { GallerySection } from "@/components/gallery-section"
 import { PricingSection } from "@/components/pricing-section"
+import { PrintOptionsSection } from "@/components/print-options-section"
+import { ReviewsSection } from "@/components/reviews-section"
 import { Footer } from "@/components/footer"
+import { SketchDivider } from "@/components/sketch-divider"
 
 export default function Home() {
   return (
@@ -11,24 +14,16 @@ export default function Home() {
       <Navbar />
       <HeroSection />
 
-      {/* Divider */}
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="h-px bg-border/50" />
-      </div>
-
+      <SketchDivider />
       <ProcessSection />
-
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="h-px bg-border/50" />
-      </div>
-
+      <SketchDivider />
       <GallerySection />
-
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="h-px bg-border/50" />
-      </div>
-
+      <SketchDivider />
+      <PrintOptionsSection />
+      <SketchDivider />
       <PricingSection />
+      <SketchDivider />
+      <ReviewsSection />
       <Footer />
     </main>
   )
