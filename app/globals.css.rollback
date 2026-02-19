@@ -1,0 +1,110 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* FluffyFriends.online — warm, friendly brand (dog-mom accessible) */
+:root {
+  /* Brand — warm and approachable */
+  --brand-orange: #e8954a; /* slightly softer orange */
+  --brand-ink: #1c1b19; /* warm charcoal (not pure black) */
+  --brand-cream: #f5f1e8; /* warm off-white */
+  --brand-warm: #2d2b28; /* cards/surfaces */
+  --brand-charcoal: #2d2d2d;
+
+  /* Semantic tokens */
+  --background: var(--brand-ink);
+  --foreground: #f5f1e8;
+
+  --card: #252320;
+  --card-foreground: #f5f1e8;
+
+  --popover: #252320;
+  --popover-foreground: #f5f1e8;
+
+  --primary: var(--brand-orange);
+  --primary-foreground: #1c1b19;
+
+  --secondary: #2d2b28;
+  --secondary-foreground: #f5f1e8;
+
+  --muted: #2d2b28;
+  --muted-foreground: rgba(245, 241, 232, 0.78);
+
+  --accent: var(--brand-orange);
+  --accent-foreground: #1c1b19;
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: #ffffff;
+
+  --border: rgba(245, 241, 232, 0.18);
+  --input: rgba(245, 241, 232, 0.12);
+  --ring: var(--brand-orange);
+
+  --chart-1: var(--brand-orange);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  --radius: 0.75rem;
+
+  --sidebar: oklch(0.15 0.005 250);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: var(--brand-orange);
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: oklch(0.22 0.005 250);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: rgba(240, 154, 84, 0.35);
+  --sidebar-ring: var(--brand-orange);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
