@@ -117,12 +117,34 @@ export async function POST(request: NextRequest) {
       ...(webhookError && { webhook_error: webhookError }),
     })
   } catch (error) {
-    // Ensure we always return valid JSON, even on unexpected errors
-    console.error("Error in create-portrait API:", error)
+    // Log full error details for debugging
+    const errorId = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    const errorDetails = {
+      id: errorId,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+      timestamp: new Date().toISOString(),
+    }
+    
+    // Log to server console (visible in Netlify logs)
+    console.error(`[${errorId}] Error in create-portrait API:`, {
+      message: errorDetails.message,
+      stack: errorDetails.stack,
+      name: errorDetails.name,
+    })
+    
+    // In development, include more details; in production, be more generic
+    const isDevelopment = process.env.NODE_ENV === "development"
+    
     return NextResponse.json(
       {
         error: "An unexpected error occurred while processing your request.",
-        details: error instanceof Error ? error.message : String(error),
+        error_id: errorId, // Include error ID so user can report it
+        ...(isDevelopment && {
+          details: errorDetails.message,
+          stack: errorDetails.stack,
+        }),
       },
       { status: 500 }
     )

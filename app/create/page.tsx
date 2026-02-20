@@ -121,33 +121,55 @@ export default function CreatePortraitPage() {
         body: formData,
       })
 
-      // Check if response is actually JSON before parsing
+      // Read response text once (can only be read once)
       const contentType = res.headers.get("content-type")
+      const text = await res.text()
+      
+      // Check if response is actually JSON
       if (!contentType || !contentType.includes("application/json")) {
-        const text = await res.text()
+        console.error("[create-portrait] Non-JSON response:", { 
+          status: res.status, 
+          contentType,
+          text: text.slice(0, 200) // Log first 200 chars
+        })
         setStatus("error")
         setMessage(`Server error: ${text || `Unexpected response (${res.status})`}`)
         return
       }
 
+      // Parse JSON
       let data
       try {
-        const text = await res.text()
         if (!text) {
+          const errorMsg = `Empty response from server (${res.status})`
+          console.error("[create-portrait] Empty response:", { status: res.status, url: res.url })
           setStatus("error")
-          setMessage(`Empty response from server (${res.status})`)
+          setMessage(errorMsg)
           return
         }
         data = JSON.parse(text)
       } catch (parseError) {
+        const errorMsg = `Invalid response from server: ${parseError instanceof Error ? parseError.message : "JSON parse error"}`
+        console.error("[create-portrait] JSON parse error:", parseError, { 
+          status: res.status, 
+          url: res.url,
+          text: text.slice(0, 200) // Log first 200 chars for debugging
+        })
         setStatus("error")
-        setMessage(`Invalid response from server: ${parseError instanceof Error ? parseError.message : "JSON parse error"}`)
+        setMessage(errorMsg)
         return
       }
 
       if (!res.ok) {
+        const errorMsg = data.error || `Request failed (${res.status})`
+        console.error("[create-portrait] API error:", {
+          status: res.status,
+          error: data.error,
+          error_id: data.error_id,
+          details: data.details,
+        })
         setStatus("error")
-        setMessage(data.error || `Request failed (${res.status})`)
+        setMessage(errorMsg + (data.error_id ? ` (Error ID: ${data.error_id})` : ""))
         return
       }
 
@@ -165,8 +187,10 @@ export default function CreatePortraitPage() {
       setStatus("processing")
       setMessage("We're creating your portrait. This usually takes a few minutes.")
     } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Something went wrong."
+      console.error("[create-portrait] Request failed:", err)
       setStatus("error")
-      setMessage(err instanceof Error ? err.message : "Something went wrong.")
+      setMessage(errorMsg)
     }
   }
 
