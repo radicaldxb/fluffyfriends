@@ -22,6 +22,18 @@ export default function TestN8nPage() {
   const [uploadName, setUploadName] = useState("Test Pet")
   const uploadInputRef = useRef<HTMLInputElement>(null)
 
+  // Webhook ping (connectivity test)
+  const [pingStatus, setPingStatus] = useState<"idle" | "loading">("idle")
+  const [pingResult, setPingResult] = useState<{
+    ok?: boolean
+    status?: number
+    responseTimeMs?: number
+    error?: string
+    hint?: string
+    bodyPreview?: string
+    url?: string
+  } | null>(null)
+
   // Quick bypass state (no n8n – direct API)
   const [bypassUrl, setBypassUrl] = useState("")
   const [bypassName, setBypassName] = useState("Quick Test Pet")
@@ -75,6 +87,23 @@ export default function TestN8nPage() {
       }
     }
   }, [status])
+
+  async function handlePingWebhook() {
+    setPingStatus("loading")
+    setPingResult(null)
+    try {
+      const res = await fetch("/api/test-webhook", { method: "POST" })
+      const data = await res.json()
+      setPingResult(data)
+    } catch (err) {
+      setPingResult({
+        ok: false,
+        error: err instanceof Error ? err.message : "Request failed",
+      })
+    } finally {
+      setPingStatus("idle")
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -213,6 +242,50 @@ export default function TestN8nPage() {
         <p className="mt-2 text-muted-foreground">
           Send a test payload to your n8n webhook (N8N_WEBHOOK_URL in .env.local).
         </p>
+
+        {/* Test webhook connectivity: ping and see response time */}
+        <section className="mt-8 rounded-organic border border-border bg-muted/30 p-6">
+          <h2 className="font-heading text-lg font-bold text-foreground">Test webhook connectivity</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ping the URL in N8N_WEBHOOK_URL. Use the diagnostic workflow (path <code className="rounded bg-muted px-1 py-0.5 text-xs">diagnostic-ping</code>) in n8n and set that URL here to verify the app can reach n8n immediately.
+          </p>
+          <Button
+            type="button"
+            onClick={handlePingWebhook}
+            disabled={pingStatus === "loading"}
+            variant="default"
+            className="mt-4 rounded-organic-sm"
+          >
+            {pingStatus === "loading" ? "Pinging…" : "Ping webhook"}
+          </Button>
+          {pingResult && (
+            <div className="mt-4 space-y-1 rounded-organic-sm border border-border bg-background p-3 font-mono text-sm">
+              {pingResult.error && (
+                <p className="text-destructive">{pingResult.error}</p>
+              )}
+              {pingResult.hint && (
+                <p className="text-muted-foreground">{pingResult.hint}</p>
+              )}
+              {typeof pingResult.ok === "boolean" && (
+                <p>
+                  <span className="text-muted-foreground">OK:</span>{" "}
+                  {pingResult.ok ? "Yes" : "No"}
+                  {typeof pingResult.status === "number" && (
+                    <> · Status: {pingResult.status}</>
+                  )}
+                </p>
+              )}
+              {typeof pingResult.responseTimeMs === "number" && (
+                <p>
+                  <span className="text-muted-foreground">Response time:</span> {pingResult.responseTimeMs} ms
+                </p>
+              )}
+              {pingResult.bodyPreview && (
+                <p className="break-all text-muted-foreground">Body: {pingResult.bodyPreview}</p>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* Quick bypass: no n8n, no Gemini – direct to API → storage + table */}
         <section className="mt-8 rounded-organic border border-primary/30 bg-primary/5 p-6">

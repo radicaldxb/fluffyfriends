@@ -10,6 +10,18 @@ This is the known-good n8n workflow that works with the FluffyFriends app. When 
 
 ---
 
+### Diagnostic webhook (ping test)
+
+To check whether the app can reach n8n at all (without running the full portrait flow):
+
+1. **Import the diagnostic workflow:** [`docs/n8n-diagnostic-webhook.json`](./n8n-diagnostic-webhook.json) — one Webhook node, path `diagnostic-ping`, responds immediately.
+2. **In n8n:** Import it, **activate** it, and copy its **Production** webhook URL (e.g. `https://n8n.srv943460.hstgr.cloud/webhook/diagnostic-ping`).
+3. **Set that URL** in Netlify (or `.env.local`) as `N8N_WEBHOOK_URL` and redeploy if needed.
+4. **Open** your site's **/test-n8n** page and click **"Ping webhook"**. You should see **OK: Yes**, a **response time (ms)**, and status 200. If you see a timeout or error, the app cannot reach n8n (firewall, wrong URL, or workflow not active).
+5. When done testing, set `N8N_WEBHOOK_URL` back to your main workflow URL (e.g. `.../webhook/transform-pet`).
+
+---
+
 ## Production webhook (no manual “Execute Workflow”)
 
 To have the app trigger n8n automatically (no need to click “Execute Workflow” every time):

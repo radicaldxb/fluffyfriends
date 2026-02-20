@@ -1,0 +1,33 @@
+{
+  "name": "FluffyFriends – Diagnostic webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "diagnostic-ping",
+        "responseMode": "immediately",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-144, 32],
+      "id": "f2d36c5f-f8ae-4ed9-b202-88ec893ef7c5",
+      "name": "Webhook",
+      "webhookId": "94d4e1b4-b35d-46e6-91cb-0c14cd45de3e"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "948ef2c3-15c5-460f-97af-4d6df301141b",
+  "meta": {
+    "instanceId": "a69fdad5e15308094e598493b8ca59738023cfad28ccf0b923029037c56d7d0c"
+  },
+  "id": "VdiMO_1FgFu9d4SyuowsN",
+  "tags": []
+}
