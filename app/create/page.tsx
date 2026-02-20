@@ -202,7 +202,7 @@ export default function CreatePortraitPage() {
                   >
                     <div className="relative aspect-square w-full bg-muted">
                       <Image
-                        src="/images/themes/fireman-preview.jpg"
+                        src="/images/themes/fireman-preview.webp"
                         alt="Fireman theme preview"
                         fill
                         className="object-cover"
@@ -234,7 +234,7 @@ export default function CreatePortraitPage() {
                   >
                     <div className="relative aspect-square w-full bg-muted">
                       <Image
-                        src="/images/themes/spaceman-preview.jpg"
+                        src="/images/themes/spaceman-preview.webp"
                         alt="Spaceman theme preview"
                         fill
                         className="object-cover"
