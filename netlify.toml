@@ -1,6 +1,5 @@
-# Required for Next.js routes (e.g. /create) and API routes to work on Netlify
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+# Netlify automatically detects and handles Next.js 16+ without explicit plugin configuration
+# The built-in OpenNext adapter provides SSR, ISR, Edge Functions, and image optimization
 
 [build]
   command = "npm run build"
