@@ -75,6 +75,21 @@ After adding the variables, you need to trigger a new deployment:
 
 ---
 
+## Optional but Recommended: N8N_WEBHOOK_SECRET
+
+This secures the **callback** from n8n to your app (`/api/receive-n8n-image`). Without it, anyone who discovers the URL could send fake portrait data.
+
+1. Generate a random secret (e.g. `openssl rand -hex 24` or a long random string).
+2. In Netlify, add:
+   - **Key:** `N8N_WEBHOOK_SECRET`
+   - **Value:** Your secret (keep it private)
+   - Click **Save**
+3. In n8n, add the same secret to the **HTTP Request** node that calls your app (the "Supabase" node that POSTs to `.../api/receive-n8n-image`). See **docs/N8N_WEBHOOK_SECRET_SETUP.md** for how to add the header in n8n.
+
+If `N8N_WEBHOOK_SECRET` is not set, the callback accepts all requests (backward compatible but less secure).
+
+---
+
 ## Optional: N8N_PING_WEBHOOK_URL
 
 If you want to use the "Ping webhook" button on `/test-n8n` without swapping URLs:
