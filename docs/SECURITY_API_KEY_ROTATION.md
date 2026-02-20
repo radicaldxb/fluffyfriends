@@ -6,13 +6,13 @@ A Gemini API key was exposed in `docs/n8n-fluffyfriends-working.json` and detect
 
 ## Action required: Rotate the exposed key
 
-**The exposed key was:** `AIzaSyCXX0W9QOOHkKnCmQWjd2GHCifcXVzVcME`
+**The exposed key was:** `AIza********************` (redacted - full key was exposed and should be rotated)
 
 **You should:**
 
 1. **Rotate or revoke this key** in Google Cloud Console / Google AI Studio:
    - Go to [Google AI Studio](https://makersuite.google.com/app/apikey) or Google Cloud Console
-   - Find the API key that starts with `AIzaSyCXX0W9QOOHkKnCmQWjd2GHCifcXVzVcME`
+   - Find the API key that was exposed (starts with `AIza` - check your Google Cloud Console for recently created/accessed keys)
    - **Revoke** it or **regenerate** it
    - Update the key in your **n8n workflow** (GEMINI node) with the new key
 
