@@ -2,6 +2,31 @@
 
 **Testing:** Use your **deployed Netlify site** (e.g. `https://fluffyfriends-dev.netlify.app/create` or `/test-n8n`) to test. The app always calls `N8N_WEBHOOK_URL` directly from the server; testing on Netlify keeps things simple.
 
+---
+
+## Do this first: test that the production URL responds
+
+Before debugging the main transform-pet workflow, confirm that **production** webhooks work on your n8n instance (and that the app can reach them).
+
+1. **In n8n:** Import the test workflow: **[`docs/n8n-test-production-url.json`](./n8n-test-production-url.json)**  
+   (One Webhook node, path `test-production-url`, responds immediately.)
+
+2. **Activate it:** Turn the **Active** toggle **on** (top right). Save.
+
+3. **Copy the Production URL:** Open the Webhook node → **Production** tab → copy the URL (e.g. `https://n8n.srv943460.hstgr.cloud/webhook/test-production-url`).
+
+4. **Point the app at it:** In **Netlify** → Site settings → **Environment variables** → set **N8N_WEBHOOK_URL** to that URL. **Trigger a new deploy** so the change is used.
+
+5. **Ping from the app:** Open **https://fluffyfriends-dev.netlify.app/test-n8n** and click **“Ping webhook”**.
+
+6. **Check the result:**
+   - **OK: Yes, Status: 200**, body like `{"message":"Workflow was started"}` → production webhooks work. In n8n, open **Executions** and you should see a new execution for this workflow.
+   - **OK: No**, timeout, or 404 → the app cannot reach the production webhook (wrong URL, workflow not active, or host/firewall issue).
+
+7. **Switch back to transform-pet:** Set **N8N_WEBHOOK_URL** in Netlify to your **transform-pet** production URL (e.g. `.../webhook/transform-pet`), redeploy, and ensure the **transform-pet** workflow is **Active**.
+
+---
+
 ## Reference workflow (do not break)
 
 **Stored working export:** [`docs/n8n-fluffyfriends-working.json`](./n8n-fluffyfriends-working.json)

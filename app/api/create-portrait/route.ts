@@ -75,18 +75,36 @@ export async function POST(request: NextRequest) {
 
   const payload = { test_image: uploadUrl, pet_name: petName, name: petName }
 
-  fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  }).catch((err) => {
-    console.error("Error dispatching to n8n webhook", err)
-  })
+  let webhookOk = false
+  let webhookStatus: number | null = null
+  let webhookError: string | null = null
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    })
+    clearTimeout(timeout)
+    webhookStatus = res.status
+    webhookOk = res.ok
+    if (!res.ok) {
+      const text = await res.text().catch(() => "")
+      webhookError = text.slice(0, 200) || res.statusText
+    }
+  } catch (err) {
+    webhookError = err instanceof Error ? err.message : "Request failed"
+  }
 
   return NextResponse.json({
     queued: true,
     upload_url: uploadUrl,
     pet_name: petName,
     message: "Your portrait is being created. It may take a few minutes.",
+    webhook_ok: webhookOk,
+    ...(webhookStatus != null && { webhook_status: webhookStatus }),
+    ...(webhookError && { webhook_error: webhookError }),
   })
 }

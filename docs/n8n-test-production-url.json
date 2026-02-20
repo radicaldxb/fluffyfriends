@@ -1,0 +1,31 @@
+{
+  "name": "FluffyFriends – Test production URL",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-production-url",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-144, 32],
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Webhook",
+      "webhookId": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "test-production-v1",
+  "meta": {},
+  "id": "test-production-url-workflow",
+  "tags": []
+}

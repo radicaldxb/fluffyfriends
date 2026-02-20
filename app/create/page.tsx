@@ -126,6 +126,15 @@ export default function CreatePortraitPage() {
         return
       }
 
+      if (data.webhook_ok === false) {
+        setStatus("error")
+        const detail = data.webhook_error || (data.webhook_status ? `Status ${data.webhook_status}` : "No response")
+        setMessage(
+          `Your photo was uploaded, but the workflow didn't start. n8n didn't accept the trigger (${detail}). Check that the transform-pet workflow is Active and N8N_WEBHOOK_URL uses the production URL (webhook/… not webhook-test/…).`
+        )
+        return
+      }
+
       uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
       processingStartedAtRef.current = Date.now()
       setStatus("processing")
