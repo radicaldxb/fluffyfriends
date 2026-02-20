@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
 
   let file: File
   let petName: string
+  let theme: string
 
   try {
     const formData = await request.formData()
@@ -44,6 +45,13 @@ export async function POST(request: NextRequest) {
     }
 
     petName = (formData.get("pet_name") ?? formData.get("name") ?? "").toString().trim() || "My Pet"
+    theme = (formData.get("theme") ?? "").toString().trim()
+    if (!theme || !["fireman", "spaceman"].includes(theme.toLowerCase())) {
+      return NextResponse.json(
+        { error: "Please select a valid theme (fireman or spaceman)." },
+        { status: 400 }
+      )
+    }
   } catch (e) {
     return NextResponse.json(
       { error: "Invalid form data.", details: e instanceof Error ? e.message : String(e) },
@@ -73,7 +81,7 @@ export async function POST(request: NextRequest) {
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
   const uploadUrl = urlData.publicUrl
 
-  const payload = { test_image: uploadUrl, pet_name: petName, name: petName }
+  const payload = { test_image: uploadUrl, pet_name: petName, name: petName, theme: theme.toLowerCase() }
 
   let webhookOk = false
   let webhookStatus: number | null = null

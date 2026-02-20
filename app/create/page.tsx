@@ -10,8 +10,10 @@ import { supabase } from "@/lib/supabase"
 import Image from "next/image"
 
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
+type Theme = "fireman" | "spaceman"
 
 export default function CreatePortraitPage() {
+  const [theme, setTheme] = useState<Theme | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [petName, setPetName] = useState("")
@@ -103,7 +105,7 @@ export default function CreatePortraitPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!file) return
+    if (!file || !theme) return
 
     setStatus("uploading")
     setMessage("")
@@ -111,6 +113,7 @@ export default function CreatePortraitPage() {
     try {
       const formData = new FormData()
       formData.set("file", file)
+      formData.set("theme", theme)
       if (petName.trim()) formData.set("pet_name", petName.trim())
 
       const res = await fetch("/api/create-portrait", {
@@ -146,6 +149,7 @@ export default function CreatePortraitPage() {
   }
 
   function handleReset() {
+    setTheme(null)
     setFile(null)
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
@@ -174,11 +178,86 @@ export default function CreatePortraitPage() {
             Upload your pet photo
           </h1>
           <p className="mt-4 text-pretty text-muted-foreground">
-            We'll turn it into a unique portrait in our signature style. Upload a clear photo of your pet; the rest is automatic.
+            Choose a theme, then upload a clear photo of your pet. We'll create a unique portrait in that style.
           </p>
 
           {(status === "idle" || status === "uploading" || status === "error") && (
             <form onSubmit={handleSubmit} className="mt-10 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-3">
+                  Choose a theme
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setTheme("fireman")}
+                    disabled={status === "uploading"}
+                    className={cn(
+                      "rounded-organic border-2 overflow-hidden text-left transition-all",
+                      theme === "fireman"
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-card hover:border-primary/50",
+                      status === "uploading" && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="relative aspect-square w-full bg-muted">
+                      <Image
+                        src="/images/themes/fireman-preview.jpg"
+                        alt="Fireman theme preview"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        onError={(e) => {
+                          // Hide image if file doesn't exist yet
+                          e.currentTarget.style.display = "none"
+                        }}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <div className="font-heading text-lg font-bold text-foreground">Fireman</div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Classic firefighter style
+                      </p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("spaceman")}
+                    disabled={status === "uploading"}
+                    className={cn(
+                      "rounded-organic border-2 overflow-hidden text-left transition-all",
+                      theme === "spaceman"
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-card hover:border-primary/50",
+                      status === "uploading" && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <div className="relative aspect-square w-full bg-muted">
+                      <Image
+                        src="/images/themes/spaceman-preview.jpg"
+                        alt="Spaceman theme preview"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        onError={(e) => {
+                          // Hide image if file doesn't exist yet
+                          e.currentTarget.style.display = "none"
+                        }}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <div className="font-heading text-lg font-bold text-foreground">Spaceman</div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Futuristic astronaut style
+                      </p>
+                    </div>
+                  </button>
+                </div>
+                {!theme && (
+                  <p className="mt-2 text-sm text-destructive">Please select a theme</p>
+                )}
+              </div>
+
               <div>
                 <label htmlFor="pet-photo" className="block text-sm font-medium text-foreground">
                   Pet photo
@@ -226,7 +305,7 @@ export default function CreatePortraitPage() {
 
               <Button
                 type="submit"
-                disabled={!file || status === "uploading"}
+                disabled={!file || !theme || status === "uploading"}
                 className="w-full rounded-organic-sm sm:w-auto"
               >
                 {status === "uploading" ? "Uploading…" : "Create my portrait"}

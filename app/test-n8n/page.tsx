@@ -240,14 +240,14 @@ export default function TestN8nPage() {
           Test n8n webhook
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Send a test payload to your n8n webhook (N8N_WEBHOOK_URL in .env.local).
+          Send a test payload to your n8n webhook (N8N_WEBHOOK_URL; optional N8N_PING_WEBHOOK_URL for Ping).
         </p>
 
         {/* Test webhook connectivity: ping and see response time */}
         <section className="mt-8 rounded-organic border border-border bg-muted/30 p-6">
           <h2 className="font-heading text-lg font-bold text-foreground">Test webhook connectivity</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ping the URL in N8N_WEBHOOK_URL. Use the diagnostic workflow (path <code className="rounded bg-muted px-1 py-0.5 text-xs">diagnostic-ping</code>) in n8n and set that URL here to verify the app can reach n8n immediately.
+            Ping uses <code className="rounded bg-muted px-1 py-0.5 text-xs">N8N_PING_WEBHOOK_URL</code> if set, else <code className="rounded bg-muted px-1 py-0.5 text-xs">N8N_WEBHOOK_URL</code>. Set both in Netlify so /create uses transform-pet and Ping uses test-production-url without swapping.
           </p>
           <Button
             type="button"

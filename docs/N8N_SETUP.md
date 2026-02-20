@@ -25,13 +25,16 @@ Before debugging the main transform-pet workflow, confirm that **production** we
 
 7. **Switch back to transform-pet:** Set **N8N_WEBHOOK_URL** in Netlify to your **transform-pet** production URL (e.g. `.../webhook/transform-pet`), redeploy, and ensure the **transform-pet** workflow is **Active**.
 
+**Optional – keep both URLs:** You can set **two** variables in Netlify so you never have to swap: **N8N_WEBHOOK_URL** = transform-pet (for /create), **N8N_PING_WEBHOOK_URL** = test-production-url (for the “Ping webhook” button on /test-n8n). The Ping button uses `N8N_PING_WEBHOOK_URL` if set, otherwise `N8N_WEBHOOK_URL`.
+
 ---
 
-## Reference workflow (do not break)
+## Reference workflow (do not break) – locked fallback
 
-**Stored working export:** [`docs/n8n-fluffyfriends-working.json`](./n8n-fluffyfriends-working.json)
+**Locked workflow file:** [`docs/n8n-fluffyfriends-working.json`](./n8n-fluffyfriends-working.json)  
+**Full fallback guide:** [**docs/WORKFLOW_FALLBACK.md**](./WORKFLOW_FALLBACK.md)
 
-This is the known-good n8n workflow that works with the FluffyFriends app. When changing the flow, import or compare against this file so the webhook → GEMINI → Supabase/Next.js pipeline stays intact.
+This is the **canonical** n8n workflow for FluffyFriends. It is locked in the repo as the fallback: if the workflow in n8n is broken or lost, re-import from this file (see WORKFLOW_FALLBACK.md for restore steps). When changing the flow in n8n, export a new known-good version and replace the file; do not edit the JSON by hand.
 
 ---
 

@@ -1,0 +1,24 @@
+# Theme preview images for selection UI
+
+Place preview images here for the theme selection on `/create`:
+
+- **fireman-preview.jpg** (or `.webp`) - Preview shown when user selects Fireman theme
+- **spaceman-preview.jpg** (or `.webp`) - Preview shown when user selects Spaceman theme
+
+## Image requirements
+
+- **Format:** JPEG or WebP
+- **Size:** Square or vertical format recommended (e.g., 400x400px or 400x600px)
+- **Purpose:** Visual preview to help users choose a theme
+- **Optimization:** Compress for web (aim for <200KB per image)
+
+## Usage
+
+The images are automatically displayed in the theme selection buttons on `/create`. If an image is missing, the button will show a placeholder background and the image will be hidden gracefully.
+
+## Adding new themes
+
+1. Add the preview image here: `{theme-name}-preview.jpg`
+2. Update `app/create/page.tsx` to include the new theme option
+3. Update `app/api/create-portrait/route.ts` validation to include the new theme
+4. Update n8n workflow to handle the new theme (see `docs/N8N_THEME_SELECTION.md`)
