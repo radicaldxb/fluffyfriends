@@ -20,26 +20,39 @@ export default function CreatePortraitPage() {
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null)
   const [resultPetName, setResultPetName] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadUrlRef = useRef<string | null>(null)
+  const processingStartedAtRef = useRef<number>(0)
 
   useEffect(() => {
     if (status === "processing") {
       const interval = setInterval(async () => {
         try {
-          const { data, error } = await supabase
+          const { data: rows, error } = await supabase
             .from("pet_portraits")
-            .select("image_url, created_at, pet_name")
+            .select("image_url, created_at, pet_name, original_image_url")
             .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle()
+            .limit(15)
 
           if (error) {
             console.error("Poll error:", error)
             return
           }
 
-          if (data?.image_url) {
-            setResultImageUrl(data.image_url)
-            setResultPetName(data.pet_name ?? null)
+          const startedAt = processingStartedAtRef.current
+          const uploadUrl = uploadUrlRef.current
+          const cutoff = startedAt - 5000
+
+          const withOriginal = (row: { original_image_url?: string }) => (row as { original_image_url?: string }).original_image_url
+          const exactMatch = (rows ?? []).find(
+            (row) => row?.image_url && uploadUrl && withOriginal(row) === uploadUrl
+          )
+          const newestAfterStart = (rows ?? []).find(
+            (row) => row?.image_url && new Date(row.created_at).getTime() >= cutoff
+          )
+          const matched = exactMatch ?? newestAfterStart
+          if (matched?.image_url) {
+            setResultImageUrl(matched.image_url)
+            setResultPetName(matched.pet_name ?? null)
             setStatus("success")
           }
         } catch (err) {
@@ -113,6 +126,8 @@ export default function CreatePortraitPage() {
         return
       }
 
+      uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
+      processingStartedAtRef.current = Date.now()
       setStatus("processing")
       setMessage("We're creating your portrait. This usually takes a few minutes.")
     } catch (err) {
@@ -132,6 +147,8 @@ export default function CreatePortraitPage() {
     setMessage("")
     setResultImageUrl(null)
     setResultPetName(null)
+    uploadUrlRef.current = null
+    processingStartedAtRef.current = 0
     fileInputRef.current?.value && (fileInputRef.current.value = "")
   }
 

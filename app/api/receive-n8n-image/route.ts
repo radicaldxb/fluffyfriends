@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
         pet_name: petName,
         status: status,
         user_email: userEmail,
+        ...(typeof originalImageUrl === "string" && originalImageUrl && { original_image_url: originalImageUrl }),
       })
 
       if (insertError) {
