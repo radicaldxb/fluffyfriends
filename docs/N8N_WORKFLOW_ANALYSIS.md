@@ -23,7 +23,7 @@
 
 ### ❌ Issue 3: Hardcoded Gemini API Key (SECURITY RISK)
 **Location:** GEMINI node (line 134)
-- **Current:** `key=AIzaSyDHLTLbvcvtW5rwsekP8VrXu-xOiUDbVds`
+- **Current:** `key=YOUR_GEMINI_API_KEY` (redacted - replace with your actual key)
 - **Risk:** API key is exposed in the workflow JSON
 - **Impact:** Security vulnerability, key could be compromised
 
@@ -95,7 +95,7 @@
 
 ### Fix 3: Gemini API Key
 1. Click GEMINI node
-2. In URL field, replace `AIzaSyDHLTLbvcvtW5rwsekP8VrXu-xOiUDbVds` with `YOUR_GEMINI_API_KEY`
+2. In URL field, replace `YOUR_GEMINI_API_KEY` placeholder with your actual API key
 3. Or better: Set up n8n credential and reference it
 4. **Rotate the exposed key** in Google Cloud Console
 5. Save workflow
@@ -132,7 +132,7 @@
 
 ## Security Note
 
-⚠️ **URGENT:** The Gemini API key `AIzaSyDHLTLbvcvtW5rwsekP8VrXu-xOiUDbVds` is exposed. You should:
+⚠️ **URGENT:** If you see an exposed Gemini API key in your workflow, you should:
 1. Rotate it immediately in Google Cloud Console
 2. Replace it in the workflow
 3. Never commit workflow JSONs with real API keys

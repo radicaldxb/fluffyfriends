@@ -12,7 +12,7 @@
 
 **Current:** URL contains exposed API key:
 ```
-https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=AIzaSyDHLTLbvcvtW5rwsekP8VrXu-xOiUDbVds
+https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=YOUR_GEMINI_API_KEY
 ```
 
 **Steps:**
