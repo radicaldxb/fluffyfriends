@@ -7,11 +7,14 @@
   publish = ".next"
 
 [build.environment]
-  # Environment variables available at build and runtime
-  NEXT_PUBLIC_SUPABASE_URL = "https://mblnpneghvkfmbgmbrco.supabase.co"
-  NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_eigN9VshsqrTV5jXD4nFjw_9CKI6pnQ"
-  # Use PRODUCTION URL so the workflow picks up triggers when Active (not webhook-test).
-N8N_WEBHOOK_URL = "https://n8n.srv943460.hstgr.cloud/webhook/transform-pet"
+  # Environment variables should be set in Netlify UI (Site settings → Environment variables)
+  # Do not commit actual keys/URLs here - they will be detected by secrets scanning
+  # Required variables:
+  #   NEXT_PUBLIC_SUPABASE_URL = your Supabase project URL
+  #   NEXT_PUBLIC_SUPABASE_ANON_KEY = your Supabase anon key
+  #   N8N_WEBHOOK_URL = your n8n production webhook URL (e.g. .../webhook/transform-pet)
+  # Optional:
+  #   N8N_PING_WEBHOOK_URL = test-production-url webhook (for Ping button on /test-n8n)
 
 # Optional: N8N_PING_WEBHOOK_URL = your test-production-url (for "Ping webhook" on /test-n8n).
 # If set, Ping uses it; /create always uses N8N_WEBHOOK_URL. Add in Netlify UI.
