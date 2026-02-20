@@ -10,10 +10,12 @@ import { supabase } from "@/lib/supabase"
 import Image from "next/image"
 
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
-type Theme = "fireman" | "spaceman"
+
+type ThemeItem = { id: string; name: string; previewUrl: string }
 
 export default function CreatePortraitPage() {
-  const [theme, setTheme] = useState<Theme | null>(null)
+  const [themes, setThemes] = useState<ThemeItem[]>([])
+  const [theme, setTheme] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [petName, setPetName] = useState("")
@@ -82,6 +84,34 @@ export default function CreatePortraitPage() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  // Load themes from API (data-driven; new themes appear without code change)
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/themes")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && Array.isArray(data.themes) && data.themes.length > 0) {
+          setThemes(data.themes)
+        } else if (!cancelled) {
+          setThemes([
+            { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
+            { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+          ])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setThemes([
+            { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
+            { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+          ])
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0]
@@ -234,70 +264,44 @@ export default function CreatePortraitPage() {
                   Choose a theme
                 </label>
                 <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setTheme("fireman")}
-                    disabled={status === "uploading"}
-                    className={cn(
-                      "rounded-organic border-2 overflow-hidden text-left transition-all",
-                      theme === "fireman"
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-card hover:border-primary/50",
-                      status === "uploading" && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <div className="relative aspect-square w-full bg-muted">
-                      <Image
-                        src="/images/themes/fireman-preview.webp"
-                        alt="Fireman theme preview"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                        onError={(e) => {
-                          // Hide image if file doesn't exist yet
-                          e.currentTarget.style.display = "none"
-                        }}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <div className="font-heading text-lg font-bold text-foreground">Fireman</div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Classic firefighter style
-                      </p>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTheme("spaceman")}
-                    disabled={status === "uploading"}
-                    className={cn(
-                      "rounded-organic border-2 overflow-hidden text-left transition-all",
-                      theme === "spaceman"
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-card hover:border-primary/50",
-                      status === "uploading" && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    <div className="relative aspect-square w-full bg-muted">
-                      <Image
-                        src="/images/themes/spaceman-preview.webp"
-                        alt="Spaceman theme preview"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                        onError={(e) => {
-                          // Hide image if file doesn't exist yet
-                          e.currentTarget.style.display = "none"
-                        }}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <div className="font-heading text-lg font-bold text-foreground">Spaceman</div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Futuristic astronaut style
-                      </p>
-                    </div>
-                  </button>
+                  {themes.length === 0 ? (
+                    <p className="col-span-2 text-sm text-muted-foreground">Loading themes…</p>
+                  ) : (
+                    themes.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTheme(t.id)}
+                        disabled={status === "uploading"}
+                        className={cn(
+                          "rounded-organic border-2 overflow-hidden text-left transition-all",
+                          theme === t.id
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-card hover:border-primary/50",
+                          status === "uploading" && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        <div className="relative aspect-square w-full bg-muted">
+                          <Image
+                            src={t.previewUrl}
+                            alt={`${t.name} theme preview`}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none"
+                            }}
+                          />
+                        </div>
+                        <div className="p-4">
+                          <div className="font-heading text-lg font-bold text-foreground">{t.name}</div>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Create a portrait in this style
+                          </p>
+                        </div>
+                      </button>
+                    ))
+                  )}
                 </div>
                 {!theme && (
                   <p className="mt-2 text-sm text-destructive">Please select a theme</p>

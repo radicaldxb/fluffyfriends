@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { getActiveThemes, getPromptForTheme } from "@/lib/theme-prompts"
 
 const BUCKET = "images"
 const UPLOAD_PREFIX = "uploads"
@@ -47,9 +48,9 @@ export async function POST(request: NextRequest) {
 
     petName = (formData.get("pet_name") ?? formData.get("name") ?? "").toString().trim() || "My Pet"
     theme = (formData.get("theme") ?? "").toString().trim()
-    if (!theme || !["fireman", "spaceman"].includes(theme.toLowerCase())) {
+    if (!theme) {
       return NextResponse.json(
-        { error: "Please select a valid theme (fireman or spaceman)." },
+        { error: "Please select a theme." },
         { status: 400 }
       )
     }
@@ -68,6 +69,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Server configuration error: Supabase credentials not configured." },
       { status: 500 }
+    )
+  }
+
+  // Validate theme against active themes in DB (single source of truth)
+  const normalizedTheme = theme.toLowerCase()
+  const validThemes = await getActiveThemes()
+  if (!validThemes.includes(normalizedTheme)) {
+    return NextResponse.json(
+      { error: "Please select a valid theme." },
+      { status: 400 }
     )
   }
 
@@ -116,7 +127,16 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const payload = { test_image: uploadUrl, pet_name: petName, name: petName, theme: theme.toLowerCase() }
+  // Fetch prompt from Supabase (with fallback)
+  const prompt = await getPromptForTheme(normalizedTheme)
+
+  const payload = { 
+    test_image: uploadUrl, 
+    pet_name: petName, 
+    name: petName, 
+    theme: normalizedTheme,
+    prompt: prompt
+  }
 
   let webhookOk = false
   let webhookStatus: number | null = null
@@ -141,15 +161,25 @@ export async function POST(request: NextRequest) {
     webhookError = err instanceof Error ? err.message : "Request failed"
   }
 
-    return NextResponse.json({
-      queued: true,
-      upload_url: uploadUrl,
-      pet_name: petName,
-      message: "Your portrait is being created. It may take a few minutes.",
-      webhook_ok: webhookOk,
-      ...(webhookStatus != null && { webhook_status: webhookStatus }),
-      ...(webhookError && { webhook_error: webhookError }),
-    })
+  // If n8n did not accept the job, return error so the user gets honest feedback
+  if (!webhookOk) {
+    console.error("[create-portrait] Webhook failed:", { webhookStatus, webhookError })
+    return NextResponse.json(
+      {
+        error: "Portrait creation is temporarily unavailable. Please try again in a moment.",
+        ...(webhookStatus != null && { webhook_status: webhookStatus }),
+        ...(webhookError && { webhook_error: webhookError }),
+      },
+      { status: 503 }
+    )
+  }
+
+  return NextResponse.json({
+    queued: true,
+    upload_url: uploadUrl,
+    pet_name: petName,
+    message: "Your portrait is being created. It may take a few minutes.",
+  })
   } catch (error) {
     // Log full error details for debugging
     const errorId = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`

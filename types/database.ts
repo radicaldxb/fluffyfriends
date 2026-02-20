@@ -1,6 +1,6 @@
 /**
  * Database types for Supabase schema sync.
- * Matches public.pet_portraits table: id, created_at, image_url, pet_name, status, user_email
+ * Matches public.pet_portraits and public.theme_prompts tables
  */
 
 export type PetPortrait = {
@@ -20,6 +20,22 @@ export type PetPortraitInsert = {
   user_email?: string | null
 }
 
+export type ThemePrompt = {
+  id: string
+  theme_name: string
+  prompt: string
+  created_at: string
+  updated_at: string
+  active: boolean
+}
+
+/** Insert payload for theme_prompts (id, created_at, updated_at are generated) */
+export type ThemePromptInsert = {
+  theme_name: string
+  prompt: string
+  active?: boolean
+}
+
 /** Supabase Database type for typed client (optional) */
 export type Database = {
   public: {
@@ -31,6 +47,15 @@ export type Database = {
           created_at?: string
         }
         Update: Partial<PetPortraitInsert>
+      }
+      theme_prompts: {
+        Row: ThemePrompt
+        Insert: ThemePromptInsert & {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: Partial<ThemePromptInsert>
       }
     }
   }

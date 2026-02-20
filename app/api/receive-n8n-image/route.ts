@@ -2,9 +2,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 
 const BUCKET = "images"
-const WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET // Optional: for security
+const WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET?.trim()
 
 export async function POST(request: NextRequest) {
+  // Verify webhook secret when configured (prevents unauthorized callbacks)
+  if (WEBHOOK_SECRET) {
+    const provided =
+      request.headers.get("x-webhook-secret") ??
+      request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim()
+    if (provided !== WEBHOOK_SECRET) {
+      return NextResponse.json(
+        { error: "Unauthorized. Provide valid X-Webhook-Secret or Authorization: Bearer <secret>." },
+        { status: 401 }
+      )
+    }
+  }
+
   let body: Record<string, unknown>
   try {
     const raw = await request.text()
