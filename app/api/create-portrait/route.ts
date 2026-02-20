@@ -8,19 +8,20 @@ const MAX_BYTES = MAX_SIZE_MB * 1024 * 1024
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]
 
 export async function POST(request: NextRequest) {
-  const webhookUrl = process.env.N8N_WEBHOOK_URL?.trim()
-  if (!webhookUrl) {
-    return NextResponse.json(
-      { error: "Portrait creation is not configured (N8N_WEBHOOK_URL missing)." },
-      { status: 503 }
-    )
-  }
-
-  let file: File
-  let petName: string
-  let theme: string
-
   try {
+    const webhookUrl = process.env.N8N_WEBHOOK_URL?.trim()
+    if (!webhookUrl) {
+      return NextResponse.json(
+        { error: "Portrait creation is not configured (N8N_WEBHOOK_URL missing)." },
+        { status: 503 }
+      )
+    }
+
+    let file: File
+    let petName: string
+    let theme: string
+
+    try {
     const formData = await request.formData()
     const rawFile = formData.get("file") ?? formData.get("image")
     if (!rawFile || !(rawFile instanceof File)) {
@@ -106,13 +107,24 @@ export async function POST(request: NextRequest) {
     webhookError = err instanceof Error ? err.message : "Request failed"
   }
 
-  return NextResponse.json({
-    queued: true,
-    upload_url: uploadUrl,
-    pet_name: petName,
-    message: "Your portrait is being created. It may take a few minutes.",
-    webhook_ok: webhookOk,
-    ...(webhookStatus != null && { webhook_status: webhookStatus }),
-    ...(webhookError && { webhook_error: webhookError }),
-  })
+    return NextResponse.json({
+      queued: true,
+      upload_url: uploadUrl,
+      pet_name: petName,
+      message: "Your portrait is being created. It may take a few minutes.",
+      webhook_ok: webhookOk,
+      ...(webhookStatus != null && { webhook_status: webhookStatus }),
+      ...(webhookError && { webhook_error: webhookError }),
+    })
+  } catch (error) {
+    // Ensure we always return valid JSON, even on unexpected errors
+    console.error("Error in create-portrait API:", error)
+    return NextResponse.json(
+      {
+        error: "An unexpected error occurred while processing your request.",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    )
+  }
 }

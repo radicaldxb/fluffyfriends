@@ -121,7 +121,29 @@ export default function CreatePortraitPage() {
         body: formData,
       })
 
-      const data = await res.json()
+      // Check if response is actually JSON before parsing
+      const contentType = res.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text()
+        setStatus("error")
+        setMessage(`Server error: ${text || `Unexpected response (${res.status})`}`)
+        return
+      }
+
+      let data
+      try {
+        const text = await res.text()
+        if (!text) {
+          setStatus("error")
+          setMessage(`Empty response from server (${res.status})`)
+          return
+        }
+        data = JSON.parse(text)
+      } catch (parseError) {
+        setStatus("error")
+        setMessage(`Invalid response from server: ${parseError instanceof Error ? parseError.message : "JSON parse error"}`)
+        return
+      }
 
       if (!res.ok) {
         setStatus("error")
