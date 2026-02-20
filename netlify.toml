@@ -10,7 +10,8 @@
   # Environment variables available at build and runtime
   NEXT_PUBLIC_SUPABASE_URL = "https://mblnpneghvkfmbgmbrco.supabase.co"
   NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_eigN9VshsqrTV5jXD4nFjw_9CKI6pnQ"
-  N8N_WEBHOOK_URL = "https://n8n.srv943460.hstgr.cloud/webhook-test/transform-pet"
+  # Use PRODUCTION URL so the workflow picks up triggers when Active (not webhook-test).
+N8N_WEBHOOK_URL = "https://n8n.srv943460.hstgr.cloud/webhook/transform-pet"
 
 # IMPORTANT: Also add these in Netlify UI for reliability:
 # Site settings → Build & deploy → Environment variables
