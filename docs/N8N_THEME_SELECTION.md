@@ -1,8 +1,52 @@
 # n8n workflow: Theme selection
 
-This doc explains how to update the n8n workflow to support theme selection (Fireman vs Spaceman).
+This doc explains how to update the n8n workflow to support theme selection using **Supabase Storage** (recommended) or Google Drive.
 
-## Current structure (single theme)
+**Recommended:** Use Supabase Storage (see `docs/THEME_STORAGE_MIGRATION.md` for full migration guide). It's more reliable and easier to scale.
+
+---
+
+## Option A: Supabase Storage (recommended)
+
+### Structure
+
+```
+Webhook
+  ↓
+Edit Fields
+  ↓
+HTTP Request (fetch theme from Supabase) → Extract from File → Merge (input 0)
+HTTP Request (pet) → Extract from File → Merge (input 1)
+  ↓
+Merge → GEMINI → Convert to File → Supabase
+```
+
+**No IF node needed** — the HTTP Request URL is dynamic based on `$json.theme`.
+
+### Implementation
+
+1. **Replace Google Drive nodes** with a single HTTP Request node:
+   - **Method:** GET
+   - **URL (Expression):**
+     ```javascript
+     ={{ `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project-ref.supabase.co'}/storage/v1/object/public/images/themes/${$json.theme}-master.png` }}
+     ```
+     
+     **Note:** Change `.png` to `.jpg` or `.webp` if your files use a different extension.
+   - **Response Format:** File
+   - **Name:** "Fetch Theme Image"
+
+2. **Connect:** Edit Fields → Fetch Theme Image → Extract from File → Merge (input 0)
+
+3. **Update GEMINI node** to reference Extract from File (after Fetch Theme Image) or Merge's first input.
+
+**Benefits:** No credentials, no IF node, easy to add themes (just upload to Supabase).
+
+---
+
+## Option B: Google Drive (legacy)
+
+### Current structure (single theme)
 
 ```
 Webhook
@@ -15,7 +59,7 @@ HTTP Request (pet) → Extract from File → Merge (input 1)
 Merge → GEMINI → Convert to File → Supabase
 ```
 
-## New structure (theme selection)
+### New structure (theme selection with Google Drive)
 
 ```
 Webhook
@@ -32,7 +76,7 @@ Merge → GEMINI → Convert to File → Supabase
 
 ---
 
-## Step-by-step changes in n8n
+## Step-by-step changes in n8n (Google Drive approach)
 
 ### 1. Add IF node for theme selection
 
@@ -112,6 +156,8 @@ Or keep it generic: "Apply the style from Image 2 to the pet in Image 1."
 
 ## Notes
 
-- **File IDs:** See `docs/THEME_FILES.md` for Google Drive file IDs.
+- **Recommended:** Use Supabase Storage instead (see `docs/THEME_STORAGE_MIGRATION.md`). No IF node needed, no credentials, easier to scale.
+- **File IDs:** See `docs/THEME_FILES.md` for Google Drive file IDs (if using Google Drive).
 - **Fallback:** If theme is missing or invalid, the API returns 400, so n8n won't receive invalid themes.
-- **Adding themes:** To add more themes, add branches to the IF node (or use a Switch node) and add corresponding Download + Extract nodes.
+- **Adding themes (Google Drive):** Add branches to the IF node (or use a Switch node) and add corresponding Download + Extract nodes.
+- **Adding themes (Supabase):** Just upload `{theme}-master.jpg` to Supabase Storage → `images/themes/` — no n8n changes needed!

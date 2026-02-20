@@ -1,6 +1,8 @@
-# Theme reference images (Google Drive)
+# Theme reference images
 
-The n8n workflow downloads theme reference images from Google Drive. Each theme has a master image file that Gemini uses as the style reference.
+**Recommended:** Use **Supabase Storage** (see `docs/THEME_STORAGE_MIGRATION.md`). This doc covers Google Drive (legacy).
+
+The n8n workflow can download theme reference images from Google Drive or Supabase Storage. Each theme has a master image file that Gemini uses as the style reference.
 
 ## Current themes
 
