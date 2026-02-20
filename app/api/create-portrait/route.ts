@@ -60,27 +60,61 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Check Supabase environment variables before attempting upload
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("[create-portrait] Missing Supabase environment variables")
+    return NextResponse.json(
+      { error: "Server configuration error: Supabase credentials not configured." },
+      { status: 500 }
+    )
+  }
+
   const ext = file.name.split(".").pop()?.toLowerCase() || (file.type === "image/png" ? "png" : "jpg")
   const path = `${UPLOAD_PREFIX}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
 
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, buffer, {
-    contentType: file.type,
-    cacheControl: "3600",
-    upsert: false,
-  })
+  let uploadError
+  try {
+    const result = await supabase.storage.from(BUCKET).upload(path, buffer, {
+      contentType: file.type,
+      cacheControl: "3600",
+      upsert: false,
+    })
+    uploadError = result.error
+  } catch (supabaseError) {
+    console.error("[create-portrait] Supabase upload exception:", supabaseError)
+    return NextResponse.json(
+      { 
+        error: "Failed to upload image to storage.",
+        details: supabaseError instanceof Error ? supabaseError.message : String(supabaseError)
+      },
+      { status: 500 }
+    )
+  }
 
   if (uploadError) {
+    console.error("[create-portrait] Supabase upload error:", uploadError)
     return NextResponse.json(
       { error: `Upload failed: ${uploadError.message}. Ensure Storage allows uploads to images/${UPLOAD_PREFIX}/.` },
       { status: 500 }
     )
   }
 
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  const uploadUrl = urlData.publicUrl
+  let uploadUrl
+  try {
+    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
+    uploadUrl = urlData.publicUrl
+  } catch (urlError) {
+    console.error("[create-portrait] Failed to get public URL:", urlError)
+    return NextResponse.json(
+      { error: "Failed to generate image URL." },
+      { status: 500 }
+    )
+  }
 
   const payload = { test_image: uploadUrl, pet_name: petName, name: petName, theme: theme.toLowerCase() }
 
