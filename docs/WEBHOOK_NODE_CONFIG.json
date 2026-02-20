@@ -1,0 +1,11 @@
+{
+  "parameters": {
+    "httpMethod": "POST",
+    "path": "transform-pet",
+    "responseMode": "onReceived",
+    "options": {}
+  },
+  "type": "n8n-nodes-base.webhook",
+  "typeVersion": 2.1,
+  "name": "Webhook"
+}

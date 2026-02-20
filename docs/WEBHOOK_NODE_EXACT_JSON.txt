@@ -1,0 +1,32 @@
+Copy this exact JSON for your Webhook node:
+
+{
+  "parameters": {
+    "httpMethod": "POST",
+    "path": "transform-pet",
+    "responseMode": "onReceived",
+    "options": {}
+  },
+  "type": "n8n-nodes-base.webhook",
+  "typeVersion": 2.1,
+  "name": "Webhook"
+}
+
+---
+
+If you need the full node with position/ID (for importing), use this:
+
+{
+  "parameters": {
+    "httpMethod": "POST",
+    "path": "transform-pet",
+    "responseMode": "onReceived",
+    "options": {}
+  },
+  "type": "n8n-nodes-base.webhook",
+  "typeVersion": 2.1,
+  "position": [-1600, 1632],
+  "id": "477e84a8-8c07-4bcc-9bd1-8943026c06d2",
+  "name": "Webhook",
+  "webhookId": "7cb07fbe-ce9f-4a18-8ded-2bd4fcdbae56"
+}
