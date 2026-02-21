@@ -136,6 +136,11 @@ export async function POST(request: NextRequest) {
     const petName = body.pet_name || body.name || null
     const userEmail = body.user_email || null
     const status = body.status || "completed"
+    // Only treat as consented when explicitly true; missing or invalid => false (don't show in gallery)
+    const showcaseConsent =
+      body.showcase_consent === true || body.showcase_consent === "true" || body.showcase_consent === "1"
+        ? true
+        : false
 
     // Try to find existing record by original_image_url or pet_name
     let recordId: string | null = null
@@ -163,6 +168,7 @@ export async function POST(request: NextRequest) {
         .update({
           image_url: publicUrl,
           status: status,
+          showcase_consent: showcaseConsent,
         })
         .eq("id", recordId)
 
@@ -177,6 +183,7 @@ export async function POST(request: NextRequest) {
         pet_name: petName,
         status: status,
         user_email: userEmail,
+        showcase_consent: showcaseConsent,
         ...(typeof originalImageUrl === "string" && originalImageUrl && { original_image_url: originalImageUrl }),
       })
 

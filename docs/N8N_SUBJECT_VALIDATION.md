@@ -117,6 +117,109 @@ Connect **IF (False)** to your existing **Merge** node (the one that has **Extra
 
 The app already handles rejection: it polls `pet_portraits` and shows `rejection_reason` when `status = 'rejected'`.
 
+**Optional – gallery consent:** See the section below for detailed steps.
+
+---
+
+## Optional: Gallery consent (showcase in gallery)
+
+If you want the **public gallery** to show only portraits where the user checked “I give permission for FluffyFriends to showcase my pet's portrait”, you need to pass that choice from the app → n8n → callback and store it in the database. The app already sends it; you only need to forward it in n8n and ensure the callback body includes it.
+
+
+
+**Behaviour:** Only the **public gallery** (homepage section and `/gallery`) filters by `showcase_consent`. The **create flow** does **not** filter: after generation, the user **always** sees their own portrait on the success screen, whether or not they consented to showcase. So "no consent" only hides the portrait from the gallery, not from the creator.
+
+### What to update exactly
+
+| Step | Where | What to do |
+|------|--------|------------|
+| **1** | **Supabase** (SQL Editor) | Run once: `alter table public.pet_portraits add column if not exists showcase_consent boolean default true;` (see `supabase/run-add-showcase-consent.sql`). |
+| **2** | **n8n – Supabase node** | Open the **Supabase** HTTP Request node (the one that POSTs to `.../api/receive-n8n-image` with `image_base64` and `status: "completed"`). In its **JSON body**, add one field: `"showcase_consent": {{ $('Webhook').item.json.body.showcase_consent }}`. Save the workflow. |
+
+No app code changes are required. Only the **public gallery** filters by consent; the **create flow** never filters by it, so the user always sees their own portrait on the success screen after generation.
+
+### What "step 2" is
+
+**Step 2** means: in the **success path** of your workflow (after GEMINI has generated the portrait), the node that **POSTs the result to your app** (`/api/receive-n8n-image`) must send `showcase_consent` in the JSON body. That way the API can save it and the gallery can filter by it.
+
+### Which node to edit
+
+1. Open your **transform-pet** (or equivalent) workflow in n8n.
+2. Find the **HTTP Request** node that runs when the portrait is **successful** — the one that:
+   - **Method:** POST  
+   - **URL:** `https://your-site.netlify.app/api/receive-n8n-image`  
+   - **Body:** contains `image_base64`, `pet_name`, `original_image_url`, `status`  
+   The success-callback node is named **“Supabase”** (e.g. in repo `docs/n8n-fluffyfriends-working.json` or in **Fluffyfriends-11.json** “Fluffyfriends-Step 5”).
+3. That node is **not** the “Reject” node (which sends `rejected: true`). It’s the **Supabase** node that sends the **generated image** (base64) and `status: "completed"`.
+
+### What to add to the body
+
+In that node, the **JSON body** currently looks something like:
+
+```json
+{
+  "image_base64": "{{ $('GEMINI').item.json.candidates[0].content.parts[0].inlineData.data }}",
+  "pet_name": "{{ $json.pet_name || 'Test Pet' }}",
+  "original_image_url": "{{ $json.test_image || '' }}",
+  "status": "completed"
+}
+```
+
+Add **one more field** so the callback includes the user’s consent:
+
+- **Key:** `showcase_consent`  
+- **Value (n8n expression):** the same consent flag that the app sent in the webhook body when the user started the flow.
+
+The webhook receives the initial POST from your app with a `body` that includes `showcase_consent` (true/false). In n8n you reference that with the **Webhook** node’s output.
+
+**Option A – body is built from the node that has the webhook data**
+
+If the callback node gets data from a node that still has access to the webhook payload (e.g. from Merge, which often has access to the webhook item), use:
+
+- **Expression:** `{{ $('Webhook').item.json.body.showcase_consent }}`
+
+So add this line to the JSON body:
+
+```json
+"showcase_consent": {{ $('Webhook').item.json.body.showcase_consent }}
+```
+
+**Option B – body is built from a node that doesn’t have the webhook**
+
+If the callback node only receives data from e.g. “GEMINI” or “Convert to File”, you must still pull the consent from the **Webhook** node by name:
+
+- **Expression:** `{{ $('Webhook').item.json.body.showcase_consent }}`
+
+So in the **same** JSON body as above, add:
+
+```json
+"showcase_consent": {{ $('Webhook').item.json.body.showcase_consent }}
+```
+
+**Full example body (with consent):**
+
+```json
+{
+  "image_base64": "{{ $('GEMINI').item.json.candidates[0].content.parts[0].inlineData.data }}",
+  "pet_name": "{{ $json.pet_name || 'Test Pet' }}",
+  "original_image_url": "{{ $json.test_image || '' }}",
+  "status": "completed",
+  "showcase_consent": {{ $('Webhook').item.json.body.showcase_consent }}
+}
+```
+
+(If your node uses a different structure for the image or pet name, keep your existing fields and only add the `showcase_consent` line.)
+
+### Why this is “step 2”
+
+- **Step 1** is running the SQL in Supabase that adds the `showcase_consent` column to `pet_portraits` (see `supabase/run-add-showcase-consent.sql`).
+- **Step 2** is making sure n8n sends that value in the success callback so the API can store it. Without step 2, the API never receives `showcase_consent` and will fall back to its default (treat as consented for backward compatibility).
+
+### After you add it
+
+- When the user **checks** the optional “showcase my pet’s portrait” box, the app sends `showcase_consent: true` in the webhook payload → n8n forwards it → the API saves `showcase_consent: true` → the portrait appears in the gallery.
+- When the user **leaves it unchecked**, the app sends `showcase_consent: false` → n8n forwards it → the API saves `false` → the portrait is **not** shown in the gallery.
+
 ---
 
 ## Troubleshooting: "Two dogs still go through"

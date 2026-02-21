@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
 
     petName = (formData.get("pet_name") ?? formData.get("name") ?? "").toString().trim() || "My Pet"
     theme = (formData.get("theme") ?? "").toString().trim()
+    const showcaseConsent = formData.get("showcase_consent") === "true" || formData.get("showcase_consent") === "1"
     if (!theme) {
       return NextResponse.json(
         { error: "Please select a theme." },
@@ -137,7 +138,8 @@ export async function POST(request: NextRequest) {
     pet_name: petName, 
     name: petName, 
     theme: normalizedTheme,
-    prompt: prompt
+    prompt: prompt,
+    showcase_consent: showcaseConsent
   }
 
   let webhookOk = false

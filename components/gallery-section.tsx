@@ -1,8 +1,10 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
 
 const staticPortraits = [
   { src: "/images/gallery-fireman.jpg", theme: "Fireman", pet: "French Bulldog" },
@@ -15,6 +17,8 @@ const staticPortraits = [
 
 type Portrait = { src: string; theme: string; pet: string }
 
+const GALLERY_LIMIT = 12
+
 export function GallerySection() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [fromDb, setFromDb] = useState<Portrait[]>([])
@@ -23,15 +27,17 @@ export function GallerySection() {
     async function fetchRecent() {
       const { data } = await supabase
         .from("pet_portraits")
-        .select("image_url, pet_name, status")
+        .select("image_url, pet_name, status, showcase_consent")
         .not("image_url", "is", null)
+        .neq("status", "rejected")
         .order("created_at", { ascending: false })
-        .limit(6)
+        .limit(GALLERY_LIMIT * 2)
       if (data?.length) {
+        const filtered = data.filter((row) => row.showcase_consent === true)
         setFromDb(
-          data.map((row) => ({
+          filtered.slice(0, GALLERY_LIMIT).map((row) => ({
             src: row.image_url!,
-            theme: row.status || "Portrait",
+            theme: "Portrait",
             pet: row.pet_name || "Pet",
           }))
         )
@@ -57,8 +63,8 @@ export function GallerySection() {
           </p>
         </div>
 
-        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {portraits.map((portrait, index) => (
+        <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          {portraits.slice(0, GALLERY_LIMIT).map((portrait, index) => (
             <div
               key={`${portrait.src}-${index}`}
               className="group relative aspect-[4/5] overflow-hidden rounded-organic border border-border/50"
@@ -70,30 +76,27 @@ export function GallerySection() {
                 alt={`${portrait.pet} – ${portrait.theme}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 unoptimized={portrait.src.startsWith("http")}
               />
 
               <div
-                className={`absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/90 via-background/30 to-transparent p-6 transition-opacity duration-300 ${
+                className={`absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/90 via-background/30 to-transparent p-4 transition-opacity duration-300 ${
                   hoveredIndex === index ? "opacity-100" : "opacity-0"
                 }`}
               >
-                <span className="mb-1 text-xs font-medium uppercase tracking-widest text-primary">
-                  {portrait.theme}
-                </span>
-                <p className="text-lg font-semibold text-foreground">
+                <p className="text-sm font-semibold text-foreground">
                   {portrait.pet}
                 </p>
               </div>
-
-              <div className="absolute top-4 left-4 rounded-organic-sm bg-background/70 px-3 py-1 backdrop-blur-sm">
-                <span className="text-xs font-medium text-foreground">
-                  {portrait.theme}
-                </span>
-              </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <Button variant="outline" className="rounded-organic-sm" asChild>
+            <Link href="/gallery">View more</Link>
+          </Button>
         </div>
       </div>
     </section>

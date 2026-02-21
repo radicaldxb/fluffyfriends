@@ -163,6 +163,7 @@ export default function CreatePortraitPage() {
       formData.set("file", file)
       formData.set("theme", theme)
       if (petName.trim()) formData.set("pet_name", petName.trim())
+      formData.set("showcase_consent", showcasePermission ? "true" : "false")
 
       const res = await fetch("/api/create-portrait", {
         method: "POST",

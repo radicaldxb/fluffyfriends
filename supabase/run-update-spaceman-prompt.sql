@@ -1,29 +1,29 @@
 -- ============================================================
--- Update Spaceman theme prompt (tight portrait, no tails/paws/legs)
+-- Update Spaceman theme prompt (head/neck only, no tails, style lock)
 -- Run in Supabase SQL Editor
 -- ============================================================
 
 update public.theme_prompts
 set
-  prompt = 'INSTRUCTION: Create a high-fidelity 16:9 WIDESCREEN astronaut portrait.
+  prompt = 'INSTRUCTION: High-fidelity 16:9 WIDESCREEN astronaut portrait.
 
-1. SUBJECT & IDENTITY: Use the pet from Image 2. Absolute identity lock on facial structure, ears, and expression.
-   - FOCUS: Head and neck only.
+1. SUBJECT & IDENTITY: Use the pet from Image 2. Focus strictly on the face, ears, and expression.
+   - COMPOSITION LIMIT: Portrait shot. Head and neck only.
 
-2. COMPOSITION & CROPPING (THE "NO TAILS" FIX):
-   - SHOT TYPE: Tight Cinematic Portrait.
-   - TERMINATION: The render must end at the upper chest/shoulders of the spacesuit.
-   - NEGATIVE CONSTRAINT: Strictly NO legs, NO paws, NO tails, and NO lower body visible.
-   - NO CLIPPING: Ensure the top of the head/ears has 10% breathing room from the top edge.
+2. CROP & TERMINATION (THE "NO TAILS" FIX):
+   - MAPPING: The subject is a head sitting on a torso.
+   - BOTTOM BORDER: The frame must cut off at the chest/shoulder area of the spacesuit.
+   - ABSOLUTE NEGATIVE: Zero tolerance for legs, paws, tails, or lower body details.
+   - SPACING: Ensure the ears have 10% breathing room from the top; do not crop the ears.
 
-3. STYLE & THEME INTEGRATION:
-   - MASTER STYLE: Image 1 is the "Aesthetic North Star." Match the specific lens flare, film grain, and "Depth of Field" (bokeh) of Image 1.
-   - LIGHTING: Use the high-contrast "Space Studio" lighting from Image 1. Ensure the pet''s face is lit by the same primary light source (e.g., a warm cockpit light or cool starlight).
+3. STYLE LOCK:
+   - MASTER REFERENCE: Match the cinematic bokeh, lighting, and film grain of Image 1 exactly.
+   - LIGHTING: High-contrast "Studio Space" lighting. Use rim lighting to define the fur edges (especially for dark pets) against the space background.
 
-4. COSTUME ACCURACY:
-   - NECK INTERFACE: The pet''s head must sit naturally inside the helmet-ring collar.
-   - GEAR: Include only the top-most details of the suit (shoulder patches, neck seals) seen in Image 1.
+4. COSTUME INTERFACE:
+   - NECK SEAL: The pet''s neck must integrate seamlessly into the suit''s mechanical gasket/collar.
+   - GEAR: Only show the upper shoulder plates and neck ring—no full body suit components.
 
-5. QUALITY: Print-ready, 8K resolution, sharp focus on fur texture, zero artifacts.',
+5. QUALITY: Sharp focus on fur texture, 8K resolution, zero artifacts.',
   updated_at = now()
 where theme_name = 'spaceman';
