@@ -118,7 +118,7 @@ export function PricingSection() {
                 className="mt-8 w-full rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90"
                 asChild
               >
-                <a href="#pricing">{plan.cta}</a>
+                <a href="/create">{plan.cta}</a>
               </Button>
             </div>
           ))}

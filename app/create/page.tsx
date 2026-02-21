@@ -4,12 +4,21 @@ import { useState, useEffect, useRef } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import Image from "next/image"
+import { Check, ImageOff, AlertCircle } from "lucide-react"
 
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
+
+const STEPS = [
+  { id: 1, label: "Theme" },
+  { id: 2, label: "Consent" },
+  { id: 3, label: "Photo" },
+  { id: 4, label: "Create" },
+] as const
 
 type ThemeItem = { id: string; name: string; previewUrl: string }
 
@@ -23,6 +32,9 @@ export default function CreatePortraitPage() {
   const [message, setMessage] = useState("")
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null)
   const [resultPetName, setResultPetName] = useState<string | null>(null)
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const [ageConfirm, setAgeConfirm] = useState(false)
+  const [showcasePermission, setShowcasePermission] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadUrlRef = useRef<string | null>(null)
   const processingStartedAtRef = useRef<number>(0)
@@ -247,6 +259,43 @@ export default function CreatePortraitPage() {
     fileInputRef.current?.value && (fileInputRef.current.value = "")
   }
 
+  function handleTryAnotherPhoto() {
+    setFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+    setStatus("idle")
+    setMessage("")
+    fileInputRef.current?.value && (fileInputRef.current.value = "")
+    setTimeout(() => fileInputRef.current?.click(), 100)
+  }
+
+  // Current step (1–4) when on form; used for progress clarity
+  const step1Done = !!theme
+  const step2Done = agreeTerms && ageConfirm
+  const step3Done = !!file
+  const currentStep =
+    status === "processing"
+      ? 4
+      : status === "success"
+        ? 4
+        : !step1Done
+          ? 1
+          : !step2Done
+            ? 2
+            : !step3Done
+              ? 3
+              : 4
+
+  const isRejectionError =
+    status === "error" &&
+    message &&
+    (message.toLowerCase().includes("single pet") ||
+      message.toLowerCase().includes("group") ||
+      message.toLowerCase().includes("please upload") ||
+      message.toLowerCase().includes("doesn't meet"))
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -266,29 +315,58 @@ export default function CreatePortraitPage() {
             One pet per photo — no group photos, no people, no objects. Best results with a single dog or cat.
           </p>
 
+          {/* Step indicator: clear where you are in the process */}
+          {(status === "idle" || status === "uploading" || status === "error" || status === "processing" || status === "success") && (
+            <div className="mt-8 flex items-center justify-center gap-1 sm:gap-2" aria-label="Progress">
+              {STEPS.map((s, i) => (
+                <div key={s.id} className="flex items-center">
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                      currentStep > s.id || status === "success"
+                        ? "bg-primary text-primary-foreground"
+                        : currentStep === s.id
+                          ? "border-2 border-primary bg-primary/10 text-foreground"
+                          : "border border-border bg-muted/50 text-muted-foreground"
+                    )}
+                  >
+                    {(currentStep > s.id || status === "success") ? <Check className="h-4 w-4" /> : s.id}
+                  </div>
+                  <span className={cn("ml-1.5 hidden text-xs font-medium sm:inline", (currentStep >= s.id || status === "success") ? "text-foreground" : "text-muted-foreground")}>
+                    {s.label}
+                  </span>
+                  {i < STEPS.length - 1 && (
+                    <div className={cn("mx-2 h-px w-4 sm:w-6", (currentStep > s.id || status === "success") ? "bg-primary/50" : "bg-border")} />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           {(status === "idle" || status === "uploading" || status === "error") && (
             <form onSubmit={handleSubmit} className="mt-10 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-3">
-                  Choose a theme
+                  Step 1 — Choose a theme
                 </label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {themes.length === 0 ? (
-                    <p className="col-span-2 text-sm text-muted-foreground">Loading themes…</p>
+                    <p className="col-span-full text-sm text-muted-foreground">Loading themes…</p>
                   ) : (
-                    themes.map((t) => (
+                    themes.map((t, index) => (
                       <button
                         key={t.id}
                         type="button"
                         onClick={() => setTheme(t.id)}
                         disabled={status === "uploading"}
                         className={cn(
-                          "rounded-organic border-2 overflow-hidden text-left transition-all",
+                          "rounded-organic border-2 overflow-hidden text-left transition-all animate-in fade-in-0 duration-300",
                           theme === t.id
                             ? "border-primary bg-primary/10"
                             : "border-border bg-card hover:border-primary/50",
                           status === "uploading" && "opacity-50 cursor-not-allowed"
                         )}
+                        style={{ animationDelay: `${index * 40}ms`, animationFillMode: "backwards" }}
                       >
                         <div className="relative aspect-square w-full bg-muted">
                           <Image
@@ -302,10 +380,10 @@ export default function CreatePortraitPage() {
                             }}
                           />
                         </div>
-                        <div className="p-4">
-                          <div className="font-heading text-lg font-bold text-foreground">{t.name}</div>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            Create a portrait in this style
+                        <div className="p-3">
+                          <div className="font-heading font-bold text-foreground">{t.name}</div>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            This style
                           </p>
                         </div>
                       </button>
@@ -317,9 +395,48 @@ export default function CreatePortraitPage() {
                 )}
               </div>
 
+              <div className="rounded-organic border border-border bg-muted/30 p-4 space-y-4">
+                <p className="text-sm font-medium text-foreground">Step 2 — Consent</p>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <Checkbox
+                    checked={agreeTerms}
+                    onCheckedChange={(c) => setAgreeTerms(c === true)}
+                    disabled={status === "uploading"}
+                    className="mt-0.5"
+                    aria-required
+                  />
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
+                    <span className="text-foreground">(Required)</span> I agree to the Terms of Service and acknowledge that AI-generated art may contain hallucinations or artistic variations.
+                  </span>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <Checkbox
+                    checked={ageConfirm}
+                    onCheckedChange={(c) => setAgeConfirm(c === true)}
+                    disabled={status === "uploading"}
+                    className="mt-0.5"
+                    aria-required
+                  />
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
+                    <span className="text-foreground">(Required)</span> I am at least 18 years old.
+                  </span>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <Checkbox
+                    checked={showcasePermission}
+                    onCheckedChange={(c) => setShowcasePermission(c === true)}
+                    disabled={status === "uploading"}
+                    className="mt-0.5"
+                  />
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
+                    (Optional) I give permission for FluffyFriends to showcase my pet&apos;s portrait on their website and social media.
+                  </span>
+                </label>
+              </div>
+
               <div>
                 <label htmlFor="pet-photo" className="block text-sm font-medium text-foreground">
-                  Pet photo (one pet only)
+                  Step 3 — Pet photo (one pet only)
                 </label>
                 <p className="mt-1 text-xs text-muted-foreground mb-2">
                   Single dog or cat only. No group photos, no people, no objects (e.g. toys, food). We'll check your photo before processing.
@@ -340,7 +457,7 @@ export default function CreatePortraitPage() {
               </div>
 
               {previewUrl && file && (
-                <div className="overflow-hidden rounded-organic border border-border bg-muted/30">
+                <div className="overflow-hidden rounded-organic border border-border bg-muted/30 animate-in fade-in-0 duration-300">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl}
@@ -365,30 +482,38 @@ export default function CreatePortraitPage() {
                 />
               </div>
 
-              <Button
+              <div>
+                <p className="text-sm font-medium text-foreground mb-2">Step 4 — Review and create</p>
+                <Button
                 type="submit"
-                disabled={!file || !theme || status === "uploading"}
+                disabled={!file || !theme || !agreeTerms || !ageConfirm || status === "uploading"}
                 className="w-full rounded-organic-sm sm:w-auto"
               >
                 {status === "uploading" ? "Uploading…" : "Create my portrait"}
-              </Button>
+                </Button>
+              </div>
             </form>
           )}
 
           {status === "processing" && (
-            <div className="mt-10 rounded-organic border border-border bg-muted/30 p-8 text-center">
-              <p className="text-muted-foreground">Creating your portrait…</p>
-              <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                You can leave this page; we'll add it to the gallery when it's ready.
+            <div className="mt-10 rounded-organic border border-border bg-muted/30 p-8 text-center animate-in fade-in-0 duration-300">
+              <p className="font-medium text-foreground">Step 4 — Creating your portrait</p>
+              <div className="mt-3 flex justify-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0ms" }} />
+                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "200ms" }} />
+                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "400ms" }} />
+              </div>
+              <p className="mt-4 text-sm text-muted-foreground">{message}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Usually ready in 2–3 minutes. You can leave this page; we'll add it to the gallery when it's ready.
               </p>
             </div>
           )}
 
           {status === "success" && resultImageUrl && (
-            <div className="mt-10 space-y-6">
+            <div className="mt-10 space-y-6 animate-in fade-in-0 duration-300">
               <div className="rounded-organic border border-border bg-muted/30 p-6 text-center">
-                <p className="font-semibold text-foreground">Your portrait is ready!</p>
+                <p className="font-semibold text-foreground">Done — Your portrait is ready!</p>
                 <div className="mt-4 overflow-hidden rounded-organic border border-border">
                   <Image
                     src={resultImageUrl}
@@ -420,14 +545,52 @@ export default function CreatePortraitPage() {
           )}
 
           {status === "error" && message && (
-            <div
-              className={cn(
-                "mt-6 rounded-organic-sm border px-4 py-3 text-sm",
-                "border-destructive/50 bg-destructive/10 text-destructive"
+            <>
+              {isRejectionError ? (
+                <div
+                  className="mt-6 rounded-organic border border-amber-500/40 bg-amber-500/5 p-5 animate-in fade-in-0 duration-300"
+                  role="alert"
+                >
+                  <div className="flex gap-3">
+                    <div className="shrink-0 rounded-full bg-amber-500/20 p-2">
+                      <ImageOff className="h-5 w-5 text-amber-600" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground">This photo couldn't be used</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+                      <p className="mt-3 text-xs font-medium text-foreground">What works best:</p>
+                      <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground space-y-0.5">
+                        <li>One dog or one cat only</li>
+                        <li>Clear view of the pet (no people, no other animals)</li>
+                        <li>No objects as the main subject (e.g. toys, food)</li>
+                      </ul>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 rounded-organic-sm"
+                        onClick={handleTryAnotherPhoto}
+                      >
+                        Choose another photo
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "mt-6 rounded-organic-sm border px-4 py-3 text-sm animate-in fade-in-0 duration-300",
+                    "border-destructive/50 bg-destructive/10 text-destructive"
+                  )}
+                  role="alert"
+                >
+                  <div className="flex gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                    <span>{message}</span>
+                  </div>
+                </div>
               )}
-            >
-              {message}
-            </div>
+            </>
           )}
         </div>
       </section>

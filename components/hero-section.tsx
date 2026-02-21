@@ -51,7 +51,7 @@ export function HeroSection() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm px-8 text-base font-medium"
                 asChild
               >
-                <a href="#pricing">
+                <a href="/create">
                   Create My Portrait
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </a>
@@ -92,8 +92,8 @@ export function HeroSection() {
           {/* Right – Before/After Slider */}
           <div className="w-full max-w-md flex-1 lg:max-w-lg">
             <BeforeAfterSlider
-              beforeSrc="/images/pet-before.jpg"
-              afterSrc="/images/pet-after.jpg"
+              beforeSrc="/images/pet-before.webp"
+              afterSrc="/images/pet-after.webp"
               beforeAlt="Original pet photo"
               afterAlt="Your pet as fine art"
             />

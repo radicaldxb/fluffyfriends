@@ -60,7 +60,7 @@ export function ReviewsSection() {
             className="rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90 px-8"
             asChild
           >
-            <a href="#pricing">Create My Portrait</a>
+            <a href="/create">Create My Portrait</a>
           </Button>
         </div>
       </div>
