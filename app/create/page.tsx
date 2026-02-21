@@ -306,8 +306,9 @@ export default function CreatePortraitPage() {
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
             Create your portrait
           </p>
+          <a href="/" className="mt-2 inline-block text-sm text-muted-foreground hover:text-foreground">← Back to home</a>
           <h1 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Upload your pet photo
+            Create your portrait
           </h1>
           <p className="mt-4 text-pretty text-muted-foreground">
             Choose a theme, then upload a clear photo of <strong>one pet only</strong>. We'll create a unique portrait in that style.
@@ -320,7 +321,7 @@ export default function CreatePortraitPage() {
           {(status === "idle" || status === "uploading" || status === "error" || status === "processing" || status === "success") && (
             <div className="mt-8 flex items-center justify-center gap-1 sm:gap-2" aria-label="Progress">
               {STEPS.map((s, i) => (
-                <div key={s.id} className="flex items-center">
+                <div key={s.id} className="flex items-center" aria-current={currentStep === s.id && status !== "success" ? "step" : undefined}>
                   <div
                     className={cn(
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
@@ -382,9 +383,12 @@ export default function CreatePortraitPage() {
                           />
                         </div>
                         <div className="p-3">
-                          <div className="font-heading font-bold text-foreground">{t.name}</div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-heading font-bold text-foreground">{t.name}</span>
+                            {theme === t.id && <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />}
+                          </div>
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            This style
+                            {theme === t.id ? "Selected" : "This style"}
                           </p>
                         </div>
                       </button>
@@ -430,7 +434,7 @@ export default function CreatePortraitPage() {
                     className="mt-0.5"
                   />
                   <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                    (Optional) I give permission for FluffyFriends to showcase my pet&apos;s portrait on their website and social media.
+                    (Optional) I&apos;m happy for FluffyFriends to feature this portrait on the site.
                   </span>
                 </label>
               </div>
@@ -485,6 +489,9 @@ export default function CreatePortraitPage() {
 
               <div>
                 <p className="text-sm font-medium text-foreground mb-2">Step 4 — Review and create</p>
+                {(!file || !theme || !agreeTerms || !ageConfirm) && status !== "uploading" && (
+                  <p className="mb-2 text-xs text-muted-foreground">Select a theme, accept the terms, and add a photo to continue.</p>
+                )}
                 <Button
                 type="submit"
                 disabled={!file || !theme || !agreeTerms || !ageConfirm || status === "uploading"}
@@ -529,6 +536,9 @@ export default function CreatePortraitPage() {
                   <p className="mt-3 text-sm text-muted-foreground">{resultPetName}</p>
                 )}
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Button onClick={handleReset} className="rounded-organic-sm">
+                    Create another
+                  </Button>
                   <Button
                     onClick={handleReset}
                     variant="outline"
@@ -536,9 +546,6 @@ export default function CreatePortraitPage() {
                     asChild
                   >
                     <a href="/#gallery">View in gallery</a>
-                  </Button>
-                  <Button onClick={handleReset} className="rounded-organic-sm">
-                    Create another
                   </Button>
                 </div>
               </div>

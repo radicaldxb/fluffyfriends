@@ -6,7 +6,7 @@ const steps = [
     step: "01",
     title: "Upload Your Photo",
     description:
-      "Snap a picture or choose an existing photo of your pet. Clear, well-lit shots work best.",
+      "Snap a picture or choose an existing photo of your pet — one pet per photo. Clear, well-lit shots work best.",
   },
   {
     icon: Palette,
@@ -20,7 +20,7 @@ const steps = [
     step: "03",
     title: "Receive Your Art",
     description:
-      "In minutes, receive a museum-quality portrait ready to print, frame, or share.",
+      "Usually in 2–3 minutes, receive a museum-quality portrait ready to print, frame, or share.",
   },
 ]
 

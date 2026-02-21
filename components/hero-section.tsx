@@ -30,7 +30,7 @@ export function HeroSection() {
                 ))}
               </div>
               <span className="text-xs text-muted-foreground">
-                Loved by 12,000+ pet parents
+                Loved by pet parents
               </span>
             </div>
 
@@ -69,7 +69,7 @@ export function HeroSection() {
               One-time purchase • No subscription • Happiness guarantee
             </p>
 
-            {/* Social proof avatars */}
+            {/* Social proof */}
             <div className="mt-8 flex items-center gap-3">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
@@ -83,14 +83,14 @@ export function HeroSection() {
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">2,400+</span>{" "}
-                portraits created this week
+                Portraits created by our community
               </p>
             </div>
           </div>
 
           {/* Right – Before/After Slider */}
           <div className="w-full max-w-md flex-1 lg:max-w-lg">
+            <p className="mb-2 text-center text-xs text-muted-foreground lg:text-left">Drag to compare</p>
             <BeforeAfterSlider
               beforeSrc="/images/pet-before.webp"
               afterSrc="/images/pet-after.webp"

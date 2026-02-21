@@ -22,6 +22,7 @@ const GALLERY_LIMIT = 12
 export function GallerySection() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [fromDb, setFromDb] = useState<Portrait[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchRecent() {
@@ -42,11 +43,13 @@ export function GallerySection() {
           }))
         )
       }
+      setLoading(false)
     }
     fetchRecent()
   }, [])
 
   const portraits = fromDb.length > 0 ? fromDb : staticPortraits
+  const isFromCommunity = fromDb.length > 0
 
   return (
     <section id="gallery" className="relative py-14 md:py-20">
@@ -59,10 +62,17 @@ export function GallerySection() {
             Every pet deserves a portrait
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Real portraits from our community. Each piece is unique and inspired by your pet.
+            {isFromCommunity ? "Real portraits from our community." : "Example styles you can choose from."} Each piece is unique and inspired by your pet.
           </p>
         </div>
 
+        {loading ? (
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="aspect-[4/5] animate-pulse rounded-organic bg-muted" />
+            ))}
+          </div>
+        ) : (
         <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {portraits.slice(0, GALLERY_LIMIT).map((portrait, index) => (
             <div
@@ -92,6 +102,7 @@ export function GallerySection() {
             </div>
           ))}
         </div>
+        )}
 
         <div className="mt-10 flex justify-center">
           <Button variant="outline" className="rounded-organic-sm" asChild>

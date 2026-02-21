@@ -52,7 +52,7 @@ export default function GalleryPage() {
               </p>
             </div>
             <Button variant="outline" className="rounded-organic-sm shrink-0" asChild>
-              <Link href="/#gallery">Back to home</Link>
+              <Link href="/">← Back to home</Link>
             </Button>
           </div>
 
@@ -68,6 +68,7 @@ export default function GalleryPage() {
           ) : portraits.length === 0 ? (
             <div className="rounded-organic border border-border bg-muted/30 py-16 text-center">
               <p className="text-muted-foreground">No portraits in the gallery yet.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Be the first to share your pet&apos;s portrait (with your permission).</p>
               <Button className="mt-4 rounded-organic-sm" asChild>
                 <Link href="/create">Create one</Link>
               </Button>

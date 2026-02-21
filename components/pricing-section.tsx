@@ -66,6 +66,9 @@ export function PricingSection() {
             and shipping for you.
           </p>
           <p className="mt-2 text-sm font-medium text-foreground">
+            Create your portrait first, then choose your delivery option at checkout.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
             No subscription • No hidden fees • Price shown is final (ex. local tax)
           </p>
         </div>
