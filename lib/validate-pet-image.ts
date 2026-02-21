@@ -47,13 +47,14 @@ If the image is blurry, has no clear subject, or does not show exactly one pet w
   const base64 = imageBuffer.toString("base64")
   const url = `${GEMINI_BASE}/models/${GEMINI_VALIDATION_MODEL}:generateContent?key=${apiKey}`
 
+  // Gemini REST API expects camelCase (inlineData, mimeType)
   const body = {
     contents: [
       {
         parts: [
           {
-            inline_data: {
-              mime_type: mimeType,
+            inlineData: {
+              mimeType,
               data: base64,
             },
           },
@@ -85,11 +86,19 @@ If the image is blurry, has no clear subject, or does not show exactly one pet w
 
   if (!res.ok) {
     const text = await res.text().catch(() => "")
-    console.error("[validate-pet-image] Gemini API error:", res.status, text.slice(0, 300))
-    return {
-      valid: false,
-      reason: "Image check is temporarily unavailable. Please try again.",
+    console.error("[validate-pet-image] Gemini API error:", res.status, text.slice(0, 500))
+    // Surface API key or quota errors if present
+    let reason = "Image check is temporarily unavailable. Please try again."
+    try {
+      const errJson = JSON.parse(text) as { error?: { message?: string } }
+      const msg = errJson?.error?.message ?? ""
+      if (msg.includes("API key") || msg.includes("invalid") || msg.includes("403")) {
+        reason = "Image check is not configured correctly. Please try again later."
+      }
+    } catch {
+      // use default reason
     }
+    return { valid: false, reason }
   }
 
   let data: { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> }
