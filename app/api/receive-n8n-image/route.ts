@@ -36,6 +36,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Rejection from n8n subject validation (single-pet check): no image, just store reason for client to show
+    const rejected = body.rejected === true
+    const rejectionReason = typeof body.reason === "string" ? body.reason.trim() : ""
+    const originalImageUrl = body.original_image_url ?? body.test_image ?? null
+    if (rejected && rejectionReason && typeof originalImageUrl === "string") {
+      const petName = body.pet_name || body.name || "My Pet"
+      const { error: insertError } = await supabase.from("pet_portraits").insert({
+        image_url: originalImageUrl,
+        pet_name: petName,
+        status: "rejected",
+        rejection_reason: rejectionReason,
+        original_image_url: originalImageUrl,
+      })
+      if (insertError) {
+        console.error("[receive-n8n-image] Rejection insert error:", insertError)
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
+      }
+      return NextResponse.json({ success: true, message: "Rejection recorded" })
+    }
 
     // n8n can send image as base64, binary data URL, or URL
     let imageBuffer: Buffer | null = null

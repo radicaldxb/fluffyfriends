@@ -33,7 +33,7 @@ export default function CreatePortraitPage() {
         try {
           const { data: rows, error } = await supabase
             .from("pet_portraits")
-            .select("image_url, created_at, pet_name, original_image_url")
+            .select("image_url, created_at, pet_name, original_image_url, status, rejection_reason")
             .order("created_at", { ascending: false })
             .limit(15)
 
@@ -47,13 +47,19 @@ export default function CreatePortraitPage() {
           const cutoff = startedAt - 5000
 
           const withOriginal = (row: { original_image_url?: string }) => (row as { original_image_url?: string }).original_image_url
+          const withStatus = (row: { status?: string; rejection_reason?: string }) => row as { status?: string; rejection_reason?: string }
           const exactMatch = (rows ?? []).find(
-            (row) => row?.image_url && uploadUrl && withOriginal(row) === uploadUrl
+            (row) => uploadUrl && withOriginal(row) === uploadUrl
           )
           const newestAfterStart = (rows ?? []).find(
             (row) => row?.image_url && new Date(row.created_at).getTime() >= cutoff
           )
           const matched = exactMatch ?? newestAfterStart
+          if (matched && withStatus(matched).status === "rejected") {
+            setStatus("error")
+            setMessage((matched as { rejection_reason?: string }).rejection_reason || "This photo doesn't meet our requirements. Please upload a single pet only (no group photos, people, or objects).")
+            return
+          }
           if (matched?.image_url) {
             setResultImageUrl(matched.image_url)
             setResultPetName(matched.pet_name ?? null)

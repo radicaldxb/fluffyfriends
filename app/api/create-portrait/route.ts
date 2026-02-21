@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { getActiveThemes, getPromptForTheme } from "@/lib/theme-prompts"
-import { validatePetImage } from "@/lib/validate-pet-image"
 
 const BUCKET = "images"
 const UPLOAD_PREFIX = "uploads"
@@ -89,14 +88,7 @@ export async function POST(request: NextRequest) {
   const arrayBuffer = await file.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
 
-  // Strict subject isolation: only one pet, no humans, no objects (before we upload or call n8n)
-  const validation = await validatePetImage(buffer, file.type)
-  if (!validation.valid) {
-    return NextResponse.json(
-      { error: validation.reason ?? "Please upload a photo of a single pet only (no group photos, people, or objects)." },
-      { status: 400 }
-    )
-  }
+  // Subject validation (single pet only) runs in n8n workflow using the same Gemini key.
 
   let uploadError
   try {
