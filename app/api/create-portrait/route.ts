@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     let file: File
     let petName: string
     let theme: string
+    let showcaseConsent: boolean
 
     try {
     const formData = await request.formData()
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     petName = (formData.get("pet_name") ?? formData.get("name") ?? "").toString().trim() || "My Pet"
     theme = (formData.get("theme") ?? "").toString().trim()
-    const showcaseConsent = formData.get("showcase_consent") === "true" || formData.get("showcase_consent") === "1"
+    showcaseConsent = formData.get("showcase_consent") === "true" || formData.get("showcase_consent") === "1"
     if (!theme) {
       return NextResponse.json(
         { error: "Please select a theme." },
