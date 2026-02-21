@@ -254,7 +254,10 @@ export default function CreatePortraitPage() {
             Upload your pet photo
           </h1>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Choose a theme, then upload a clear photo of your pet. We'll create a unique portrait in that style.
+            Choose a theme, then upload a clear photo of <strong>one pet only</strong>. We'll create a unique portrait in that style.
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            One pet per photo — no group photos, no people, no objects. Best results with a single dog or cat.
           </p>
 
           {(status === "idle" || status === "uploading" || status === "error") && (
@@ -310,8 +313,11 @@ export default function CreatePortraitPage() {
 
               <div>
                 <label htmlFor="pet-photo" className="block text-sm font-medium text-foreground">
-                  Pet photo
+                  Pet photo (one pet only)
                 </label>
+                <p className="mt-1 text-xs text-muted-foreground mb-2">
+                  Single dog or cat only. No group photos, no people, no objects (e.g. toys, food). We'll check your photo before processing.
+                </p>
                 <input
                   ref={fileInputRef}
                   id="pet-photo"

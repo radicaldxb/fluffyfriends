@@ -8,7 +8,7 @@
 ## What's Working
 
 ### Core Flow
-✅ User uploads photo → API validates theme → Uploads to Supabase → Sends to n8n with prompt  
+✅ User uploads photo → API validates theme → **Subject check (single pet only, when GEMINI_API_KEY set)** → Uploads to Supabase → Sends to n8n with prompt  
 ✅ n8n fetches images → Set node passes prompt → GEMINI generates → Callback stores result  
 ✅ Client polls Supabase → Portrait appears in gallery
 
@@ -76,6 +76,7 @@ Webhook → [User image + Fetch Theme Image] → Extract → Merge → Set (adds
 
 **Netlify (Optional):**
 - `N8N_WEBHOOK_SECRET` - For callback security
+- `GEMINI_API_KEY` - For subject validation (single pet only; no group/humans/objects). If unset, validation is skipped.
 
 ---
 
