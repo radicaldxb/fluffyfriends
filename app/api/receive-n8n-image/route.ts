@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const originalImageUrl = body.original_image_url ?? body.test_image ?? null
     // Rejection from n8n subject validation (single-pet check): no image, just store reason for client to show
     const rejected = body.rejected === true
     const rejectionReason = typeof body.reason === "string" ? body.reason.trim() : ""
-    const originalImageUrl = body.original_image_url ?? body.test_image ?? null
     if (rejected && rejectionReason && typeof originalImageUrl === "string") {
       const petName = body.pet_name || body.name || "My Pet"
       const { error: insertError } = await supabase.from("pet_portraits").insert({
@@ -134,7 +134,6 @@ export async function POST(request: NextRequest) {
 
     // Update or insert pet_portrait record
     const petName = body.pet_name || body.name || null
-    const originalImageUrl = body.original_image_url || body.test_image || null
     const userEmail = body.user_email || null
     const status = body.status || "completed"
 
