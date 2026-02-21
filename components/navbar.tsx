@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 
 const navLinks = [
   { label: "Create", href: "/create" },
-  { label: "How It Works", href: "#process" },
-  { label: "Gallery", href: "#gallery" },
-  { label: "Print Options", href: "#print-options" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Reviews", href: "#reviews" },
+  { label: "How It Works", href: "/#process" },
+  { label: "Gallery", href: "/#gallery" },
+  { label: "Print Options", href: "/#print-options" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "Reviews", href: "/#reviews" },
 ]
 
 export function Navbar() {

@@ -9,15 +9,14 @@ import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import Image from "next/image"
-import { Check, ImageOff, AlertCircle } from "lucide-react"
+import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, Sparkles } from "lucide-react"
 
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
 
-const STEPS = [
-  { id: 1, label: "Theme" },
-  { id: 2, label: "Consent" },
-  { id: 3, label: "Photo" },
-  { id: 4, label: "Create" },
+const WIZARD_STEPS = [
+  { id: 1, label: "Style", short: "1" },
+  { id: 2, label: "Photo", short: "2" },
+  { id: 3, label: "Go", short: "3" },
 ] as const
 
 type ThemeItem = { id: string; name: string; previewUrl: string }
@@ -34,7 +33,9 @@ export default function CreatePortraitPage() {
   const [resultPetName, setResultPetName] = useState<string | null>(null)
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [ageConfirm, setAgeConfirm] = useState(false)
-  const [showcasePermission, setShowcasePermission] = useState(false)
+  const [showcasePermission, setShowcasePermission] = useState(true)
+  const [wizardStep, setWizardStep] = useState(1)
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadUrlRef = useRef<string | null>(null)
   const processingStartedAtRef = useRef<number>(0)
@@ -48,28 +49,26 @@ export default function CreatePortraitPage() {
             .select("image_url, created_at, pet_name, original_image_url, status, rejection_reason")
             .order("created_at", { ascending: false })
             .limit(15)
-
           if (error) {
             console.error("Poll error:", error)
             return
           }
-
           const startedAt = processingStartedAtRef.current
           const uploadUrl = uploadUrlRef.current
           const cutoff = startedAt - 5000
-
           const withOriginal = (row: { original_image_url?: string }) => (row as { original_image_url?: string }).original_image_url
           const withStatus = (row: { status?: string; rejection_reason?: string }) => row as { status?: string; rejection_reason?: string }
-          const exactMatch = (rows ?? []).find(
-            (row) => uploadUrl && withOriginal(row) === uploadUrl
-          )
+          const exactMatch = (rows ?? []).find((row) => uploadUrl && withOriginal(row) === uploadUrl)
           const newestAfterStart = (rows ?? []).find(
             (row) => row?.image_url && new Date(row.created_at).getTime() >= cutoff
           )
           const matched = exactMatch ?? newestAfterStart
           if (matched && withStatus(matched).status === "rejected") {
             setStatus("error")
-            setMessage((matched as { rejection_reason?: string }).rejection_reason || "This photo doesn't meet our requirements. Please upload a single pet only (no group photos, people, or objects).")
+            setMessage(
+              (matched as { rejection_reason?: string }).rejection_reason ||
+                "This photo doesn't meet our requirements. Please upload a single pet only (no group photos, people, or objects)."
+            )
             return
           }
           if (matched?.image_url) {
@@ -81,7 +80,6 @@ export default function CreatePortraitPage() {
           console.error("Poll error:", err)
         }
       }, 3000)
-
       const timeout = setTimeout(() => {
         clearInterval(interval)
         if (status === "processing") {
@@ -89,7 +87,6 @@ export default function CreatePortraitPage() {
           setMessage("This is taking longer than usual. Your portrait may still appear in the gallery soon.")
         }
       }, 300000)
-
       return () => {
         clearInterval(interval)
         clearTimeout(timeout)
@@ -103,7 +100,6 @@ export default function CreatePortraitPage() {
     }
   }, [previewUrl])
 
-  // Load themes from API (data-driven; new themes appear without code change)
   useEffect(() => {
     let cancelled = false
     fetch("/api/themes")
@@ -154,92 +150,47 @@ export default function CreatePortraitPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file || !theme) return
-
     setStatus("uploading")
     setMessage("")
-
     try {
       const formData = new FormData()
       formData.set("file", file)
       formData.set("theme", theme)
       if (petName.trim()) formData.set("pet_name", petName.trim())
       formData.set("showcase_consent", showcasePermission ? "true" : "false")
-
-      const res = await fetch("/api/create-portrait", {
-        method: "POST",
-        body: formData,
-      })
-
-      // Read response text once (can only be read once)
+      const res = await fetch("/api/create-portrait", { method: "POST", body: formData })
       const contentType = res.headers.get("content-type")
       const text = await res.text()
-      
-      // Check if response is actually JSON
-      if (!contentType || !contentType.includes("application/json")) {
-        console.error("[create-portrait] Non-JSON response:", { 
-          status: res.status, 
-          contentType,
-          text: text.slice(0, 200) // Log first 200 chars
-        })
+      if (!contentType?.includes("application/json")) {
         setStatus("error")
-        setMessage(`Server error: ${text || `Unexpected response (${res.status})`}`)
+        setMessage(`Server error: ${text || res.status}`)
         return
       }
-
-      // Parse JSON
-      let data
+      let data: { error?: string; error_id?: string; webhook_ok?: boolean; webhook_error?: string; webhook_status?: number; upload_url?: string } = {}
       try {
-        if (!text) {
-          const errorMsg = `Empty response from server (${res.status})`
-          console.error("[create-portrait] Empty response:", { status: res.status, url: res.url })
-          setStatus("error")
-          setMessage(errorMsg)
-          return
-        }
-        data = JSON.parse(text)
-      } catch (parseError) {
-        const errorMsg = `Invalid response from server: ${parseError instanceof Error ? parseError.message : "JSON parse error"}`
-        console.error("[create-portrait] JSON parse error:", parseError, { 
-          status: res.status, 
-          url: res.url,
-          text: text.slice(0, 200) // Log first 200 chars for debugging
-        })
+        data = text ? JSON.parse(text) : {}
+      } catch {
         setStatus("error")
-        setMessage(errorMsg)
+        setMessage("Invalid response from server.")
         return
       }
-
       if (!res.ok) {
-        const errorMsg = data.error || `Request failed (${res.status})`
-        console.error("[create-portrait] API error:", {
-          status: res.status,
-          error: data.error,
-          error_id: data.error_id,
-          details: data.details,
-        })
         setStatus("error")
-        setMessage(errorMsg + (data.error_id ? ` (Error ID: ${data.error_id})` : ""))
+        setMessage(data.error || `Request failed (${res.status})` + (data.error_id ? ` (${data.error_id})` : ""))
         return
       }
-
       if (data.webhook_ok === false) {
         setStatus("error")
-        const detail = data.webhook_error || (data.webhook_status ? `Status ${data.webhook_status}` : "No response")
-        setMessage(
-          `Your photo was uploaded, but the workflow didn't start. n8n didn't accept the trigger (${detail}). Check that the transform-pet workflow is Active and N8N_WEBHOOK_URL uses the production URL (webhook/… not webhook-test/…).`
-        )
+        setMessage(data.webhook_error || `Workflow didn't start (${data.webhook_status ?? "no response"}).`)
         return
       }
-
       uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
       processingStartedAtRef.current = Date.now()
       setStatus("processing")
-      setMessage("We're creating your portrait. This usually takes a few minutes.")
+      setMessage("We're creating your portrait. Usually ready in 2–3 minutes.")
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Something went wrong."
-      console.error("[create-portrait] Request failed:", err)
       setStatus("error")
-      setMessage(errorMsg)
+      setMessage(err instanceof Error ? err.message : "Something went wrong.")
     }
   }
 
@@ -252,12 +203,16 @@ export default function CreatePortraitPage() {
     }
     setPetName("")
     setStatus("idle")
+    setWizardStep(1)
     setMessage("")
     setResultImageUrl(null)
     setResultPetName(null)
+    setAgreeTerms(false)
+    setAgeConfirm(false)
+    setShowcasePermission(true)
     uploadUrlRef.current = null
     processingStartedAtRef.current = 0
-    fileInputRef.current?.value && (fileInputRef.current.value = "")
+    fileInputRef.current && (fileInputRef.current.value = "")
   }
 
   function handleTryAnotherPhoto() {
@@ -268,26 +223,19 @@ export default function CreatePortraitPage() {
     }
     setStatus("idle")
     setMessage("")
-    fileInputRef.current?.value && (fileInputRef.current.value = "")
+    setWizardStep(2)
+    fileInputRef.current && (fileInputRef.current.value = "")
     setTimeout(() => fileInputRef.current?.click(), 100)
   }
 
-  // Current step (1–4) when on form; used for progress clarity
-  const step1Done = !!theme
-  const step2Done = agreeTerms && ageConfirm
-  const step3Done = !!file
-  const currentStep =
-    status === "processing"
-      ? 4
-      : status === "success"
-        ? 4
-        : !step1Done
-          ? 1
-          : !step2Done
-            ? 2
-            : !step3Done
-              ? 3
-              : 4
+  function goNext() {
+    setSlideDirection("next")
+    setWizardStep((s) => Math.min(3, s + 1))
+  }
+  function goPrev() {
+    setSlideDirection("prev")
+    setWizardStep((s) => Math.max(1, s - 1))
+  }
 
   const isRejectionError =
     status === "error" &&
@@ -297,308 +245,339 @@ export default function CreatePortraitPage() {
       message.toLowerCase().includes("please upload") ||
       message.toLowerCase().includes("doesn't meet"))
 
+  const selectedTheme = themes.find((t) => t.id === theme)
+
+  // Show wizard only when idle or error (and not after submit)
+  const showWizard = status === "idle" || status === "error"
+  const progressPercent = showWizard ? (wizardStep / 3) * 100 : 100
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
 
-      <section className="py-14 md:py-20">
-        <div className="mx-auto max-w-2xl px-4 sm:px-6">
-          <p className="text-sm font-medium uppercase tracking-widest text-primary">
-            Create your portrait
-          </p>
-          <a href="/" className="mt-2 inline-block text-sm text-muted-foreground hover:text-foreground">← Back to home</a>
-          <h1 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Create your portrait
-          </h1>
-          <p className="mt-4 text-pretty text-muted-foreground">
-            Choose a theme, then upload a clear photo of <strong>one pet only</strong>. We'll create a unique portrait in that style.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            One pet per photo — no group photos, no people, no objects. Best results with a single dog or cat.
-          </p>
+      {/* Top progress bar — smooth, always visible during wizard */}
+      {showWizard && (
+        <div className="sticky top-[57px] z-40 h-1 bg-muted">
+          <div
+            className="h-full bg-primary transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+            aria-hidden
+          />
+        </div>
+      )}
 
-          {/* Step indicator: clear where you are in the process */}
-          {(status === "idle" || status === "uploading" || status === "error" || status === "processing" || status === "success") && (
-            <div className="mt-8 flex items-center justify-center gap-1 sm:gap-2" aria-label="Progress">
-              {STEPS.map((s, i) => (
-                <div key={s.id} className="flex items-center" aria-current={currentStep === s.id && status !== "success" ? "step" : undefined}>
+      <section className="py-10 md:py-14">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6">
+          <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back to home</a>
+
+          {showWizard && (
+            <>
+              {/* Step indicator — minimal, not a blob */}
+              <div className="mt-6 flex items-center justify-center gap-2" aria-label="Progress">
+                {WIZARD_STEPS.map((s, i) => (
+                  <div key={s.id} className="flex items-center">
+                    <div
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-organic-sm text-sm font-semibold transition-all duration-300",
+                        wizardStep > s.id
+                          ? "bg-primary text-primary-foreground"
+                          : wizardStep === s.id
+                            ? "border-2 border-primary bg-primary/10 text-foreground ring-2 ring-primary/20"
+                            : "border border-border bg-muted/50 text-muted-foreground"
+                      )}
+                      aria-current={wizardStep === s.id ? "step" : undefined}
+                    >
+                      {wizardStep > s.id ? <Check className="h-4 w-4" /> : s.short}
+                    </div>
+                    {i < WIZARD_STEPS.length - 1 && (
+                      <div
+                        className={cn(
+                          "mx-1.5 h-0.5 w-6 rounded-full transition-colors duration-300 sm:w-8",
+                          wizardStep > s.id ? "bg-primary" : "bg-border"
+                        )}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Single step content with motion */}
+              <div className="relative mt-10 min-h-[320px] overflow-hidden">
+                {/* Step 1 — Choose style */}
+                {wizardStep === 1 && (
                   <div
+                    key="step1"
                     className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                      currentStep > s.id || status === "success"
-                        ? "bg-primary text-primary-foreground"
-                        : currentStep === s.id
-                          ? "border-2 border-primary bg-primary/10 text-foreground"
-                          : "border border-border bg-muted/50 text-muted-foreground"
+                      "animate-in fade-in-0 duration-300",
+                      slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    {(currentStep > s.id || status === "success") ? <Check className="h-4 w-4" /> : s.id}
-                  </div>
-                  <span className={cn("ml-1.5 hidden text-xs font-medium sm:inline", (currentStep >= s.id || status === "success") ? "text-foreground" : "text-muted-foreground")}>
-                    {s.label}
-                  </span>
-                  {i < STEPS.length - 1 && (
-                    <div className={cn("mx-2 h-px w-4 sm:w-6", (currentStep > s.id || status === "success") ? "bg-primary/50" : "bg-border")} />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {(status === "idle" || status === "uploading" || status === "error") && (
-            <form onSubmit={handleSubmit} className="mt-10 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-3">
-                  Step 1 — Choose a theme
-                </label>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {themes.length === 0 ? (
-                    <p className="col-span-full text-sm text-muted-foreground">Loading themes…</p>
-                  ) : (
-                    themes.map((t, index) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setTheme(t.id)}
-                        disabled={status === "uploading"}
-                        className={cn(
-                          "rounded-organic border-2 overflow-hidden text-left transition-all animate-in fade-in-0 duration-300",
-                          theme === t.id
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-card hover:border-primary/50",
-                          status === "uploading" && "opacity-50 cursor-not-allowed"
-                        )}
-                        style={{ animationDelay: `${index * 40}ms`, animationFillMode: "backwards" }}
-                      >
-                        <div className="relative aspect-square w-full bg-muted">
-                          <Image
-                            src={t.previewUrl}
-                            alt={`${t.name} theme preview`}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none"
-                            }}
-                          />
+                    <h2 className="text-xl font-semibold text-foreground">Pick a style</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Your pet in this look. Choose one.</p>
+                    <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                      {themes.length === 0 ? (
+                        <div className="col-span-full flex gap-2">
+                          {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="aspect-square w-full max-w-[140px] animate-pulse rounded-organic bg-muted" />
+                          ))}
                         </div>
-                        <div className="p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-heading font-bold text-foreground">{t.name}</span>
-                            {theme === t.id && <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />}
-                          </div>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {theme === t.id ? "Selected" : "This style"}
-                          </p>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-                {!theme && (
-                  <p className="mt-2 text-sm text-destructive">Please select a theme</p>
-                )}
-              </div>
-
-              <div className="rounded-organic border border-border bg-muted/30 p-4 space-y-4">
-                <p className="text-sm font-medium text-foreground">Step 2 — Consent</p>
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <Checkbox
-                    checked={agreeTerms}
-                    onCheckedChange={(c) => setAgreeTerms(c === true)}
-                    disabled={status === "uploading"}
-                    className="mt-0.5"
-                    aria-required
-                  />
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                    <span className="text-foreground">(Required)</span> I agree to the Terms of Service and acknowledge that AI-generated art may contain hallucinations or artistic variations.
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <Checkbox
-                    checked={ageConfirm}
-                    onCheckedChange={(c) => setAgeConfirm(c === true)}
-                    disabled={status === "uploading"}
-                    className="mt-0.5"
-                    aria-required
-                  />
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                    <span className="text-foreground">(Required)</span> I am at least 18 years old.
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <Checkbox
-                    checked={showcasePermission}
-                    onCheckedChange={(c) => setShowcasePermission(c === true)}
-                    disabled={status === "uploading"}
-                    className="mt-0.5"
-                  />
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground">
-                    (Optional) I&apos;m happy for FluffyFriends to feature this portrait on the site.
-                  </span>
-                </label>
-              </div>
-
-              <div>
-                <label htmlFor="pet-photo" className="block text-sm font-medium text-foreground">
-                  Step 3 — Pet photo (one pet only)
-                </label>
-                <p className="mt-1 text-xs text-muted-foreground mb-2">
-                  Single dog or cat only. No group photos, no people, no objects (e.g. toys, food). We'll check your photo before processing.
-                </p>
-                <input
-                  ref={fileInputRef}
-                  id="pet-photo"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleFileChange}
-                  required
-                  disabled={status === "uploading"}
-                  className="mt-2 block w-full text-sm text-muted-foreground file:mr-4 file:rounded-organic-sm file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground file:hover:bg-primary/90"
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  JPEG, PNG or WebP, max 10 MB
-                </p>
-              </div>
-
-              {previewUrl && file && (
-                <div className="overflow-hidden rounded-organic border border-border bg-muted/30 animate-in fade-in-0 duration-300">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={previewUrl}
-                    alt="Preview"
-                    className="h-auto max-h-80 w-full object-contain"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label htmlFor="pet-name" className="block text-sm font-medium text-foreground">
-                  Pet name (optional)
-                </label>
-                <input
-                  id="pet-name"
-                  type="text"
-                  value={petName}
-                  onChange={(e) => setPetName(e.target.value)}
-                  placeholder="e.g. Max, Luna"
-                  disabled={status === "uploading"}
-                  className="mt-2 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2">Step 4 — Review and create</p>
-                {(!file || !theme || !agreeTerms || !ageConfirm) && status !== "uploading" && (
-                  <p className="mb-2 text-xs text-muted-foreground">Select a theme, accept the terms, and add a photo to continue.</p>
-                )}
-                <Button
-                type="submit"
-                disabled={!file || !theme || !agreeTerms || !ageConfirm || status === "uploading"}
-                className="w-full rounded-organic-sm sm:w-auto"
-              >
-                {status === "uploading" ? "Uploading…" : "Create my portrait"}
-                </Button>
-              </div>
-            </form>
-          )}
-
-          {status === "processing" && (
-            <div className="mt-10 rounded-organic border border-border bg-muted/30 p-8 text-center animate-in fade-in-0 duration-300">
-              <p className="font-medium text-foreground">Step 4 — Creating your portrait</p>
-              <div className="mt-3 flex justify-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0ms" }} />
-                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "200ms" }} />
-                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "400ms" }} />
-              </div>
-              <p className="mt-4 text-sm text-muted-foreground">{message}</p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Usually ready in 2–3 minutes. You can leave this page; we'll add it to the gallery when it's ready.
-              </p>
-            </div>
-          )}
-
-          {status === "success" && resultImageUrl && (
-            <div className="mt-10 space-y-6 animate-in fade-in-0 duration-300">
-              <div className="rounded-organic border border-border bg-muted/30 p-6 text-center">
-                <p className="font-semibold text-foreground">Done — Your portrait is ready!</p>
-                <div className="mt-4 overflow-hidden rounded-organic border border-border">
-                  <Image
-                    src={resultImageUrl}
-                    alt={resultPetName || "Your pet portrait"}
-                    width={400}
-                    height={400}
-                    className="h-auto w-full object-contain"
-                    unoptimized={resultImageUrl.startsWith("http")}
-                  />
-                </div>
-                {resultPetName && (
-                  <p className="mt-3 text-sm text-muted-foreground">{resultPetName}</p>
-                )}
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <Button onClick={handleReset} className="rounded-organic-sm">
-                    Create another
-                  </Button>
-                  <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    className="rounded-organic-sm"
-                    asChild
-                  >
-                    <a href="/#gallery">View in gallery</a>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {status === "error" && message && (
-            <>
-              {isRejectionError ? (
-                <div
-                  className="mt-6 rounded-organic border border-amber-500/40 bg-amber-500/5 p-5 animate-in fade-in-0 duration-300"
-                  role="alert"
-                >
-                  <div className="flex gap-3">
-                    <div className="shrink-0 rounded-full bg-amber-500/20 p-2">
-                      <ImageOff className="h-5 w-5 text-amber-600" aria-hidden />
+                      ) : (
+                        themes.map((t, index) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setTheme(t.id)}
+                            className={cn(
+                              "group relative overflow-hidden rounded-organic border-2 text-left transition-all duration-200 hover:border-primary/60 hover:shadow-md",
+                              theme === t.id
+                                ? "border-primary bg-primary/10 shadow-sm"
+                                : "border-border bg-card"
+                            )}
+                            style={{ animationDelay: `${index * 30}ms` }}
+                          >
+                            <div className="relative aspect-square w-full bg-muted">
+                              <Image
+                                src={t.previewUrl}
+                                alt={t.name}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                unoptimized
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none"
+                                }}
+                              />
+                              {theme === t.id && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                                  <span className="flex h-8 w-8 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground">
+                                    <Check className="h-4 w-4" />
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-2.5">
+                              <span className="font-heading font-semibold text-foreground">{t.name}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-foreground">This photo couldn't be used</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{message}</p>
-                      <p className="mt-3 text-xs font-medium text-foreground">What works best:</p>
-                      <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground space-y-0.5">
-                        <li>One dog or one cat only</li>
-                        <li>Clear view of the pet (no people, no other animals)</li>
-                        <li>No objects as the main subject (e.g. toys, food)</li>
-                      </ul>
+                    <div className="mt-8 flex justify-end">
                       <Button
                         type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-4 rounded-organic-sm"
-                        onClick={handleTryAnotherPhoto}
+                        onClick={goNext}
+                        disabled={!theme}
+                        className="rounded-organic-sm px-6"
                       >
-                        Choose another photo
+                        Continue
+                        <ChevronRight className="ml-1 h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                </div>
-              ) : (
+                )}
+
+                {/* Step 2 — Photo */}
+                {wizardStep === 2 && (
+                  <div
+                    key="step2"
+                    className={cn(
+                      "animate-in fade-in-0 duration-300",
+                      slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
+                    )}
+                  >
+                    <h2 className="text-xl font-semibold text-foreground">Add your pet&apos;s photo</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">One pet only — dog or cat. We&apos;ll check before processing.</p>
+                    <input
+                      ref={fileInputRef}
+                      id="pet-photo"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleFileChange}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="pet-photo"
+                      className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-organic border-2 border-dashed border-border bg-muted/30 py-10 transition-colors hover:border-primary/50 hover:bg-muted/50"
+                    >
+                      {previewUrl && file ? (
+                        <div className="relative w-full max-w-sm overflow-hidden rounded-organic-sm">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={previewUrl} alt="Preview" className="h-auto w-full object-contain max-h-64" />
+                        </div>
+                      ) : (
+                        <>
+                          <ImageOff className="h-10 w-10 text-muted-foreground" aria-hidden />
+                          <span className="mt-2 text-sm font-medium text-foreground">Tap to choose a photo</span>
+                          <span className="mt-0.5 text-xs text-muted-foreground">JPEG, PNG or WebP · max 10 MB</span>
+                        </>
+                      )}
+                    </label>
+                    <div className="mt-4">
+                      <label htmlFor="pet-name" className="block text-sm font-medium text-foreground">Pet name (optional)</label>
+                      <input
+                        id="pet-name"
+                        type="text"
+                        value={petName}
+                        onChange={(e) => setPetName(e.target.value)}
+                        placeholder="e.g. Max, Luna"
+                        className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      />
+                    </div>
+                    <div className="mt-8 flex justify-between">
+                      <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
+                        <ChevronLeft className="mr-1 h-4 w-4" />
+                        Back
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={goNext}
+                        disabled={!file}
+                        className="rounded-organic-sm px-6"
+                      >
+                        Continue
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3 — Review & create (soft consent) */}
+                {wizardStep === 3 && (
+                  <div
+                    key="step3"
+                    className={cn(
+                      "animate-in fade-in-0 duration-300",
+                      slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
+                    )}
+                  >
+                    <h2 className="text-xl font-semibold text-foreground">You&apos;re all set</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Quick confirm, then we&apos;ll create your portrait.</p>
+
+                    {/* Summary */}
+                    <div className="mt-6 flex gap-4 rounded-organic border border-border bg-card p-4">
+                      {selectedTheme && (
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-organic-sm bg-muted">
+                          <Image src={selectedTheme.previewUrl} alt="" fill className="object-cover" unoptimized />
+                        </div>
+                      )}
+                      {previewUrl && (
+                        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-organic-sm bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground">{selectedTheme?.name ?? "Style"}</p>
+                        <p className="text-sm text-muted-foreground">{petName.trim() || "Your pet"}</p>
+                      </div>
+                    </div>
+
+                    {/* Lightweight consent — minimal, not a scary box */}
+                    <div className="mt-6 space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <Checkbox checked={ageConfirm} onCheckedChange={(c) => setAgeConfirm(c === true)} className="rounded border-2" aria-required />
+                        <span className="text-sm text-muted-foreground">I&apos;m 18 or older</span>
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <Checkbox checked={agreeTerms} onCheckedChange={(c) => setAgreeTerms(c === true)} className="rounded border-2" aria-required />
+                        <span className="text-sm text-muted-foreground">I agree with the <a href="/terms" className="text-primary underline hover:no-underline">Terms and Conditions</a></span>
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <Checkbox checked={showcasePermission} onCheckedChange={(c) => setShowcasePermission(c === true)} className="rounded border-2" />
+                        <span className="text-sm text-muted-foreground">Feature my portrait on the website and social media</span>
+                      </label>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="mt-8 flex justify-between">
+                      <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
+                        <ChevronLeft className="mr-1 h-4 w-4" />
+                        Back
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={!agreeTerms || !ageConfirm || status === "uploading"}
+                        className="rounded-organic-sm px-6"
+                      >
+                        {status === "uploading" ? "Uploading…" : "Create my portrait"}
+                        <Sparkles className="ml-1 h-4 w-4" />
+                      </Button>
+                    </form>
+                  </div>
+                )}
+              </div>
+
+              {/* Error state — only when wizard is shown and there's an error */}
+              {status === "error" && message && (
                 <div
                   className={cn(
-                    "mt-6 rounded-organic-sm border px-4 py-3 text-sm animate-in fade-in-0 duration-300",
-                    "border-destructive/50 bg-destructive/10 text-destructive"
+                    "mt-6 animate-in fade-in-0 duration-300",
+                    isRejectionError ? "rounded-organic border border-amber-500/40 bg-amber-500/5 p-4" : "rounded-organic-sm border border-destructive/50 bg-destructive/10 px-4 py-3 text-destructive"
                   )}
                   role="alert"
                 >
-                  <div className="flex gap-2">
-                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-                    <span>{message}</span>
-                  </div>
+                  {isRejectionError ? (
+                    <>
+                      <p className="font-medium text-foreground">This photo couldn&apos;t be used</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{message}</p>
+                      <p className="mt-2 text-xs text-foreground">One pet only · no people or other animals.</p>
+                      <Button type="button" variant="outline" size="sm" className="mt-3 rounded-organic-sm" onClick={handleTryAnotherPhoto}>
+                        Choose another photo
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="flex gap-2">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                      <span className="text-sm">{message}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </>
+          )}
+
+          {/* Processing */}
+          {status === "processing" && (
+            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
+              <div className="relative">
+                    <div className="h-20 w-20 rounded-organic-sm border-2 border-primary/30 bg-primary/5" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="h-2 w-2 animate-ping rounded-full bg-primary" style={{ animationDuration: "1.2s" }} />
+                    </div>
+                  </div>
+              <p className="mt-6 text-lg font-semibold text-foreground">Creating your portrait</p>
+              <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+              <p className="mt-1 text-xs text-muted-foreground">You can leave this page — we&apos;ll add it when it&apos;s ready.</p>
+              <div className="mt-6 flex gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Success */}
+          {status === "success" && resultImageUrl && (
+            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-8 text-center">
+              <p className="text-lg font-semibold text-foreground">Your portrait is ready</p>
+              <div className="mt-6 overflow-hidden rounded-organic border-2 border-border shadow-lg">
+                <Image
+                  src={resultImageUrl}
+                  alt={resultPetName || "Your pet portrait"}
+                  width={400}
+                  height={400}
+                  className="h-auto w-full max-w-md object-contain"
+                  unoptimized={resultImageUrl.startsWith("http")}
+                />
+              </div>
+              {resultPetName && <p className="mt-3 text-sm text-muted-foreground">{resultPetName}</p>}
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Button onClick={handleReset} className="rounded-organic-sm px-6">
+                  Create another
+                </Button>
+                <Button variant="outline" className="rounded-organic-sm" asChild>
+                  <a href="/#gallery">View in gallery</a>
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </section>
