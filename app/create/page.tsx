@@ -31,11 +31,13 @@ export default function CreatePortraitPage() {
   const [message, setMessage] = useState("")
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null)
   const [resultPetName, setResultPetName] = useState<string | null>(null)
+  const [resultPortraitId, setResultPortraitId] = useState<string | null>(null)
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [ageConfirm, setAgeConfirm] = useState(false)
   const [showcasePermission, setShowcasePermission] = useState(true)
   const [wizardStep, setWizardStep] = useState(1)
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadUrlRef = useRef<string | null>(null)
   const processingStartedAtRef = useRef<number>(0)
@@ -46,7 +48,7 @@ export default function CreatePortraitPage() {
         try {
           const { data: rows, error } = await supabase
             .from("pet_portraits")
-            .select("image_url, created_at, pet_name, original_image_url, status, rejection_reason")
+            .select("id, image_url, created_at, pet_name, original_image_url, status, rejection_reason")
             .order("created_at", { ascending: false })
             .limit(15)
           if (error) {
@@ -74,6 +76,7 @@ export default function CreatePortraitPage() {
           if (matched?.image_url) {
             setResultImageUrl(matched.image_url)
             setResultPetName(matched.pet_name ?? null)
+            setResultPortraitId((matched as { id?: string }).id ?? null)
             setStatus("success")
           }
         } catch (err) {
@@ -127,8 +130,7 @@ export default function CreatePortraitPage() {
     }
   }, [])
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0]
+  function applyFile(selected: File | null) {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
       setPreviewUrl(null)
@@ -141,10 +143,44 @@ export default function CreatePortraitPage() {
       setFile(null)
       return
     }
+    const maxBytes = 10 * 1024 * 1024
+    if (selected.size > maxBytes) {
+      setFile(null)
+      return
+    }
     setFile(selected)
     setPreviewUrl(URL.createObjectURL(selected))
     setStatus("idle")
     setMessage("")
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    applyFile(e.target.files?.[0] ?? null)
+  }
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    const f = e.dataTransfer.files?.[0]
+    applyFile(f ?? null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -207,6 +243,7 @@ export default function CreatePortraitPage() {
     setMessage("")
     setResultImageUrl(null)
     setResultPetName(null)
+    setResultPortraitId(null)
     setAgreeTerms(false)
     setAgeConfirm(false)
     setShowcasePermission(true)
@@ -396,7 +433,16 @@ export default function CreatePortraitPage() {
                     />
                     <label
                       htmlFor="pet-photo"
-                      className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-organic border-2 border-dashed border-border bg-muted/30 py-10 transition-colors hover:border-primary/50 hover:bg-muted/50"
+                      className={cn(
+                        "mt-4 flex cursor-pointer flex-col items-center justify-center rounded-organic border-2 border-dashed py-10 transition-colors",
+                        isDragging
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
+                      )}
+                      onDragEnter={handleDragEnter}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
                     >
                       {previewUrl && file ? (
                         <div className="relative w-full max-w-sm overflow-hidden rounded-organic-sm">
@@ -406,7 +452,9 @@ export default function CreatePortraitPage() {
                       ) : (
                         <>
                           <ImageOff className="h-10 w-10 text-muted-foreground" aria-hidden />
-                          <span className="mt-2 text-sm font-medium text-foreground">Tap to choose a photo</span>
+                          <span className="mt-2 text-sm font-medium text-foreground">
+                            Drag a photo here or tap to choose
+                          </span>
                           <span className="mt-0.5 text-xs text-muted-foreground">JPEG, PNG or WebP · max 10 MB</span>
                         </>
                       )}
@@ -554,28 +602,69 @@ export default function CreatePortraitPage() {
             </div>
           )}
 
-          {/* Success */}
-          {status === "success" && resultImageUrl && (
+          {/* Success — preview with watermark, no right-click/save, CTA to buy */}
+          {status === "success" && (resultImageUrl || resultPortraitId) && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-8 text-center">
               <p className="text-lg font-semibold text-foreground">Your portrait is ready</p>
-              <div className="mt-6 overflow-hidden rounded-organic border-2 border-border shadow-lg">
-                <Image
-                  src={resultImageUrl}
-                  alt={resultPetName || "Your pet portrait"}
-                  width={400}
-                  height={400}
-                  className="h-auto w-full max-w-md object-contain"
-                  unoptimized={resultImageUrl.startsWith("http")}
-                />
+              <p className="mt-1 text-sm text-muted-foreground">Purchase to download in 4K and print.</p>
+
+              {/* Preview container: no right-click, no drag, max 800px, watermark */}
+              <div
+                className="relative mt-6 max-w-[800px] overflow-hidden rounded-organic border-2 border-border shadow-lg"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+              >
+                <div className="relative aspect-[16/10] w-full bg-muted">
+                  {resultPortraitId ? (
+                    <Image
+                      src={`/api/portrait-preview?id=${encodeURIComponent(resultPortraitId)}`}
+                      alt={resultPetName || "Your pet portrait"}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                      draggable={false}
+                      style={{ pointerEvents: "none" }}
+                    />
+                  ) : (
+                    <Image
+                      src={resultImageUrl!}
+                      alt={resultPetName || "Your pet portrait"}
+                      fill
+                      className="object-contain"
+                      unoptimized
+                      draggable={false}
+                      style={{ pointerEvents: "none" }}
+                    />
+                  )}
+                  {/* Watermark overlay */}
+                  <div
+                    className="absolute inset-0 flex items-center justify-center bg-background/5 pointer-events-none"
+                    aria-hidden
+                  >
+                    <div className="rotate-[-12deg] select-none text-xl font-bold text-foreground/20 tracking-widest sm:text-2xl">
+                      PREVIEW — Unlock 4K
+                    </div>
+                  </div>
+                </div>
               </div>
               {resultPetName && <p className="mt-3 text-sm text-muted-foreground">{resultPetName}</p>}
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button onClick={handleReset} className="rounded-organic-sm px-6">
-                  Create another
+
+              {/* Primary CTA: buy / download */}
+              <div className="mt-8 flex flex-col items-center gap-3">
+                <Button className="rounded-organic-sm px-8 py-6 text-base" asChild>
+                  <a href={resultPortraitId ? `/checkout?portrait=${encodeURIComponent(resultPortraitId)}` : "/checkout"}>
+                    Get my 4K download — $29
+                  </a>
                 </Button>
-                <Button variant="outline" className="rounded-organic-sm" asChild>
-                  <a href="/#gallery">View in gallery</a>
-                </Button>
+                <p className="text-xs text-muted-foreground">Secure payment · Instant download</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Button variant="outline" onClick={handleReset} className="rounded-organic-sm">
+                    Create another
+                  </Button>
+                  <Button variant="outline" className="rounded-organic-sm" asChild>
+                    <a href="/#gallery">View in gallery</a>
+                  </Button>
+                </div>
               </div>
             </div>
           )}
