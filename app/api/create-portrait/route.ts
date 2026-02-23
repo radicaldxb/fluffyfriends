@@ -132,14 +132,30 @@ export async function POST(request: NextRequest) {
   }
 
   // Fetch prompt from Supabase (with fallback)
-  const prompt = await getPromptForTheme(normalizedTheme)
+  let prompt = await getPromptForTheme(normalizedTheme)
+
+  // Safety net: if the fireman prompt in DB is missing the NAME PATCH step,
+  // append the canonical instruction with the {{PET_NAME}} placeholder.
+  if (normalizedTheme === "fireman" && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
+    prompt = `${prompt}\n\n9. NAME PATCH: Use the same rectangular chest name patch as in Image 1 (the one that says "Fire Dept."). Do not keep the original text "Fire Dept." on the chest patch. Overwrite it so the patch text reads exactly: "{{PET_NAME}}" and nothing else. Match its position, size, and embroidered style exactly, integrating it into the jacket fabric, folds, and lighting.`
+  }
+
+  // Theme-specific name: prompts can include {{PET_NAME}} (with or without spaces) for placement (e.g. fireman chest patch)
+  const resolvedPetName = petName?.trim() || "My Pet"
+  const placeholderRegex = /\{\{\s*PET_NAME\s*\}\}/gi
+  prompt = prompt.replace(placeholderRegex, resolvedPetName)
+  if (/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
+    console.warn("[create-portrait] Prompt still contains {{PET_NAME}} after replace — check replacement logic")
+  } else {
+    console.info("[create-portrait] Prompt resolved for theme=%s, pet_name=%s", normalizedTheme, resolvedPetName)
+  }
 
   const payload = { 
     test_image: uploadUrl, 
-    pet_name: petName, 
-    name: petName, 
+    pet_name: resolvedPetName, 
+    name: resolvedPetName, 
     theme: normalizedTheme,
-    prompt: prompt,
+    prompt,
     showcase_consent: showcaseConsent
   }
 

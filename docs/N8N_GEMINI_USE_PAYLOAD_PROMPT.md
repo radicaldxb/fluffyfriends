@@ -50,7 +50,8 @@ Copy everything below and paste it into the GEMINI node **JSON Body** (with Expr
       { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
     ],
     "generationConfig": {
-      "temperature": 0.7
+      "temperature": 0.7,
+      "responseModalities": ["TEXT", "IMAGE"]
     }
   }
 }}

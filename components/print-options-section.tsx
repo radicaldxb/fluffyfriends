@@ -77,7 +77,7 @@ export function PrintOptionsSection() {
             from a single photo.
           </p>
           <Button className="rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90 px-8" asChild>
-            <a href="#pricing">See pricing</a>
+            <a href="/create">See pricing</a>
           </Button>
         </div>
       </div>

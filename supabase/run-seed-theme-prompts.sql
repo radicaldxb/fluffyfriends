@@ -20,8 +20,9 @@ values (
 3. COSTUME: Apply the fireman uniform and gear from Image 1 with complete accuracy:
    - Firefighter helmet with reflective visor
    - Fire-resistant jacket/turnout coat with reflective stripes
+   - The rectangular name patch on the left chest (Image 1 shows "Fire Dept." there)—match its position, size, and style exactly
    - Matching pants and boots
-   - Any badges, patches, or insignia visible in Image 1
+   - Any other badges, patches, or insignia visible in Image 1
 
 4. ARTISTIC INTEGRATION: The pet must be fully integrated into the medium of Image 1. Match the texture, shadows, lighting, and overall aesthetic style exactly.
 

@@ -4,6 +4,64 @@ Subject validation now runs **in the n8n workflow** so it uses the same Gemini A
 
 ---
 
+## "JSON parameter needs to be valid JSON" – fix in 3 steps
+
+If the **Validate Subject** node fails with that error (n8n 2.6.x, HTTP Request node):
+
+1. **Body Content Type:** Open the Validate Subject node → find **Body Content Type** (or "Send Body" / body type) → set it to **Raw** or **String**, **not** "JSON".
+2. **Header:** In the same node, **Headers** → add **Content-Type** = `application/json`.
+3. **Body:** In **Body**, replace everything with this **single expression** (you must be in expression mode, so the field starts with `=`):
+
+```javascript
+={{ JSON.stringify({
+  "contents": [{
+    "parts": [
+      {
+        "inline_data": {
+          "mime_type": "image/jpeg",
+          "data": $('Extract user image').item.json.data || $('Extract user image').item.binary?.data?.data || ''
+        }
+      },
+      {
+        "text": "You are a strict image validator. The image must show EXACTLY ONE pet (dog or cat). Rules: 1. Exactly one dog or cat only. 2. No humans/body parts. 3. No other animals. 4. No objects as main subjects. Reply with exactly one line: VALID: yes OR VALID: no REASON: <reason>"
+      }
+    ]
+  }],
+  "generationConfig": {
+    "maxOutputTokens": 128,
+    "temperature": 0.1
+  }
+}) }}
+```
+
+With **Body Content Type = Raw**, the node does **not** validate the body as JSON; it sends the string. The `data` fallback tries `item.json.data` first, then `item.binary.data.data` (for when **binaryDataMode** is `filesystem`). Save the workflow and run again.
+
+**If you still see the error:** The node is still using JSON body type. In the HTTP Request node, scroll to the body section; the type is often a dropdown next to the body field (e.g. "JSON" / "Raw" / "String"). It must be **Raw** or **String**. Then ensure the body is exactly one expression (starts with `=`) and no extra JSON object is in the "Specify Body" / "JSON" field.
+
+---
+
+## "Invalid JSON payload / Root element must be a message" (Gemini 400)
+
+If the request reaches Gemini but you get this error:
+
+1. **Body must be in expression mode**  
+   In the **Body** field, n8n must treat the whole value as an expression. Click the **expression** button (often `=` or `fx`) so the field is in expression mode, then paste the `={{ JSON.stringify({ ... }) }}` **once** as the only content. If the body is in "fixed" or text mode, the expression is not evaluated and the payload can be empty or wrong.
+
+2. **`data` must be evaluated, not literal**  
+   Inside the expression, the image field must be the **expression** that reads from the previous node, not a quoted string. So it must be exactly:  
+   `"data": $('Extract user image').item.json.data || ...`  
+   with **no quotes** around the right-hand side. If you have `"data": "$('Extract user image')..."` (in quotes), the API gets that literal text instead of the base64 image.
+
+3. **URL must be the full generateContent endpoint**  
+   The URL must end with the model and method, e.g.  
+   `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY`  
+   (replace `YOUR_GEMINI_API_KEY` and use your model name if different). If the path is wrong or truncated (e.g. `.../models/g`), the API can return "Root element must be a message".
+
+4. **Content-Type header**  
+   Use the literal value `application/json` (no expression, no extra quotes).
+
+---
+
 ## Step-by-step checklist (do in order)
 
 - [ ] **Step 1 – Supabase:** Run the SQL below in Supabase SQL Editor (once).
@@ -219,6 +277,18 @@ So in the **same** JSON body as above, add:
 
 - When the user **checks** the optional “showcase my pet’s portrait” box, the app sends `showcase_consent: true` in the webhook payload → n8n forwards it → the API saves `showcase_consent: true` → the portrait appears in the gallery.
 - When the user **leaves it unchecked**, the app sends `showcase_consent: false` → n8n forwards it → the API saves `false` → the portrait is **not** shown in the gallery.
+
+---
+
+## Troubleshooting: "JSON parameter needs to be valid JSON"
+
+If the **Validate subject** HTTP Request node fails with this error (even though it worked before), the node is validating the body as JSON before sending; the evaluated body is not valid in that check. **Fix:**
+
+1. In the Validate subject node, set **Body Content Type** to **Raw** (or String), not JSON.
+2. Add a header **Content-Type** = `application/json`.
+3. Set **Body** to the single expression above (the `={{ JSON.stringify({ ... }) }}` one). That sends a raw string that is valid JSON, so the "JSON parameter" check is not applied.
+
+If it still fails, check that **Extract user image** actually outputs the base64 in `item.json.data`: run the workflow, open "Extract user image" output, and confirm there is a `data` field with a long base64 string. If your node uses binary/file output instead, the path may be different (e.g. `item.binary.data`) and you’d need to reference that in the expression.
 
 ---
 
