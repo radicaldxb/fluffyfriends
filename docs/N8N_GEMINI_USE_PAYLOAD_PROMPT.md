@@ -1,6 +1,6 @@
 # n8n: Make GEMINI Use the Prompt from the Webhook Payload
 
-The app sends the theme-specific prompt in the webhook body (`body.prompt`). The GEMINI node must use that instead of hardcoded text.
+The app sends the theme-specific prompt in the webhook body (`body.prompt`), already resolved (e.g. `{{PET_NAME}}` replaced with the pet name). The GEMINI node must use that instead of hardcoded text.
 
 ---
 

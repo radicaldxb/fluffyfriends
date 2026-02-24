@@ -7,6 +7,10 @@ const VALID_IDS: ProductId[] = ["single_4k", "pack_4_4k"]
 /**
  * Create an order (test flow — no Stripe yet).
  * Body: { email: string, name?: string, product_id: ProductId, portrait_id: string }
+ *
+ * For 4K download/upscale: look up the portrait by portrait_id and use
+ * original_image_url (JPEG/PNG) as the source for upscaling; use image_url
+ * (.avif) only for preview/thumbnails in emails or UI.
  */
 export async function POST(request: NextRequest) {
   try {

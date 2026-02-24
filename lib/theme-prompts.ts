@@ -16,36 +16,68 @@ export type ThemePrompt = {
   active: boolean
 }
 
+export type ThemePromptAndNameTagConfig = {
+  prompt: string
+  hasNameTag: boolean
+  nameTagInstruction: string | null
+}
+
 /**
- * Get the prompt for a specific theme from Supabase.
- * Falls back to a default prompt if theme is not found or Supabase is unavailable.
+ * Get the prompt and name-tag config for a theme in one query.
+ * Use this when building the create-portrait payload so name-tag logic is consistent.
+ * Falls back to default prompt and no name tag if theme not found or DB columns missing.
  */
-export async function getPromptForTheme(theme: string): Promise<string> {
+export async function getPromptAndNameTagConfig(theme: string): Promise<ThemePromptAndNameTagConfig> {
   const normalizedTheme = theme.toLowerCase()
 
   try {
     const { data, error } = await supabase
       .from("theme_prompts")
-      .select("prompt")
+      .select("prompt, has_name_tag, name_tag_instruction")
       .eq("theme_name", normalizedTheme)
       .eq("active", true)
       .single()
 
     if (error) {
       console.error(`[theme-prompts] Error fetching prompt for theme "${normalizedTheme}":`, error)
-      return getDefaultPrompt(normalizedTheme)
+      return {
+        prompt: getDefaultPrompt(normalizedTheme),
+        hasNameTag: false,
+        nameTagInstruction: null,
+      }
     }
 
-    if (data?.prompt) {
-      return data.prompt
+    if (!data?.prompt) {
+      console.warn(`[theme-prompts] No prompt found for theme "${normalizedTheme}", using default`)
+      return {
+        prompt: getDefaultPrompt(normalizedTheme),
+        hasNameTag: false,
+        nameTagInstruction: null,
+      }
     }
 
-    console.warn(`[theme-prompts] No prompt found for theme "${normalizedTheme}", using default`)
-    return getDefaultPrompt(normalizedTheme)
+    return {
+      prompt: data.prompt,
+      hasNameTag: data.has_name_tag === true,
+      nameTagInstruction: data.name_tag_instruction ?? null,
+    }
   } catch (err) {
     console.error(`[theme-prompts] Exception fetching prompt for theme "${normalizedTheme}":`, err)
-    return getDefaultPrompt(normalizedTheme)
+    return {
+      prompt: getDefaultPrompt(normalizedTheme),
+      hasNameTag: false,
+      nameTagInstruction: null,
+    }
   }
+}
+
+/**
+ * Get the prompt for a specific theme from Supabase.
+ * Falls back to a default prompt if theme is not found or Supabase is unavailable.
+ */
+export async function getPromptForTheme(theme: string): Promise<string> {
+  const { prompt } = await getPromptAndNameTagConfig(theme)
+  return prompt
 }
 
 /**

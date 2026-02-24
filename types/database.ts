@@ -10,6 +10,8 @@ export type PetPortrait = {
   pet_name: string | null
   status: string | null
   user_email: string | null
+  // Optional: original full-resolution image (e.g. JPEG/PNG from Gemini/Cloudinary) for upscaling
+  original_image_url?: string | null
 }
 
 /** Insert payload for pet_portraits (id and created_at are generated) */
@@ -18,6 +20,7 @@ export type PetPortraitInsert = {
   pet_name?: string | null
   status?: string | null
   user_email?: string | null
+   original_image_url?: string | null
 }
 
 export type ThemePrompt = {
@@ -27,6 +30,9 @@ export type ThemePrompt = {
   created_at: string
   updated_at: string
   active: boolean
+  /** Present after running run-add-theme-nametag-columns.sql */
+  has_name_tag?: boolean
+  name_tag_instruction?: string | null
 }
 
 /** Insert payload for theme_prompts (id, created_at, updated_at are generated) */
@@ -34,6 +40,8 @@ export type ThemePromptInsert = {
   theme_name: string
   prompt: string
   active?: boolean
+  has_name_tag?: boolean
+  name_tag_instruction?: string | null
 }
 
 /** Supabase Database type for typed client (optional) */

@@ -3,6 +3,16 @@
  */
 
 /**
+ * Default name-tag instruction appended to the prompt when a theme has name tag
+ * but no custom name_tag_instruction in the DB. Use {{PET_NAME}} in the text;
+ * the API replaces it with the pet name before sending to n8n.
+ * For theme-specific wording (e.g. "chest patch", "mission badge"), set
+ * name_tag_instruction in theme_prompts for that theme.
+ */
+export const DEFAULT_NAMETAG_INSTRUCTION =
+  'Add a visible name patch or badge on the costume that reads exactly: "{{PET_NAME}}". Match its position and style to similar elements in Image 1. Integrate it into the fabric and lighting.'
+
+/**
  * Get the public URL for a theme's master reference image in Supabase Storage.
  * @param theme - Theme name (e.g., "fireman", "spaceman")
  * @param extension - File extension (default: "png")

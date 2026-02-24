@@ -3,10 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "clean": "rm -rf .next",
+    "dev": "next dev --webpack",
+    "dev:turbo": "next dev",
+    "build": "next build --webpack",
+    "build:turbo": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "start:3001": "next start -p 3001",
+    "lint": "eslint .",
+    "deploy": "netlify deploy --prod --build",
+    "deploy:draft": "netlify deploy --build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -61,6 +67,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "netlify-cli": "^22.0.0",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^22",
     "@types/react": "19.2.14",

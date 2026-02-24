@@ -6,3 +6,7 @@ node_modules
 
 # Local Netlify folder
 .netlify
+
+# Logs
+*.log
+tailwindcss*.log

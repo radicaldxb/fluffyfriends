@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { getActiveThemes, getPromptForTheme } from "@/lib/theme-prompts"
+import { getActiveThemes, getPromptAndNameTagConfig } from "@/lib/theme-prompts"
+import { DEFAULT_NAMETAG_INSTRUCTION } from "@/lib/themes"
 
 const BUCKET = "images"
 const UPLOAD_PREFIX = "uploads"
@@ -13,7 +14,10 @@ export async function POST(request: NextRequest) {
     const webhookUrl = process.env.N8N_WEBHOOK_URL?.trim()
     if (!webhookUrl) {
       return NextResponse.json(
-        { error: "Portrait creation is not configured (N8N_WEBHOOK_URL missing)." },
+        {
+          error: "Portrait creation is not configured (N8N_WEBHOOK_URL missing).",
+          hint: "Running locally? Add N8N_WEBHOOK_URL to .env.local in the project root, then restart the dev server (npm run dev). Check http://localhost:3000/api/env-check to confirm the app sees it.",
+        },
         { status: 503 }
       )
     }
@@ -131,13 +135,15 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Fetch prompt from Supabase (with fallback)
-  let prompt = await getPromptForTheme(normalizedTheme)
+  // Fetch prompt and name-tag config from Supabase (single source of truth per theme)
+  const { prompt: basePrompt, hasNameTag, nameTagInstruction } = await getPromptAndNameTagConfig(normalizedTheme)
+  let prompt = basePrompt
 
-  // Safety net: if the fireman prompt in DB is missing the NAME PATCH step,
-  // append the canonical instruction with the {{PET_NAME}} placeholder.
-  if (normalizedTheme === "fireman" && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
-    prompt = `${prompt}\n\n9. NAME PATCH: Use the same rectangular chest name patch as in Image 1 (the one that says "Fire Dept."). Do not keep the original text "Fire Dept." on the chest patch. Overwrite it so the patch text reads exactly: "{{PET_NAME}}" and nothing else. Match its position, size, and embroidered style exactly, integrating it into the jacket fabric, folds, and lighting.`
+  // Safety net: if this theme uses a name tag but the prompt doesn't include {{PET_NAME}},
+  // append the theme-specific or default name-tag instruction.
+  if (hasNameTag && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
+    const appendix = nameTagInstruction ?? DEFAULT_NAMETAG_INSTRUCTION
+    prompt = `${prompt}\n\n9. NAME PATCH: ${appendix}`
   }
 
   // Theme-specific name: prompts can include {{PET_NAME}} (with or without spaces) for placement (e.g. fireman chest patch)
@@ -146,17 +152,16 @@ export async function POST(request: NextRequest) {
   prompt = prompt.replace(placeholderRegex, resolvedPetName)
   if (/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
     console.warn("[create-portrait] Prompt still contains {{PET_NAME}} after replace — check replacement logic")
-  } else {
-    console.info("[create-portrait] Prompt resolved for theme=%s, pet_name=%s", normalizedTheme, resolvedPetName)
   }
 
-  const payload = { 
-    test_image: uploadUrl, 
-    pet_name: resolvedPetName, 
-    name: resolvedPetName, 
+  const payload = {
+    test_image: uploadUrl,
+    pet_name: resolvedPetName,
+    name: resolvedPetName,
     theme: normalizedTheme,
     prompt,
-    showcase_consent: showcaseConsent
+    theme_has_nametag: hasNameTag,
+    showcase_consent: showcaseConsent,
   }
 
   let webhookOk = false

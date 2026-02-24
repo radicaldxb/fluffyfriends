@@ -2,6 +2,8 @@
 
 **Role:** Solutions Architect review of current choices, trade-offs, and recommended improvements.
 
+**Current build snapshot:** See **CURRENT_BUILD.md** for the stabilized state (create-portrait, name tag via Gemini, theme validation from DB, deployment).
+
 ---
 
 ## 1. Theme management: prompts in Supabase
