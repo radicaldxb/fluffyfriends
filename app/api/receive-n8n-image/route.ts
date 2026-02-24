@@ -200,14 +200,17 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Insert new record (requires anon insert policy – see supabase/run-allow-anon-insert-pet-portraits.sql)
-      const { error: insertError } = await supabase.from("pet_portraits").insert({
+      const insertPayload: Record<string, unknown> = {
         image_url: publicUrl,
         pet_name: petName,
         status: status,
         user_email: userEmail,
         showcase_consent: showcaseConsent,
-        ...(typeof originalImageUrl === "string" && originalImageUrl && { original_image_url: originalImageUrl }),
-      })
+      }
+      if (typeof originalImageUrl === "string" && originalImageUrl.trim()) {
+        insertPayload.original_image_url = originalImageUrl.trim()
+      }
+      const { error: insertError } = await supabase.from("pet_portraits").insert(insertPayload)
 
       if (insertError) {
         console.error("Insert error:", insertError)
@@ -221,6 +224,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       image_url: publicUrl,
+      original_image_url: storedOriginal ? originalImageUrl : undefined,
       path,
       message: "Image stored successfully",
       original_image_url_stored: storedOriginal,

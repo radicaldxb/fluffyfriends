@@ -45,6 +45,17 @@ See **docs/NETLIFY_ENV_VARS_SETUP.md** and **docs/N8N_WEBHOOK_SECRET_SETUP.md** 
 
 Build command is per **netlify.toml** (`npm run build`, which uses webpack); output is published as the site.
 
+### Always deploy the latest (when CLI doesn’t reach Netlify)
+
+To make sure **manual deploy** in Netlify uses your latest code, sync to GitHub first:
+
+1. Run **`npm run push`** in the project root.  
+   This stages all changes, commits (if there are any) with message `chore: sync for deploy`, and pushes to **origin dev**.  
+   So even if the Netlify CLI doesn’t work, GitHub stays up to date.
+2. In Netlify, click **Deploy site**. It builds from the branch you just pushed.
+
+**Workflow:** `npm run push` → then manual deploy in Netlify = you always deploy the latest version.
+
 ### Verify .avif and .jpg in production
 
 After deploy, create a portrait on the live site and confirm both URLs are stored:

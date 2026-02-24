@@ -11,6 +11,7 @@
     "start": "next start",
     "start:3001": "next start -p 3001",
     "lint": "eslint .",
+    "push": "git add -A && (git diff --staged --quiet || git commit -m \"chore: sync for deploy\") && git push origin dev",
     "deploy": "netlify deploy --prod --build",
     "deploy:draft": "netlify deploy --build"
   },

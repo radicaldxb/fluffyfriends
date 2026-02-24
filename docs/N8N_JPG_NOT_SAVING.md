@@ -17,9 +17,18 @@ If you use the Supabase node, either switch to an HTTP Request to `.../api/recei
 
 ---
 
-## 2. HTTP Request body must include original_image_url
+## 2. Map from the Cloudinary (CONVERTER) response
 
-The node that POSTs to **receive-n8n-image** must send a body like this (Expression mode for values):
+The CONVERTER node returns JSON like this (you shared it):
+
+- **secure_url** = original .jpg, e.g. `https://res.cloudinary.com/.../v1771914589/xxx.jpg`
+- **eager[0].secure_url** = .avif, e.g. `https://res.cloudinary.com/.../f_avif,q_auto/.../xxx.avif`
+
+So you must pass **both** to your app or to Supabase.
+
+### If you use an HTTP Request node (POST to receive-n8n-image)
+
+Body (Expression mode):
 
 | Field | Value |
 |-------|--------|
@@ -27,7 +36,18 @@ The node that POSTs to **receive-n8n-image** must send a body like this (Express
 | **original_image_url** | `{{ $('CONVERTER').item.json.secure_url }}` (.jpg) |
 | pet_name, name, showcase_consent, status | from Webhook / your nodes |
 
-If **original_image_url** is missing or points to the wrong node, the API never receives the .jpg URL and cannot save it.
+### If you use the built-in Supabase node (direct insert into pet_portraits)
+
+In the Supabase node, set **Columns** / field mapping so that both URLs are written:
+
+| Column | Expression (use your node name if not CONVERTER) |
+|--------|--------------------------------------------------|
+| **image_url** | `{{ $('CONVERTER').item.json.eager[0].secure_url }}` |
+| **original_image_url** | `{{ $('CONVERTER').item.json.secure_url }}` |
+| pet_name | from Webhook, e.g. `{{ $('Webhook').item.json.body.pet_name }}` |
+| status | `completed` |
+
+If **original_image_url** is missing in the Supabase node’s column list or expression, the .jpg URL is never written.
 
 ---
 
