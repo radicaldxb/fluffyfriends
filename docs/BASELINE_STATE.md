@@ -213,3 +213,92 @@ Webhook (receives prompt + theme + image URL)
 - **n8n workflow:** Version `d69498af-e942-41e8-b8a1-9913f793a03c`
 - **Last updated:** February 20, 2026
 - **Status:** Production-ready baseline
+
+---
+
+## Feb 24, 2026 Updates (Locked Build)
+
+The current build adds several important refinements on top of the baseline above. Treat this section as the **authoritative “as‑of now” state**.
+
+### Image Generation & Prompts
+
+- **Prompt source of truth:** Still the `theme_prompts` table in Supabase.  
+  - Backend uses `getPromptAndNameTagConfig()` (`lib/theme-prompts.ts`) to fetch:
+    - `prompt` (long text from DB),
+    - `hasNameTag` and `nameTagInstruction` (for themes with name patches, e.g. fireman).
+  - `POST /api/create-portrait` replaces any `{{PET_NAME}}` placeholders in the prompt and appends a safe default name‑tag instruction when needed.
+- **Spaceman prompt:** Updated in both:
+  - `lib/prompts.ts` (for code-based access), and
+  - `supabase/run-seed-theme-prompts.sql` (for DB seeding),
+  to:
+  - Match the **art style of the master spaceman image** (no “photorealistic” wording),
+  - Keep background + landscape untouched,
+  - Copy the suit and helmet design exactly from the master,
+  - Replace only the head with the pet (correct perspective),
+  - Enforce full‑body framing (boots to top of helmet) in 16:9.
+
+### n8n Workflow (“Nametag + Converter”)
+
+- **Workflow:** `FluffyFriends-Nametag+Converter` (JSON snapshot: `Fluffyfriends-16.json` in Dropbox).
+- **Key structure:**
+
+  ```
+  Webhook (receives: test_image, theme, prompt, pet_name, theme_has_nametag, showcase_consent)
+    → THEME SELECTOR (Code)
+      - Wraps DB prompt with global safety rules and image mapping
+      - Sets per-theme temperature (e.g. fireman=0.7, spaceman=0.3)
+    → Fetch Theme Image (Supabase themes/{theme}-master.png) → Extract theme (base64)
+    → User image (test_image URL) → Extract user image (base64) → Validate Subject (Gemini)
+    → If valid:
+         Merge → GEMINI (HTTP Request → gemini-3-pro-image-preview)
+           - JSON body built as a **single expression**:
+             - `text` from THEME SELECTOR (`body.prompt`)
+             - Image 1 = theme master (`Extract theme`)
+             - Image 2 = pet photo (`Extract user image`)
+             - `generationConfig.temperature` from THEME SELECTOR
+         → Code (extract base64 image from GEMINI response)
+         → CONVERTER (Cloudinary AVIF+JPG upload)
+         → Supabase callback (POST /api/receive-n8n-image)
+      → If rejected:
+         Image reject node → POST /api/receive-n8n-image with `rejected: true`
+  ```
+
+- **THEME SELECTOR details:**
+  - Reads `body.theme` and `body.prompt` from Webhook.
+  - Adds a small, shared **GLOBAL SAFETY RULES** header (single pet, no gore, no text/logos, etc.).
+  - Appends the raw DB prompt unchanged underneath.
+  - Computes `generationConfig.temperature` using an internal map:
+    - `fireman: 0.7`,
+    - `spaceman: 0.3`,
+    - default fallback `0.6`.
+  - Downstream GEMINI node reads both `body.prompt` and `generationConfig.temperature` from this node only.
+
+### Create Page (`/create`) – Preview & Checkout
+
+- After a successful generation (Supabase polling finds the matching `pet_portraits` row), the **create page stays on `/create`** and:
+  - Sets `status = "success"` and stores:
+    - `resultPortraitId` (row `id`),
+    - `resultImageUrl` (row `image_url`),
+    - `resultPetName`.
+- Success state UI:
+  - **Hero block:** “Your portrait is ready” + subline “Purchase to download in 4K and print.”
+  - **Preview frame:**
+    - Aspect-ratio enforced via `aspect-video` (always visible height).
+    - Primary source: `/api/portrait-preview?id={resultPortraitId}`.
+    - Fallback: if preview API fails, falls back to `resultImageUrl`.
+    - Right‑click and drag disabled to deter casual “Save as”.
+    - Watermark overlay centered on top: **“PREVIEW — Unlock 4K”** (semi‑transparent).
+  - **CTAs:**
+    - Primary: `Get my 4K download — $29` → `/checkout?portrait={resultPortraitId}`.
+    - Secondary: `Create another` (resets wizard).
+    - Tertiary: `View in gallery` (non‑primary escape).
+- `/api/portrait-preview`:
+  - Streams image bytes from Supabase Storage by `pet_portraits.id`.
+  - Only serves portraits created within `PREVIEW_MAX_AGE_HOURS` (currently 24h).
+  - Hides the raw storage URL from the client (preview served from app domain).
+
+These changes are **now the locked baseline** for future work (free‑run limits, email capture, and improved checkout). Any new features should assume:
+
+- Prompts and theme config are in Supabase (`theme_prompts`).
+- n8n’s THEME SELECTOR owns per‑theme temperature and global safety wrappers.
+- `/create` always shows a watermarked preview and routes to `/checkout` instead of dropping users into the gallery by default.

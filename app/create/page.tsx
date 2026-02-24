@@ -32,6 +32,7 @@ export default function CreatePortraitPage() {
   const [resultImageUrl, setResultImageUrl] = useState<string | null>(null)
   const [resultPetName, setResultPetName] = useState<string | null>(null)
   const [resultPortraitId, setResultPortraitId] = useState<string | null>(null)
+  const [previewError, setPreviewError] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [ageConfirm, setAgeConfirm] = useState(false)
   const [showcasePermission, setShowcasePermission] = useState(true)
@@ -244,6 +245,7 @@ export default function CreatePortraitPage() {
     setResultImageUrl(null)
     setResultPetName(null)
     setResultPortraitId(null)
+    setPreviewError(false)
     setAgreeTerms(false)
     setAgeConfirm(false)
     setShowcasePermission(true)
@@ -614,8 +616,8 @@ export default function CreatePortraitPage() {
                 onContextMenu={(e) => e.preventDefault()}
                 onDragStart={(e) => e.preventDefault()}
               >
-                <div className="relative aspect-[16/10] w-full bg-muted">
-                  {resultPortraitId ? (
+                <div className="relative aspect-video w-full bg-muted">
+                  {resultPortraitId && !previewError ? (
                     <Image
                       src={`/api/portrait-preview?id=${encodeURIComponent(resultPortraitId)}`}
                       alt={resultPetName || "Your pet portrait"}
@@ -624,6 +626,7 @@ export default function CreatePortraitPage() {
                       unoptimized
                       draggable={false}
                       style={{ pointerEvents: "none" }}
+                      onError={() => setPreviewError(true)}
                     />
                   ) : (
                     <Image
