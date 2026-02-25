@@ -283,9 +283,10 @@ The current build adds several important refinements on top of the baseline abov
 - Success state UI:
   - **Hero block:** “Your portrait is ready” + subline “Purchase to download in 4K and print.”
   - **Preview frame:**
-    - Aspect-ratio enforced via `aspect-video` (always visible height).
-    - Primary source: `/api/portrait-preview?id={resultPortraitId}`.
-    - Fallback: if preview API fails, falls back to `resultImageUrl`.
+    - Aspect-ratio enforced via `aspect-video` with a minimum height so it is always visible.
+    - Implementation uses a plain `<img>` inside a relative container (not `next/image`) so it works cleanly with the streaming preview API.
+    - Primary source: `/api/portrait-preview?id={resultPortraitId}` (server streams the actual image bytes).
+    - Fallback: if the preview API fails, falls back to `resultImageUrl` (the stored image URL).
     - Right‑click and drag disabled to deter casual “Save as”.
     - Watermark overlay centered on top: **“PREVIEW — Unlock 4K”** (semi‑transparent).
   - **CTAs:**

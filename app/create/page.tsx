@@ -612,39 +612,40 @@ export default function CreatePortraitPage() {
 
               {/* Preview container: no right-click, no drag, max 800px, watermark */}
               <div
-                className="relative mt-6 max-w-[800px] overflow-hidden rounded-organic border-2 border-border shadow-lg"
+                className="relative mt-6 w-full max-w-[800px] overflow-hidden rounded-organic border-2 border-border shadow-lg"
                 onContextMenu={(e) => e.preventDefault()}
                 onDragStart={(e) => e.preventDefault()}
               >
-                <div className="relative aspect-video w-full bg-muted">
+                <div className="relative aspect-video w-full min-h-[240px] bg-muted">
+                  {/* Use plain img so preview works regardless of Next/Image domain config */}
                   {resultPortraitId && !previewError ? (
-                    <Image
+                    <img
                       src={`/api/portrait-preview?id=${encodeURIComponent(resultPortraitId)}`}
                       alt={resultPetName || "Your pet portrait"}
-                      fill
-                      className="object-contain"
-                      unoptimized
+                      className="absolute inset-0 h-full w-full object-contain"
                       draggable={false}
                       style={{ pointerEvents: "none" }}
                       onError={() => setPreviewError(true)}
                     />
-                  ) : (
-                    <Image
-                      src={resultImageUrl!}
+                  ) : resultImageUrl ? (
+                    <img
+                      src={resultImageUrl}
                       alt={resultPetName || "Your pet portrait"}
-                      fill
-                      className="object-contain"
-                      unoptimized
+                      className="absolute inset-0 h-full w-full object-contain"
                       draggable={false}
                       style={{ pointerEvents: "none" }}
                     />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      Loading preview…
+                    </div>
                   )}
                   {/* Watermark overlay */}
                   <div
-                    className="absolute inset-0 flex items-center justify-center bg-background/5 pointer-events-none"
+                    className="absolute inset-0 flex items-center justify-center bg-background/10 pointer-events-none"
                     aria-hidden
                   >
-                    <div className="rotate-[-12deg] select-none text-xl font-bold text-foreground/20 tracking-widest sm:text-2xl">
+                    <div className="rotate-[-12deg] select-none text-xl font-bold text-foreground/30 tracking-widest sm:text-2xl">
                       PREVIEW — Unlock 4K
                     </div>
                   </div>

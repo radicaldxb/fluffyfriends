@@ -5,12 +5,16 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    // Allow Cloudinary .avif (and other) URLs for gallery and create result
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "mblnpneghvkfmbgmbrco.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
     ],
   },
