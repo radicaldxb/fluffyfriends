@@ -5,27 +5,37 @@ import Stripe from "stripe"
 
 const VALID_IDS: ProductId[] = ["single_4k", "pack_4_4k"]
 
-function getStripeClient() {
-  const secret = process.env.STRIPE_SECRET_KEY
-  if (!secret) {
-    throw new Error("STRIPE_SECRET_KEY is not configured")
-  }
+function getStripeClient(secret: string) {
   return new Stripe(secret, {
     apiVersion: "2023-10-16",
   })
 }
 
-function getSiteUrl() {
-  // Prefer explicit site URL; fall back to Netlify URL if needed
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
-  if (!fromEnv) {
-    throw new Error("NEXT_PUBLIC_SITE_URL (or SITE_URL) is not configured")
-  }
+function getSiteUrl(fromEnv: string) {
   return fromEnv.replace(/\/+$/, "")
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const stripeSecret = process.env.STRIPE_SECRET_KEY
+    const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
+
+    if (!stripeSecret) {
+      console.error("[create-checkout] STRIPE_SECRET_KEY not configured")
+      return NextResponse.json(
+        { error: "Server configuration error: STRIPE_SECRET_KEY is missing." },
+        { status: 500 },
+      )
+    }
+
+    if (!rawSiteUrl) {
+      console.error("[create-checkout] NEXT_PUBLIC_SITE_URL (or SITE_URL) not configured")
+      return NextResponse.json(
+        { error: "Server configuration error: NEXT_PUBLIC_SITE_URL (or SITE_URL) is missing." },
+        { status: 500 },
+      )
+    }
+
     const body = await request.json()
 
     const email =
@@ -105,8 +115,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2) Create Stripe Checkout Session
-    const stripe = getStripeClient()
-    const siteUrl = getSiteUrl()
+    const stripe = getStripeClient(stripeSecret)
+    const siteUrl = getSiteUrl(rawSiteUrl)
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
