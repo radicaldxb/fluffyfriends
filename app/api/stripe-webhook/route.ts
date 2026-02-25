@@ -157,7 +157,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true }, { status: 200 })
   } catch (err) {
     console.error("[stripe-webhook] Unexpected error:", err)
-    return NextResponse.json({ error: "Internal error in stripe-webhook" }, { status: 500 })
+    const message =
+      err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error"
+    return NextResponse.json(
+      { error: "Internal error in stripe-webhook", details: message },
+      { status: 500 },
+    )
   }
 }
 
