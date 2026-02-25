@@ -86,11 +86,11 @@ export async function POST(request: NextRequest) {
               const item = items[0]
               const portraitIds = (item.portrait_ids as string[]) || []
 
-              let portraits: Array<{ id: string; pet_name: string | null; theme: string | null }> = []
+              let portraits: Array<{ id: string; pet_name: string | null; theme: string | null; image_url: string | null }> = []
               if (portraitIds.length > 0) {
                 const { data: portraitsRows, error: portraitsError } = await supabase
                   .from("pet_portraits")
-                  .select("id, pet_name, theme")
+                  .select("id, pet_name, theme, image_url")
                   .in("id", portraitIds)
 
                 if (portraitsError) {
@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
                     id: p.id as string,
                     pet_name: (p.pet_name as string) ?? null,
                     theme: (p.theme as string) ?? null,
+                    image_url: (p.image_url as string) ?? null,
                   }))
                 }
               }
