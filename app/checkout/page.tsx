@@ -38,12 +38,12 @@ function CheckoutContent() {
     setErrorMessage("")
 
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
-          name: name.trim() || undefined,
+          first_name: name.trim() || undefined,
           product_id: productId,
           portrait_id: portraitId,
         }),
@@ -54,6 +54,11 @@ function CheckoutContent() {
         setErrorMessage(data.error || `Request failed (${res.status})`)
         return
       }
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+      // Fallback: show simple success if no redirect URL
       setOrderId(data.order_id ?? null)
       setStatus("success")
     } catch (err) {
@@ -96,7 +101,7 @@ function CheckoutContent() {
             Order recorded
           </h1>
           <p className="mt-4 text-muted-foreground">
-            This is a test flow. When Stripe (or another payment provider) is connected, payment will happen here and you&apos;ll get your 4K download by email.
+            This is a test fallback. If Stripe is connected, you should normally be redirected to the payment page instead of seeing this screen.
           </p>
           {orderId && (
             <p className="mt-2 text-sm text-muted-foreground">
