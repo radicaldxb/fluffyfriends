@@ -15,7 +15,7 @@ function CheckoutContent() {
   const portraitId = searchParams.get("portrait")?.trim() || null
 
   const [email, setEmail] = useState("")
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
   const [productId, setProductId] = useState<ProductId>("pack_4_4k")
   const [status, setStatus] = useState<"form" | "submitting" | "success" | "error">("form")
   const [orderId, setOrderId] = useState<string | null>(null)
@@ -29,8 +29,15 @@ function CheckoutContent() {
       setErrorMessage("No portrait selected. Start from the create page.")
       return
     }
-    if (!email.trim()) {
+    const trimmedEmail = email.trim()
+    const trimmedFirstName = firstName.trim()
+
+    if (!trimmedEmail) {
       setErrorMessage("Please enter your email.")
+      return
+    }
+    if (!trimmedFirstName) {
+      setErrorMessage("Please enter your first name.")
       return
     }
 
@@ -42,8 +49,8 @@ function CheckoutContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim(),
-          first_name: name.trim() || undefined,
+          email: trimmedEmail,
+          first_name: trimmedFirstName,
           product_id: productId,
           portrait_id: portraitId,
         }),
@@ -163,12 +170,13 @@ function CheckoutContent() {
               />
             </div>
             <div>
-              <label htmlFor="checkout-name" className="block text-sm text-muted-foreground mb-1">Name (optional)</label>
+              <label htmlFor="checkout-first-name" className="block text-sm text-muted-foreground mb-1">First name *</label>
               <input
-                id="checkout-name"
+                id="checkout-first-name"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 placeholder="How should we call you?"
                 className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               />
