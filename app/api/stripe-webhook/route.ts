@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { headers } from "next/headers"
 import Stripe from "stripe"
 import { supabase } from "@/lib/supabase"
 
@@ -33,7 +32,7 @@ export async function POST(request: NextRequest) {
     const stripe = getStripeClient(stripeSecret)
 
     const body = await request.text()
-    const signature = headers().get("stripe-signature") || ""
+    const signature = request.headers.get("stripe-signature") || ""
 
     let event: Stripe.Event
     try {
