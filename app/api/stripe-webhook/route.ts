@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
           if (itemsError || !items || items.length === 0) {
               console.error("[stripe-webhook] Failed to load order_items:", itemsError)
             } else {
-              const item = items[0]
+            const item = items[0]
             // Prefer portrait_id from Stripe metadata (create-checkout sent this),
             // fall back to any portrait_ids stored on the order_items row.
             const portraitIdFromMetadata = (metadata.portrait_id as string | undefined) || null
@@ -92,40 +92,23 @@ export async function POST(request: NextRequest) {
                 ? [portraitIdFromMetadata]
                 : ((item.portrait_ids as string[]) || [])
 
-              let portraits: Array<{
-                id: string
-                pet_name: string | null
-                theme: string | null
-                image_url: string | null
-                original_image_url: string | null
-              }> = []
-              if (portraitIds.length > 0) {
-                const { data: portraitsRows, error: portraitsError } = await supabase
-                  .from("pet_portraits")
-                  .select("id, pet_name, theme, image_url, original_image_url")
-                  .in("id", portraitIds)
-
-                if (portraitsError) {
-                  console.error("[stripe-webhook] Failed to load pet_portraits:", portraitsError)
-                } else if (portraitsRows) {
-                  portraits = portraitsRows.map((p) => ({
-                    id: p.id as string,
-                    pet_name: (p.pet_name as string) ?? null,
-                    theme: (p.theme as string) ?? null,
-                    image_url: (p.image_url as string) ?? null,
-                    original_image_url: (p.original_image_url as string) ?? null,
-                  }))
-                }
-              }
+            const portraits = portraitIds.map((id) => ({
+              id,
+              pet_name: null as string | null,
+              theme: null as string | null,
+              image_url: null as string | null,
+              original_image_url: null as string | null,
+            }))
 
               const firstName =
                 (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
 
-              const firstPortrait = portraits[0]
-              const portraitImageUrl =
-                (firstPortrait?.original_image_url as string | null) ||
-                (firstPortrait?.image_url as string | null) ||
-                null
+            const firstPortraitId = portraits[0]?.id as string | undefined
+            const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "").replace(/\/+$/, "")
+            const portraitImageUrl =
+              firstPortraitId && siteUrl
+                ? `${siteUrl}/api/portrait-preview?id=${encodeURIComponent(firstPortraitId)}`
+                : null
 
               const payload = {
                 event: "order.paid",
