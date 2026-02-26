@@ -92,23 +92,55 @@ export async function POST(request: NextRequest) {
                 ? [portraitIdFromMetadata]
                 : ((item.portrait_ids as string[]) || [])
 
-            const portraits = portraitIds.map((id) => ({
-              id,
-              pet_name: null as string | null,
-              theme: null as string | null,
-              image_url: null as string | null,
-              original_image_url: null as string | null,
-            }))
+            let portraits: Array<{
+              id: string
+              pet_name: string | null
+              theme: string | null
+              image_url: string | null
+              original_image_url: string | null
+            }> = []
+
+            if (portraitIds.length > 0) {
+              const { data: portraitsRows, error: portraitsError } = await supabase
+                .from("pet_portraits")
+                .select("id, pet_name, theme, image_url, original_image_url")
+                .in("id", portraitIds)
+
+              if (portraitsError) {
+                console.error("[stripe-webhook] Failed to load pet_portraits:", portraitsError)
+              } else if (portraitsRows) {
+                portraits = portraitsRows.map((p) => ({
+                  id: p.id as string,
+                  pet_name: (p.pet_name as string) ?? null,
+                  theme: (p.theme as string) ?? null,
+                  image_url: (p.image_url as string) ?? null,
+                  original_image_url: (p.original_image_url as string) ?? null,
+                }))
+              }
+            }
+
+            const firstPortrait = portraits[0]
+            let portraitImageUrl: string | null = null
+
+            // Prefer original/storage URLs from pet_portraits for upscaling
+            if (firstPortrait) {
+              portraitImageUrl =
+                (firstPortrait.original_image_url as string | null) ||
+                (firstPortrait.image_url as string | null) ||
+                null
+            }
+
+            // Fallback: if we still don't have a direct image URL, fall back to the preview route
+            if (!portraitImageUrl && portraitIds.length > 0) {
+              const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "").replace(/\/+$/, "")
+              const firstPortraitId = portraitIds[0]
+              if (siteUrl && firstPortraitId) {
+                portraitImageUrl = `${siteUrl}/api/portrait-preview?id=${encodeURIComponent(firstPortraitId)}`
+              }
+            }
 
               const firstName =
                 (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
-
-            const firstPortraitId = portraits[0]?.id as string | undefined
-            const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "").replace(/\/+$/, "")
-            const portraitImageUrl =
-              firstPortraitId && siteUrl
-                ? `${siteUrl}/api/portrait-preview?id=${encodeURIComponent(firstPortraitId)}`
-                : null
 
               const payload = {
                 event: "order.paid",
