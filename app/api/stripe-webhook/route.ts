@@ -86,11 +86,17 @@ export async function POST(request: NextRequest) {
               const item = items[0]
               const portraitIds = (item.portrait_ids as string[]) || []
 
-              let portraits: Array<{ id: string; pet_name: string | null; theme: string | null; image_url: string | null }> = []
+              let portraits: Array<{
+                id: string
+                pet_name: string | null
+                theme: string | null
+                image_url: string | null
+                original_image_url: string | null
+              }> = []
               if (portraitIds.length > 0) {
                 const { data: portraitsRows, error: portraitsError } = await supabase
                   .from("pet_portraits")
-                  .select("id, pet_name, theme, image_url")
+                  .select("id, pet_name, theme, image_url, original_image_url")
                   .in("id", portraitIds)
 
                 if (portraitsError) {
@@ -101,12 +107,19 @@ export async function POST(request: NextRequest) {
                     pet_name: (p.pet_name as string) ?? null,
                     theme: (p.theme as string) ?? null,
                     image_url: (p.image_url as string) ?? null,
+                    original_image_url: (p.original_image_url as string) ?? null,
                   }))
                 }
               }
 
               const firstName =
                 (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
+
+              const firstPortrait = portraits[0]
+              const portraitImageUrl =
+                (firstPortrait?.original_image_url as string | null) ||
+                (firstPortrait?.image_url as string | null) ||
+                null
 
               const payload = {
                 event: "order.paid",
@@ -121,6 +134,7 @@ export async function POST(request: NextRequest) {
                 user_country: null,
                 user_state: null,
                 user_city: null,
+                portrait_image_url: portraitImageUrl,
                 portraits,
               }
 
