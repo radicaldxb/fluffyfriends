@@ -80,11 +80,17 @@ export async function POST(request: NextRequest) {
               .select("product_id, price_cents, credits_remaining, portrait_ids")
               .eq("order_id", orderId)
 
-            if (itemsError || !items || items.length === 0) {
+          if (itemsError || !items || items.length === 0) {
               console.error("[stripe-webhook] Failed to load order_items:", itemsError)
             } else {
               const item = items[0]
-              const portraitIds = (item.portrait_ids as string[]) || []
+            // Prefer portrait_id from Stripe metadata (create-checkout sent this),
+            // fall back to any portrait_ids stored on the order_items row.
+            const portraitIdFromMetadata = (metadata.portrait_id as string | undefined) || null
+            const portraitIds =
+              portraitIdFromMetadata != null && portraitIdFromMetadata !== ""
+                ? [portraitIdFromMetadata]
+                : ((item.portrait_ids as string[]) || [])
 
               let portraits: Array<{
                 id: string
