@@ -303,3 +303,103 @@ These changes are **now the locked baseline** for future work (free‑run limits
 - Prompts and theme config are in Supabase (`theme_prompts`).
 - n8n’s THEME SELECTOR owns per‑theme temperature and global safety wrappers.
 - `/create` always shows a watermarked preview and routes to `/checkout` instead of dropping users into the gallery by default.
+
+---
+
+## Feb 25, 2026 Updates (Stripe + Order Paid + Validator)
+
+These updates sit on top of the Feb 24 baseline and are now the **current production behaviour**.
+
+### Input validation (single pet only)
+
+- **Validator node:** `Validate Subject` in the `FluffyFriends-Nametag+Converter` workflow now calls Gemini (flash) with:
+  - User image as inline base64 (`Extract user image`).
+  - A strict prompt that forces a **single token output**: `VALID_YES` or `VALID_NO` only.
+  - `generationConfig`: low temperature and tiny maxOutputTokens.
+- **Decision node:** `If` checks:
+  - Left: `($json.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim().toUpperCase()`
+  - Operator: string **equal**
+  - Right: `VALID_NO`
+- **Branching:**
+  - **True (VALID_NO):** goes to `Image reject` → `/api/receive-n8n-image` with `rejected: true` and a clear reason.
+  - **False (VALID_YES):** continues to `Merge` → `GEMINI` for generation.
+- Result: human faces, multiple pets, objects, and non‑pet images are reliably rejected; clean single‑pet photos go through.
+
+### Stripe checkout integration
+
+- **Checkout page:** `app/checkout/page.tsx`
+  - Query param `portrait` (id from `/create` success CTA) is required.
+  - Shows portrait preview via `/api/portrait-preview?id={portraitId}`.
+  - Form collects:
+    - `email` (required),
+    - `first_name` (required),
+    - Product choice (`single_4k` vs `pack_4_4k` from `lib/products.ts`).
+  - On submit, posts to `POST /api/create-checkout`.
+- **Create checkout API:** `app/api/create-checkout/route.ts`
+  - Validates `email`, `first_name`, `product_id` (must be `single_4k` or `pack_4_4k`), and `portrait_id`.
+  - Looks up product in `lib/products.ts` to get `priceCents` and `perPortrait`.
+  - Writes to Supabase:
+    - Inserts an `orders` row with `email`, `name`, `amount_cents`, `status = 'pending'`, `payment_provider = 'stripe'`.
+    - Inserts an `order_items` row with `product_id`, `price_cents`, `portrait_ids: [portrait_id]`, `credits_remaining` (3 for 4‑pack, 0 for single).
+  - Creates a Stripe Checkout Session with:
+    - `mode: "payment"`,
+    - `line_items` priced from `priceCents`,
+    - `metadata`: `{ order_id, portrait_id, product_id, first_name }`,
+    - `success_url`: `${NEXT_PUBLIC_SITE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    - `cancel_url`: `${NEXT_PUBLIC_SITE_URL}/checkout?portrait={portrait_id}`.
+  - Returns `{ url, order_id }`; frontend redirects to `url`.
+- **Success page:** `app/checkout/success/page.tsx`
+  - Client component that reads `session_id` from `searchParams`.
+  - Confirms payment and offers **Create another** + **Back to home** CTAs; actual download / portrait listing is deferred to `/my-portraits`.
+
+### Stripe webhook + order-paid bridge to n8n
+
+- **Webhook handler:** `app/api/stripe-webhook/route.ts`
+  - Reads `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` from env and returns structured 500 errors if missing.
+  - Uses `request.headers.get("stripe-signature")` and `stripe.webhooks.constructEvent` to verify the event.
+  - On `checkout.session.completed`:
+    - Extracts `order_id`, `portrait_id`, `product_id`, `first_name` from `session.metadata`.
+    - Updates the matching `orders` row in Supabase:
+      - `status = 'paid'`,
+      - `payment_provider = 'stripe'`,
+      - `payment_id = session.id`.
+    - Loads the `orders` row (`email`, `name`, `amount_cents`) and the first `order_items` row (`product_id`, `price_cents`, `credits_remaining`, `portrait_ids`).
+    - Fetches basic `pet_portraits` metadata for those `portrait_ids` (id, pet_name, theme).
+    - Builds a flat **order‑paid payload**:
+      - `event: "order.paid"`,
+      - `order_id`, `product_id`, `currency`, `total_cents`,
+      - `credits_remaining`,
+      - `user_email`, `user_first_name`,
+      - placeholder `user_country`, `user_state`, `user_city` (`null` for now),
+      - `portraits: [{ id, pet_name, theme }, …]`.
+    - POSTs this JSON to `N8N_ORDER_PAID_WEBHOOK_URL` (env) when configured.
+  - Always responds to Stripe with JSON `{ received: true }` (or a structured `{ error, details }` on failure) so the Stripe dashboard clearly reflects webhook status.
+
+### n8n "Order Paid – Deliver" workflow
+
+- New workflow triggered by `https://n8n.srv943460.hstgr.cloud/webhook/order-paid`:
+  1. **Webhook** (`Order Paid`):
+     - Receives the flat payload above directly under `$json`.
+  2. **Code** (`Normalize Data`):
+     - Handles both shapes (`$json` vs `$json.body`) to be robust.
+     - Computes:
+       - `orderId`, `productId`, `totalCents`, `amountDisplay`,
+       - `creditsRemaining`,
+       - `email`, `firstName`, `country`, `state`, `city`,
+       - `portraits` array,
+       - simple HTML `portraitsHtml` list,
+       - `orderUrl = https://fluffyfriends-dev.netlify.app/my-portraits?order={orderId}`.
+  3. **Email** (`Send order email`):
+     - **To:** `{{$json.email}}`.
+     - Subject/body use `firstName`, `amountDisplay`, `portraitsHtml`, and `orderUrl`.
+- This workflow is intentionally minimal: it sends a confirmation email with a link to a basic `/my-portraits` page; upscaling, richer download links, and multi‑portrait UX will be layered on later.
+
+### My Portraits page (placeholder)
+
+- **Route:** `app/my-portraits/page.tsx`.
+- Reads `order` from `searchParams` and displays:
+  - Heading “Your portraits”.
+  - A short explanation that this page will show all portraits linked to the order once the experience is complete.
+  - The raw order reference id in monospace when provided.
+- No actual portrait listing yet; this is a safe landing page for the email’s `orderUrl` while the rest of the UX is being built.
+
