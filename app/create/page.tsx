@@ -291,7 +291,7 @@ export default function CreatePortraitPage() {
   const progressPercent = showWizard ? (wizardStep / 3) * 100 : 100
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
       {/* Top progress bar — smooth, always visible during wizard */}
@@ -305,7 +305,7 @@ export default function CreatePortraitPage() {
         </div>
       )}
 
-      <section className="py-10 md:py-14">
+      <section className="py-10 md:py-14 flex-1">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back to home</a>
 
@@ -587,12 +587,16 @@ export default function CreatePortraitPage() {
           {/* Processing */}
           {status === "processing" && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
-              <div className="relative">
-                    <div className="h-20 w-20 rounded-organic-sm border-2 border-primary/30 bg-primary/5" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="h-2 w-2 animate-ping rounded-full bg-primary" style={{ animationDuration: "1.2s" }} />
-                    </div>
-                  </div>
+              <div className="relative h-32 w-32 overflow-hidden rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
+                <video
+                  src="/video/FF-Loader.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <p className="mt-6 text-lg font-semibold text-foreground">Creating your portrait</p>
               <p className="mt-2 text-sm text-muted-foreground">{message}</p>
               <p className="mt-1 text-xs text-muted-foreground">You can leave this page — we&apos;ll add it when it&apos;s ready.</p>
