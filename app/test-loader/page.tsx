@@ -23,7 +23,7 @@ export default function TestLoaderPage() {
 
           <div className="mt-10 flex flex-col items-center gap-6">
             <div className="relative h-32 w-32 rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
-              <div className="absolute inset-[3px] overflow-hidden rounded-[999px]">
+              <div className="absolute inset-[5px] overflow-hidden rounded-[999px]">
                 <video
                   src="/video/FF-Loader.mp4"
                   autoPlay
