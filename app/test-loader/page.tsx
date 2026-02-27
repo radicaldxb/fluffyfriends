@@ -22,17 +22,15 @@ export default function TestLoaderPage() {
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-6">
-            <div className="relative h-32 w-32 rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
-              <div className="absolute inset-[5px] overflow-hidden rounded-[999px]">
-                <video
-                  src="/video/FF-Loader.mp4"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="h-full w-full object-cover"
-                />
-              </div>
+            <div className="relative h-32 w-32 overflow-hidden rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
+              <video
+                src="/video/FF-Loader.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="h-full w-full object-cover scale-[1.05]"
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               Video: <code className="rounded-organic-sm bg-muted px-1.5 py-0.5 text-[0.7rem]">/public/video/FF-Loader.mp4</code>
