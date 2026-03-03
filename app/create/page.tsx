@@ -240,7 +240,6 @@ export default function CreatePortraitPage() {
     setStatus("idle")
     setWizardStep(1)
     setMessage("")
-    setResultImageUrl(null)
     setResultPetName(null)
     setResultPortraitId(null)
     setPreviewError(false)
@@ -460,12 +459,18 @@ export default function CreatePortraitPage() {
                       )}
                     </label>
                     <div className="mt-4">
-                      <label htmlFor="pet-name" className="block text-sm font-medium text-foreground">Pet name (optional)</label>
+                      <label htmlFor="pet-name" className="block text-sm font-medium text-foreground">
+                        Pet name or nickname (optional)
+                      </label>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Keep it short and sweet (max 12 characters). On some styles this name can appear on the artwork itself.
+                      </p>
                       <input
                         id="pet-name"
                         type="text"
                         value={petName}
-                        onChange={(e) => setPetName(e.target.value)}
+                        onChange={(e) => setPetName(e.target.value.slice(0, 12))}
+                        maxLength={12}
                         placeholder="e.g. Max, Luna"
                         className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                       />
@@ -613,15 +618,36 @@ export default function CreatePortraitPage() {
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10 text-center">
               <p className="text-lg font-semibold text-foreground">Your photo looks perfect</p>
               <p className="mt-1 text-sm text-muted-foreground max-w-md">
-                We&apos;ve confirmed it&apos;s a single pet with no people or extra animals. Next step: secure
-                payment so we can create your artwork in 4K.
+                We&apos;ve confirmed it&apos;s a clear photo of a single pet. We&apos;ll use it as the base for your
+                chosen style.
               </p>
+
+              {/* Approved photo preview with check mark */}
+              {previewUrl && (
+                <div className="mt-6">
+                  <div className="relative mx-auto w-full max-w-sm">
+                    <div className="overflow-hidden rounded-organic border border-emerald-400/70 bg-muted shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={previewUrl}
+                        alt={resultPetName || "Approved pet photo"}
+                        className="h-auto w-full max-h-72 object-cover"
+                      />
+                    </div>
+                    <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md">
+                      <Check className="h-5 w-5" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {resultPetName && (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  We&apos;ll use this photo of <span className="font-medium text-foreground">{resultPetName}</span>{" "}
-                  in the <span className="font-medium text-foreground">{selectedTheme?.name}</span> style.
+                <p className="mt-4 text-sm text-muted-foreground">
+                  We&apos;ll turn <span className="font-medium text-foreground">{resultPetName}</span> into a{" "}
+                  <span className="font-medium text-foreground">{selectedTheme?.name}</span> portrait.
                 </p>
               )}
+
               <div className="mt-8 flex flex-col items-center gap-3">
                 <Button className="rounded-organic-sm px-8 py-6 text-base" asChild>
                   <a href={`/checkout?portrait=${encodeURIComponent(resultPortraitId)}`}>

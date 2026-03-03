@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
                     (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
 
                   const payload = {
+                    portrait_id: portraitRow.id,
                     pet_image_url: (portraitRow.original_image_url as string | null) || "",
                     pet_name: resolvedPetName,
                     theme,
@@ -168,6 +169,19 @@ export async function POST(request: NextRequest) {
                         },
                         body: JSON.stringify(payload),
                       })
+
+                      // Mark portrait as generating once we've handed it off to n8n
+                      const { error: portraitStatusError } = await supabase
+                        .from("pet_portraits")
+                        .update({ status: "generating" })
+                        .eq("id", portraitRow.id)
+
+                      if (portraitStatusError) {
+                        console.error(
+                          "[stripe-webhook] Failed to update pet_portraits status to generating:",
+                          portraitStatusError,
+                        )
+                      }
                     } catch (err) {
                       console.error("[stripe-webhook] Failed to call n8n order-paid webhook:", err)
                     }
