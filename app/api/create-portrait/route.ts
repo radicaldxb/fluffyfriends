@@ -155,7 +155,10 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = {
+    // Legacy field name used by older workflows
     test_image: uploadUrl,
+    // New explicit field name expected by FluffyFriends Workflow 1
+    pet_image_url: uploadUrl,
     pet_name: resolvedPetName,
     name: resolvedPetName,
     theme: normalizedTheme,
@@ -167,6 +170,7 @@ export async function POST(request: NextRequest) {
   let webhookOk = false
   let webhookStatus: number | null = null
   let webhookError: string | null = null
+  let webhookBody: any = null
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 15000)
@@ -179,12 +183,34 @@ export async function POST(request: NextRequest) {
     clearTimeout(timeout)
     webhookStatus = res.status
     webhookOk = res.ok
+    const text = await res.text().catch(() => "")
+    if (text) {
+      try {
+        webhookBody = JSON.parse(text)
+      } catch {
+        // ignore parse errors; we'll fall back to generic error handling
+      }
+    }
     if (!res.ok) {
-      const text = await res.text().catch(() => "")
       webhookError = text.slice(0, 200) || res.statusText
     }
   } catch (err) {
     webhookError = err instanceof Error ? err.message : "Request failed"
+  }
+
+  // If validator explicitly rejected the photo, surface that to the user
+  if (webhookBody && webhookBody.rejected) {
+    const reason =
+      typeof webhookBody.reason === "string" && webhookBody.reason.trim().length > 0
+        ? webhookBody.reason.trim()
+        : "This photo doesn't meet our requirements. Please upload a clear photo of a single pet (no people or objects)."
+    return NextResponse.json(
+      {
+        error: reason,
+        rejected: true,
+      },
+      { status: 400 },
+    )
   }
 
   // If n8n did not accept the job, return error so the user gets honest feedback
@@ -196,16 +222,19 @@ export async function POST(request: NextRequest) {
         ...(webhookStatus != null && { webhook_status: webhookStatus }),
         ...(webhookError && { webhook_error: webhookError }),
       },
-      { status: 503 }
+      { status: 503 },
     )
   }
 
-  return NextResponse.json({
-    queued: true,
-    upload_url: uploadUrl,
-    pet_name: petName,
-    message: "Your portrait is being created. It may take a few minutes.",
-  })
+  return NextResponse.json(
+    {
+      queued: true,
+      upload_url: uploadUrl,
+      pet_name: petName,
+      message: "Your portrait is being created. It may take a few minutes.",
+    },
+    { status: 200 },
+  )
   } catch (error) {
     // Log full error details for debugging
     const errorId = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
