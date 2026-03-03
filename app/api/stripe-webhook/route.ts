@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { supabase } from "@/lib/supabase"
+import { getPromptAndNameTagConfig } from "@/lib/theme-prompts"
+import { DEFAULT_NAMETAG_INSTRUCTION } from "@/lib/themes"
 
 function getStripeClient(secret: string) {
   return new Stripe(secret, {
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
             console.error("[stripe-webhook] Failed to update order:", updateError)
           }
 
-          // Fetch order + order_items + basic portrait info to send to n8n
+          // Fetch order + order_items so we can send an order-paid payload to n8n
           const { data: orderRow, error: orderError } = await supabase
             .from("orders")
             .select("id, email, name, amount_cents")
@@ -80,105 +82,96 @@ export async function POST(request: NextRequest) {
               .select("product_id, price_cents, credits_remaining, portrait_ids")
               .eq("order_id", orderId)
 
-          if (itemsError || !items || items.length === 0) {
+            if (itemsError || !items || items.length === 0) {
               console.error("[stripe-webhook] Failed to load order_items:", itemsError)
             } else {
-            const item = items[0]
-            // Prefer portrait_id from Stripe metadata (create-checkout sent this),
-            // fall back to any portrait_ids stored on the order_items row.
-            const portraitIdFromMetadata = (metadata.portrait_id as string | undefined) || null
-            const portraitIds =
-              portraitIdFromMetadata != null && portraitIdFromMetadata !== ""
-                ? [portraitIdFromMetadata]
-                : ((item.portrait_ids as string[]) || [])
+              const item = items[0]
+              // Prefer portrait_id from Stripe metadata (create-checkout sent this),
+              // fall back to any portrait_ids stored on the order_items row.
+              const portraitIdFromMetadata = (metadata.portrait_id as string | undefined) || null
+              const portraitIds =
+                portraitIdFromMetadata != null && portraitIdFromMetadata !== ""
+                  ? [portraitIdFromMetadata]
+                  : ((item.portrait_ids as string[]) || [])
 
-            let portraits: Array<{
-              id: string
-              pet_name: string | null
-              theme: string | null
-              image_url: string | null
-              original_image_url: string | null
-            }> = []
-
-            if (portraitIds.length > 0) {
-              const { data: portraitsRows, error: portraitsError } = await supabase
-                .from("pet_portraits")
-                .select("id, pet_name, theme, image_url, original_image_url")
-                .in("id", portraitIds)
-
-              if (portraitsError) {
-                console.error("[stripe-webhook] Failed to load pet_portraits:", portraitsError)
-              } else if (portraitsRows) {
-                portraits = portraitsRows.map((p) => ({
-                  id: p.id as string,
-                  pet_name: (p.pet_name as string) ?? null,
-                  theme: (p.theme as string) ?? null,
-                  image_url: (p.image_url as string) ?? null,
-                  original_image_url: (p.original_image_url as string) ?? null,
-                }))
-              }
-            }
-
-            const firstPortrait = portraits[0]
-            let portraitImageUrl: string | null = null
-
-            // Prefer original/storage URLs from pet_portraits for upscaling
-            if (firstPortrait) {
-              portraitImageUrl =
-                (firstPortrait.original_image_url as string | null) ||
-                (firstPortrait.image_url as string | null) ||
-                null
-            }
-
-            // Fallback: if we still don't have a direct image URL, fall back to the preview route
-            if (!portraitImageUrl && portraitIds.length > 0) {
-              const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "").replace(/\/+$/, "")
-              const firstPortraitId = portraitIds[0]
-              if (siteUrl && firstPortraitId) {
-                portraitImageUrl = `${siteUrl}/api/portrait-preview?id=${encodeURIComponent(firstPortraitId)}`
-              }
-            }
-
-              const firstName =
-                (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
-
-              const payload = {
-                event: "order.paid",
-                order_id: orderRow.id,
-                product_id: item.product_id,
-                currency: session.currency || "usd",
-                total_cents: item.price_cents ?? orderRow.amount_cents,
-                credits_remaining: item.credits_remaining ?? 0,
-                user_id: null,
-                user_email: orderRow.email,
-                user_first_name: firstName,
-                user_country: null,
-                user_state: null,
-                user_city: null,
-                portrait_image_url: portraitImageUrl,
-                portraits,
-              }
-
-              const orderPaidUrl =
-                process.env.N8N_ORDER_PAID_WEBHOOK_URL ||
-                process.env.N8N_ORDER_PAID_URL ||
-                ""
-
-              if (!orderPaidUrl) {
-                console.error(
-                  "[stripe-webhook] N8N order-paid webhook URL not configured (set N8N_ORDER_PAID_WEBHOOK_URL)",
-                )
+              const portraitId = portraitIds[0]
+              if (!portraitId) {
+                console.error("[stripe-webhook] No portrait_id available on order_items/metadata")
               } else {
-                try {
-                  await fetch(orderPaidUrl, {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(payload),
-                  })
-                } catch (err) {
-                  console.error("[stripe-webhook] Failed to call n8n order-paid webhook:", err)
+                const { data: portraitRow, error: portraitError } = await supabase
+                  .from("pet_portraits")
+                  .select("id, pet_name, theme, original_image_url, showcase_consent")
+                  .eq("id", portraitId)
+                  .single()
+
+                if (portraitError || !portraitRow) {
+                  console.error("[stripe-webhook] Failed to load pet_portraits row:", portraitError)
+                } else {
+                  const rawPetName = (portraitRow.pet_name as string | null) || "My Pet"
+                  const resolvedPetName = rawPetName.trim() || "My Pet"
+                  const theme = ((portraitRow.theme as string | null) || "").toLowerCase()
+
+                  let prompt = ""
+                  try {
+                    if (!theme) {
+                      console.error("[stripe-webhook] Missing theme on pet_portraits row")
+                    } else {
+                      const { prompt: basePrompt, hasNameTag, nameTagInstruction } =
+                        await getPromptAndNameTagConfig(theme)
+
+                      prompt = basePrompt
+                      // Append name-tag instruction if needed
+                      if (hasNameTag && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
+                        const appendix = nameTagInstruction ?? DEFAULT_NAMETAG_INSTRUCTION
+                        prompt = `${prompt}\n\n9. NAME PATCH: ${appendix}`
+                      }
+
+                      // Replace {{PET_NAME}} placeholders
+                      const placeholderRegex = /\{\{\s*PET_NAME\s*\}\}/gi
+                      prompt = prompt.replace(placeholderRegex, resolvedPetName)
+                    }
+                  } catch (err) {
+                    console.error("[stripe-webhook] Failed to build prompt for order-paid payload:", err)
+                  }
+
+                  const firstName =
+                    (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
+
+                  const payload = {
+                    pet_image_url: (portraitRow.original_image_url as string | null) || "",
+                    pet_name: resolvedPetName,
+                    theme,
+                    prompt,
+                    order_id: orderRow.id,
+                    user_email: orderRow.email,
+                    user_first_name: firstName,
+                    total_cents: item.price_cents ?? orderRow.amount_cents,
+                    currency: session.currency || "usd",
+                    showcase_consent: Boolean(portraitRow.showcase_consent),
+                  }
+
+                  const orderPaidUrl =
+                    process.env.N8N_ORDER_PAID_WEBHOOK_URL ||
+                    process.env.N8N_ORDER_PAID_URL ||
+                    ""
+
+                  if (!orderPaidUrl) {
+                    console.error(
+                      "[stripe-webhook] N8N order-paid webhook URL not configured (set N8N_ORDER_PAID_WEBHOOK_URL)",
+                    )
+                  } else {
+                    try {
+                      await fetch(orderPaidUrl, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                      })
+                    } catch (err) {
+                      console.error("[stripe-webhook] Failed to call n8n order-paid webhook:", err)
+                    }
+                  }
                 }
               }
             }

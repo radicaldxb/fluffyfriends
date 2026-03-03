@@ -29,7 +29,6 @@ export default function CreatePortraitPage() {
   const [petName, setPetName] = useState("")
   const [status, setStatus] = useState<Status>("idle")
   const [message, setMessage] = useState("")
-  const [resultImageUrl, setResultImageUrl] = useState<string | null>(null)
   const [resultPetName, setResultPetName] = useState<string | null>(null)
   const [resultPortraitId, setResultPortraitId] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState(false)
@@ -62,9 +61,7 @@ export default function CreatePortraitPage() {
           const withOriginal = (row: { original_image_url?: string }) => (row as { original_image_url?: string }).original_image_url
           const withStatus = (row: { status?: string; rejection_reason?: string }) => row as { status?: string; rejection_reason?: string }
           const exactMatch = (rows ?? []).find((row) => uploadUrl && withOriginal(row) === uploadUrl)
-          const newestAfterStart = (rows ?? []).find(
-            (row) => row?.image_url && new Date(row.created_at).getTime() >= cutoff
-          )
+          const newestAfterStart = (rows ?? []).find((row) => new Date(row.created_at).getTime() >= cutoff)
           const matched = exactMatch ?? newestAfterStart
           if (matched && withStatus(matched).status === "rejected") {
             setStatus("error")
@@ -73,9 +70,9 @@ export default function CreatePortraitPage() {
                 "This photo doesn't meet our requirements. Please upload a single pet only (no group photos, people, or objects)."
             )
             return
+            return
           }
-          if (matched?.image_url) {
-            setResultImageUrl(matched.image_url)
+          if (matched?.id) {
             setResultPetName(matched.pet_name ?? null)
             setResultPortraitId((matched as { id?: string }).id ?? null)
             setStatus("success")
@@ -187,6 +184,7 @@ export default function CreatePortraitPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!file || !theme) return
+
     setStatus("uploading")
     setMessage("")
     try {
@@ -224,7 +222,7 @@ export default function CreatePortraitPage() {
       uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
       processingStartedAtRef.current = Date.now()
       setStatus("processing")
-      setMessage("We're creating your portrait. Usually ready in 2–3 minutes.")
+      setMessage("We’re checking your photo to make sure it’s a single pet (no people or objects).")
     } catch (err) {
       setStatus("error")
       setMessage(err instanceof Error ? err.message : "Something went wrong.")
@@ -584,7 +582,7 @@ export default function CreatePortraitPage() {
             </>
           )}
 
-          {/* Processing */}
+          {/* Processing – validation only */}
           {status === "processing" && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
               <div className="relative h-32 w-32 overflow-hidden rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
@@ -597,9 +595,11 @@ export default function CreatePortraitPage() {
                   className="h-full w-full object-cover scale-[1.05]"
                 />
               </div>
-              <p className="mt-6 text-lg font-semibold text-foreground">Creating your portrait</p>
+              <p className="mt-6 text-lg font-semibold text-foreground">Checking your photo</p>
               <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-              <p className="mt-1 text-xs text-muted-foreground">You can leave this page — we&apos;ll add it when it&apos;s ready.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                This usually takes under a minute. We&apos;ll let you know if we need a different photo.
+              </p>
               <div className="mt-6 flex gap-1.5">
                 {[0, 1, 2].map((i) => (
                   <span key={i} className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
@@ -608,71 +608,32 @@ export default function CreatePortraitPage() {
             </div>
           )}
 
-          {/* Success — preview with watermark, no right-click/save, CTA to buy */}
-          {status === "success" && (resultImageUrl || resultPortraitId) && (
-            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-8 text-center">
-              <p className="text-lg font-semibold text-foreground">Your portrait is ready</p>
-              <p className="mt-1 text-sm text-muted-foreground">Purchase to download in 4K and print.</p>
-
-              {/* Preview container: no right-click, no drag, max 800px, watermark */}
-              <div
-                className="relative mt-6 w-full max-w-[800px] overflow-hidden rounded-organic border-2 border-border shadow-lg"
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-              >
-                <div className="relative aspect-video w-full min-h-[240px] bg-muted">
-                  {/* Use plain img so preview works regardless of Next/Image domain config */}
-                  {resultPortraitId && !previewError ? (
-                    <img
-                      src={`/api/portrait-preview?id=${encodeURIComponent(resultPortraitId)}`}
-                      alt={resultPetName || "Your pet portrait"}
-                      className="absolute inset-0 h-full w-full object-contain"
-                      draggable={false}
-                      style={{ pointerEvents: "none" }}
-                      onError={() => setPreviewError(true)}
-                    />
-                  ) : resultImageUrl ? (
-                    <img
-                      src={resultImageUrl}
-                      alt={resultPetName || "Your pet portrait"}
-                      className="absolute inset-0 h-full w-full object-contain"
-                      draggable={false}
-                      style={{ pointerEvents: "none" }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                      Loading preview…
-                    </div>
-                  )}
-                  {/* Watermark overlay */}
-                  <div
-                    className="absolute inset-0 flex items-center justify-center bg-background/10 pointer-events-none"
-                    aria-hidden
-                  >
-                    <div className="rotate-[-12deg] select-none text-xl font-bold text-foreground/30 tracking-widest sm:text-2xl">
-                      PREVIEW — Unlock 4K
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {resultPetName && <p className="mt-3 text-sm text-muted-foreground">{resultPetName}</p>}
-
-              {/* Primary CTA: buy / download */}
+          {/* Success — validation passed, now move to payment */}
+          {status === "success" && resultPortraitId && (
+            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10 text-center">
+              <p className="text-lg font-semibold text-foreground">Your photo looks perfect</p>
+              <p className="mt-1 text-sm text-muted-foreground max-w-md">
+                We&apos;ve confirmed it&apos;s a single pet with no people or extra animals. Next step: secure
+                payment so we can create your artwork in 4K.
+              </p>
+              {resultPetName && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  We&apos;ll use this photo of <span className="font-medium text-foreground">{resultPetName}</span>{" "}
+                  in the <span className="font-medium text-foreground">{selectedTheme?.name}</span> style.
+                </p>
+              )}
               <div className="mt-8 flex flex-col items-center gap-3">
                 <Button className="rounded-organic-sm px-8 py-6 text-base" asChild>
-                  <a href={resultPortraitId ? `/checkout?portrait=${encodeURIComponent(resultPortraitId)}` : "/checkout"}>
-                    Get my 4K download — $29
+                  <a href={`/checkout?portrait=${encodeURIComponent(resultPortraitId)}`}>
+                    Continue to payment
                   </a>
                 </Button>
-                <p className="text-xs text-muted-foreground">Secure payment · Instant download</p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  <Button variant="outline" onClick={handleReset} className="rounded-organic-sm">
-                    Create another
-                  </Button>
-                  <Button variant="outline" className="rounded-organic-sm" asChild>
-                    <a href="/#gallery">View in gallery</a>
-                  </Button>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Secure Stripe payment · We only charge once per portrait.
+                </p>
+                <Button variant="outline" onClick={handleReset} className="mt-2 rounded-organic-sm">
+                  Start over with a different photo
+                </Button>
               </div>
             </div>
           )}
