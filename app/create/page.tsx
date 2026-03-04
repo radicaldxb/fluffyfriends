@@ -204,6 +204,12 @@ export default function CreatePortraitPage() {
     }
   }
 
+  // Trigger image validation / n8n workflow without going through the step 3 form submit.
+  function handleCheckImage() {
+    // Reuse the existing submit logic, but with a fake event.
+    void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent)
+  }
+
   function handleReset() {
     setTheme(null)
     setFile(null)
@@ -539,7 +545,7 @@ export default function CreatePortraitPage() {
                       </Button>
                       <Button
                         type="button"
-                        onClick={goNext}
+                        onClick={handleCheckImage}
                         disabled={!file || !ageConfirm || !agreeTerms}
                         className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
                       >
