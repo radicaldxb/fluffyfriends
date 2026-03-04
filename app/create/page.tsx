@@ -456,31 +456,24 @@ export default function CreatePortraitPage() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
+                    {isRejectionError && (
+                      <div className="mb-4 rounded-organic-sm border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-left">
+                        <p className="text-sm font-semibold text-foreground">Oops — this photo won&apos;t work</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {cleanedRejectionMessage ||
+                            "It looks like there might be more than one pet, a person, or another object in the frame."}
+                        </p>
+                        <p className="mt-2 text-xs text-foreground">
+                          Let&apos;s try that again with one clear photo of just your pet.
+                        </p>
+                      </div>
+                    )}
                     <h2 className="text-xl font-semibold text-foreground">
                       Upload {theirOrName} photo
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       One clear photo is all we need. We&apos;ll check it first, so there are no surprises or money wasted.
                     </p>
-                    <p className="mt-4 text-sm font-semibold text-foreground">What makes a great photo</p>
-                    <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-                      <li className="flex items-start gap-2">
-                        <SunMedium className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>Well lit — natural light works best</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <User className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>One pet only — no group shots please</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>Face towards the camera — the more detail, the better the portrait</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>Avoid a busy background in the photo</span>
-                      </li>
-                    </ul>
                     <input
                       ref={fileInputRef}
                       id="pet-photo"
@@ -520,6 +513,25 @@ export default function CreatePortraitPage() {
                     <p className="mt-3 text-xs text-muted-foreground">
                       Photo reviewed before payment — no surprises
                     </p>
+                    <p className="mt-4 text-sm font-semibold text-foreground">What makes a great photo</p>
+                    <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <SunMedium className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>Well lit — natural light works best</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <User className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>One pet only — no group shots please</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>Face towards the camera — the more detail, the better the portrait</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>Avoid a busy background in the photo</span>
+                      </li>
+                    </ul>
                     {/* Consent under the upload box – first pass only */}
                     {!hasConsented && (
                       <div className="mt-6 space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
@@ -657,33 +669,19 @@ export default function CreatePortraitPage() {
                 )}
               </div>
 
-              {/* Error state — only when wizard is shown and there's an error */}
-              {status === "error" && message && (
+              {/* Error state — only when wizard is shown and there's an error (non-validator errors only) */}
+              {status === "error" && message && !isRejectionError && (
                 <div
                   className={cn(
                     "mt-6 animate-in fade-in-0 duration-300",
-                    isRejectionError ? "rounded-organic border border-amber-500/40 bg-amber-500/5 p-4" : "rounded-organic-sm border border-destructive/50 bg-destructive/10 px-4 py-3 text-destructive"
+                    "rounded-organic-sm border border-destructive/50 bg-destructive/10 px-4 py-3 text-destructive"
                   )}
                   role="alert"
                 >
-                  {isRejectionError ? (
-                    <>
-                      <p className="font-medium text-foreground">Oops — this photo won&apos;t work</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {cleanedRejectionMessage ||
-                          "It looks like there might be more than one pet, a person, or another object in the frame."}
-                      </p>
-                      <p className="mt-2 text-xs text-foreground">Let&apos;s try that again with one clear photo of just your pet.</p>
-                      <Button type="button" variant="outline" size="sm" className="mt-3 rounded-organic-sm" onClick={handleTryAnotherPhoto}>
-                        Upload a new photo
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="flex gap-2">
-                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
-                      <span className="text-sm">{message}</span>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                    <span className="text-sm">{message}</span>
+                  </div>
                 </div>
               )}
             </>
