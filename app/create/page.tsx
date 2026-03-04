@@ -67,11 +67,17 @@ export default function CreatePortraitPage() {
           const startedAt = processingStartedAtRef.current
           const uploadUrl = uploadUrlRef.current
           const cutoff = startedAt - 5000
-          const withOriginal = (row: { original_image_url?: string }) => (row as { original_image_url?: string }).original_image_url
-          const withStatus = (row: { status?: string; rejection_reason?: string }) => row as { status?: string; rejection_reason?: string }
+          const withOriginal = (row: { original_image_url?: string }) =>
+            (row as { original_image_url?: string }).original_image_url
+          const withStatus = (row: { status?: string; rejection_reason?: string }) =>
+            (row as { status?: string; rejection_reason?: string })
+
+          // Only ever treat a row as belonging to this attempt if the original_image_url
+          // exactly matches the uploadUrl we just got back from the API. We intentionally
+          // do NOT fall back to "newest after start" to avoid showing success for
+          // unrelated or older portraits.
           const exactMatch = (rows ?? []).find((row) => uploadUrl && withOriginal(row) === uploadUrl)
-          const newestAfterStart = (rows ?? []).find((row) => new Date(row.created_at).getTime() >= cutoff)
-          const matched = exactMatch ?? newestAfterStart
+          const matched = exactMatch
           if (matched && withStatus(matched).status === "rejected") {
             setIsValidationReject(true)
             setStatus("error")
