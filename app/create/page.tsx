@@ -41,6 +41,7 @@ export default function CreatePortraitPage() {
   const [wizardStep, setWizardStep] = useState(1)
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
   const [isDragging, setIsDragging] = useState(false)
+  const [isValidationReject, setIsValidationReject] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadUrlRef = useRef<string | null>(null)
   const processingStartedAtRef = useRef<number>(0)
@@ -67,6 +68,7 @@ export default function CreatePortraitPage() {
           const newestAfterStart = (rows ?? []).find((row) => new Date(row.created_at).getTime() >= cutoff)
           const matched = exactMatch ?? newestAfterStart
           if (matched && withStatus(matched).status === "rejected") {
+            setIsValidationReject(true)
             setStatus("error")
             setMessage(
               (matched as { rejection_reason?: string }).rejection_reason ||
@@ -160,8 +162,9 @@ export default function CreatePortraitPage() {
     e.preventDefault()
     if (!file || !theme) return
 
-    setStatus("uploading")
-    setMessage("")
+    setIsValidationReject(false)
+    setStatus("processing")
+    setMessage("Taking a look at their photo…")
     try {
       const formData = new FormData()
       formData.set("file", file)
@@ -185,8 +188,16 @@ export default function CreatePortraitPage() {
         return
       }
       if (!res.ok) {
+        if (data.rejected) {
+          setIsValidationReject(true)
+        }
         setStatus("error")
-        setMessage(data.error || `Request failed (${res.status})` + (data.error_id ? ` (${data.error_id})` : ""))
+        setMessage(
+          data.error ||
+            (data.rejected
+              ? "This photo doesn't meet our requirements. Please upload a clear photo of a single pet."
+              : `Request failed (${res.status})` + (data.error_id ? ` (${data.error_id})` : ""))
+        )
         return
       }
       if (data.webhook_ok === false) {
@@ -196,8 +207,6 @@ export default function CreatePortraitPage() {
       }
       uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
       processingStartedAtRef.current = Date.now()
-      setStatus("processing")
-      setMessage("Taking a look at their photo…")
     } catch (err) {
       setStatus("error")
       setMessage(err instanceof Error ? err.message : "Something went wrong.")
@@ -219,6 +228,7 @@ export default function CreatePortraitPage() {
     }
     setPetName("")
     setStatus("idle")
+    setIsValidationReject(false)
     setWizardStep(1)
     setMessage("")
     setResultPetName(null)
@@ -239,6 +249,7 @@ export default function CreatePortraitPage() {
       setPreviewUrl(null)
     }
     setStatus("idle")
+    setIsValidationReject(false)
     setMessage("")
     setWizardStep(2)
     fileInputRef.current && (fileInputRef.current.value = "")
@@ -254,13 +265,7 @@ export default function CreatePortraitPage() {
     setWizardStep((s) => Math.max(1, s - 1))
   }
 
-  const isRejectionError =
-    status === "error" &&
-    message &&
-    (message.toLowerCase().includes("single pet") ||
-      message.toLowerCase().includes("group") ||
-      message.toLowerCase().includes("please upload") ||
-      message.toLowerCase().includes("doesn't meet"))
+  const isRejectionError = status === "error" && isValidationReject
 
   const selectedTheme = themes.find((t) => t.id === theme)
 
