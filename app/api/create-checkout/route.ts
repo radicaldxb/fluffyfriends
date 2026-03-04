@@ -118,6 +118,10 @@ export async function POST(request: NextRequest) {
     const stripe = getStripeClient(stripeSecret)
     const siteUrl = getSiteUrl(rawSiteUrl)
 
+    const successUrl = `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&portrait=${encodeURIComponent(
+      portraitId,
+    )}`
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: email,
@@ -140,7 +144,7 @@ export async function POST(request: NextRequest) {
         product_id: productId,
         first_name: firstName,
       },
-      success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${siteUrl}/checkout?portrait=${encodeURIComponent(portraitId)}`,
     })
 

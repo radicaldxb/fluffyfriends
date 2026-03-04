@@ -25,13 +25,14 @@ type ApproveStatus = "idle" | "submitting" | "success" | "error"
 function SuccessContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session_id")?.trim() || ""
+  const portraitFromQuery = searchParams.get("portrait")?.trim() || ""
 
   const [preview, setPreview] = useState<PreviewState>({ status: "idle" })
   const [approveStatus, setApproveStatus] = useState<ApproveStatus>("idle")
   const [approveError, setApproveError] = useState<string>("")
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!sessionId && !portraitFromQuery) {
       setPreview({
         status: "error",
         message: "Missing payment session. Please return to checkout and try again.",
@@ -41,6 +42,19 @@ function SuccessContent() {
 
     let cancelled = false
     async function loadPreview() {
+      // If we only have a portrait id (e.g. direct link) but no session,
+      // show a lightweight preview without pricing.
+      if (!sessionId && portraitFromQuery) {
+        setPreview({
+          status: "ready",
+          portraitId: portraitFromQuery,
+          petName: "Your pet",
+          amountDisplay: "–",
+          currency: "",
+        })
+        return
+      }
+
       setPreview({ status: "loading" })
       try {
         const res = await fetch(`/api/approve-portrait?session_id=${encodeURIComponent(sessionId)}`)
@@ -88,7 +102,7 @@ function SuccessContent() {
     return () => {
       cancelled = true
     }
-  }, [sessionId])
+  }, [sessionId, portraitFromQuery])
 
   async function handleApprove() {
     if (!sessionId || approveStatus === "submitting" || approveStatus === "success") return
