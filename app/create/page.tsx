@@ -406,7 +406,7 @@ export default function CreatePortraitPage() {
                         type="button"
                         onClick={goNext}
                         disabled={!theme}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
                       >
                         Next — upload their photo
                         <ChevronRight className="ml-0.5 h-4 w-4" />
@@ -496,7 +496,7 @@ export default function CreatePortraitPage() {
                         type="button"
                         onClick={goNext}
                         disabled={!file}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
                       >
                         Continue → pay and create
                         <ChevronRight className="ml-0.5 h-4 w-4" />
@@ -586,7 +586,7 @@ export default function CreatePortraitPage() {
                         <Button
                           type="submit"
                           disabled={!agreeTerms || !ageConfirm || status === "uploading"}
-                          className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                          className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
                         >
                           {status === "uploading" ? "Uploading…" : "Make My Portrait"}
                           <Sparkles className="ml-1 h-4 w-4" />
@@ -691,7 +691,7 @@ export default function CreatePortraitPage() {
 
               <div className="mt-8 flex flex-col items-center gap-3">
                 <Button
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
                   asChild
                 >
                   <a href={`/checkout?portrait=${encodeURIComponent(resultPortraitId)}`}>
