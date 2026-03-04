@@ -21,6 +21,11 @@ const WIZARD_STEPS = [
 
 type ThemeItem = { id: string; name: string; previewUrl: string }
 
+function cleanValidatorMessage(raw: string | null): string {
+  if (!raw) return ""
+  return raw.replace(/^valid:\s*no\s*[-–]\s*/i, "").trim()
+}
+
 export default function CreatePortraitPage() {
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
@@ -273,6 +278,7 @@ export default function CreatePortraitPage() {
   const petNameDisplay = petName.trim()
   const theirOrName = petNameDisplay ? `${petNameDisplay}'s` : "their"
   const pageTitle = petNameDisplay ? `Create ${petNameDisplay}'s portrait` : "Create your portrait"
+  const cleanedRejectionMessage = cleanValidatorMessage(message)
 
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
@@ -650,7 +656,8 @@ export default function CreatePortraitPage() {
                     <>
                       <p className="font-medium text-foreground">Oops — this photo won&apos;t work</p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {message || "It looks like there might be more than one pet, a person, or another object in the frame."}
+                        {cleanedRejectionMessage ||
+                          "It looks like there might be more than one pet, a person, or another object in the frame."}
                       </p>
                       <p className="mt-2 text-xs text-foreground">Let&apos;s try that again with one clear photo of just your pet.</p>
                       <Button type="button" variant="outline" size="sm" className="mt-3 rounded-organic-sm" onClick={handleTryAnotherPhoto}>
