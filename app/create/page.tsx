@@ -23,7 +23,9 @@ type ThemeItem = { id: string; name: string; previewUrl: string }
 
 function cleanValidatorMessage(raw: string | null): string {
   if (!raw) return ""
-  return raw.replace(/^valid:\s*no\s*[-–]\s*/i, "").trim()
+  const stripped = raw.replace(/^valid:\s*no\s*[-–]\s*/i, "").trim()
+  if (!stripped) return ""
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1)
 }
 
 export default function CreatePortraitPage() {
