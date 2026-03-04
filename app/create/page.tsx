@@ -47,6 +47,7 @@ export default function CreatePortraitPage() {
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
   const [isDragging, setIsDragging] = useState(false)
   const [isValidationReject, setIsValidationReject] = useState(false)
+  const [hasConsented, setHasConsented] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadUrlRef = useRef<string | null>(null)
   const processingStartedAtRef = useRef<number>(0)
@@ -226,6 +227,10 @@ export default function CreatePortraitPage() {
 
   // Trigger image validation / n8n workflow without going through the step 3 form submit.
   function handleCheckImage() {
+    // Record that the user has already passed consent, so we don't show checkboxes again on retry.
+    if (ageConfirm && agreeTerms) {
+      setHasConsented(true)
+    }
     // Reuse the existing submit logic, but with a fake event.
     void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent)
   }
@@ -248,6 +253,7 @@ export default function CreatePortraitPage() {
     setAgreeTerms(false)
     setAgeConfirm(false)
     setShowcasePermission(true)
+    setHasConsented(false)
     uploadUrlRef.current = null
     processingStartedAtRef.current = 0
     fileInputRef.current && (fileInputRef.current.value = "")
@@ -514,47 +520,49 @@ export default function CreatePortraitPage() {
                     <p className="mt-3 text-xs text-muted-foreground">
                       Photo reviewed before payment — no surprises
                     </p>
-                    {/* Consent moves here under the upload box */}
-                    <div className="mt-6 space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
-                      <label className="flex cursor-pointer items-start gap-3">
-                        <Checkbox
-                          checked={ageConfirm}
-                          onCheckedChange={(c) => setAgeConfirm(c === true)}
-                          className="mt-0.5 rounded border-2"
-                          aria-required
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          I&apos;m 18 or older{" "}
-                          <span className="ml-1 text-xs text-muted-foreground">
-                            (A quick legal requirement — you must be 18 or older to complete a purchase online.)
+                    {/* Consent under the upload box – first pass only */}
+                    {!hasConsented && (
+                      <div className="mt-6 space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
+                        <label className="flex cursor-pointer items-start gap-3">
+                          <Checkbox
+                            checked={ageConfirm}
+                            onCheckedChange={(c) => setAgeConfirm(c === true)}
+                            className="mt-0.5 rounded border-2"
+                            aria-required
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            I&apos;m 18 or older{" "}
+                            <span className="ml-1 text-xs text-muted-foreground">
+                              (A quick legal requirement — you must be 18 or older to complete a purchase online.)
+                            </span>
                           </span>
-                        </span>
-                      </label>
-                      <label className="flex cursor-pointer items-center gap-3">
-                        <Checkbox
-                          checked={agreeTerms}
-                          onCheckedChange={(c) => setAgreeTerms(c === true)}
-                          className="rounded border-2"
-                          aria-required
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          I agree with the{" "}
-                          <a href="/terms" className="text-primary underline hover:no-underline">
-                            Terms &amp; Conditions
-                          </a>
-                        </span>
-                      </label>
-                      <label className="flex cursor-pointer items-center gap-3">
-                        <Checkbox
-                          checked={showcasePermission}
-                          onCheckedChange={(c) => setShowcasePermission(c === true)}
-                          className="rounded border-2"
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          I agree my portrait can be used on the website and social media
-                        </span>
-                      </label>
-                    </div>
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-3">
+                          <Checkbox
+                            checked={agreeTerms}
+                            onCheckedChange={(c) => setAgreeTerms(c === true)}
+                            className="rounded border-2"
+                            aria-required
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            I agree with the{" "}
+                            <a href="/terms" className="text-primary underline hover:no-underline">
+                              Terms &amp; Conditions
+                            </a>
+                          </span>
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-3">
+                          <Checkbox
+                            checked={showcasePermission}
+                            onCheckedChange={(c) => setShowcasePermission(c === true)}
+                            className="rounded border-2"
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            I agree my portrait can be used on the website and social media
+                          </span>
+                        </label>
+                      </div>
+                    )}
                     <div className="mt-6 flex justify-between">
                       <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
                         <ChevronLeft className="mr-1 h-4 w-4" />
@@ -563,7 +571,7 @@ export default function CreatePortraitPage() {
                       <Button
                         type="button"
                         onClick={handleCheckImage}
-                        disabled={!file || !ageConfirm || !agreeTerms}
+                        disabled={!file || (!hasConsented && (!ageConfirm || !agreeTerms))}
                         className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
                       >
                         Continue — check image
