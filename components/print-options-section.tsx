@@ -54,8 +54,10 @@ export function PrintOptionsSection() {
                 <div className="flex aspect-[4/3] items-center justify-center rounded-organic-sm bg-muted/50">
                   <Icon className="h-14 w-14 text-primary/80" aria-hidden />
                 </div>
-                <div className="mt-4 inline-flex items-center gap-2 rounded-organic-sm bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  <Check className="h-3 w-3" />
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#E8863A20] bg-white px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#E8863A80] bg-[#FDF4E8] text-[12px] font-semibold text-[#E8863A]">
+                    ✓
+                  </span>
                   <span>{option.size}</span>
                 </div>
                 <h3 className="mt-3 text-lg font-semibold text-foreground">
@@ -76,7 +78,10 @@ export function PrintOptionsSection() {
             at checkout and we&apos;ll help you create a complete, print‑ready collection
             from a single photo.
           </p>
-          <Button className="rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90 px-8" asChild>
+          <Button
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+            asChild
+          >
             <a href="/create">See pricing</a>
           </Button>
         </div>

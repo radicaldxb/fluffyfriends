@@ -1,26 +1,26 @@
-import { Upload, Palette, Frame } from "lucide-react"
+import { Palette, Upload, Frame } from "lucide-react"
 
 const steps = [
   {
-    icon: Upload,
+    icon: Palette,
     step: "01",
-    title: "Upload Your Photo",
+    title: "Choose their theme",
     description:
-      "Snap a picture or choose an existing photo of your pet — one pet per photo. Clear, well-lit shots work best.",
+      "Browse our collection of hand-crafted themes — from Brave Fireman to Viking Warrior to Royal Knight. Each one is designed so their name is woven into the portrait itself.",
   },
   {
-    icon: Palette,
+    icon: Upload,
     step: "02",
-    title: "Choose a Theme",
+    title: "Upload one photo",
     description:
-      "Pick from dozens of art styles — Renaissance, Samurai, Astronaut, and more.",
+      "Just one clear photo of your pet. We check it works before you pay a penny — so there are no surprises, no disappointments, and no wasted money.",
   },
   {
     icon: Frame,
     step: "03",
-    title: "Receive Your Art",
+    title: "Pay once, own it forever",
     description:
-      "Usually in 2–3 minutes, receive a museum-quality portrait ready to print, frame, or share.",
+      "From $17, one time. No subscription. Within minutes, two print-ready files land in your inbox — wide format and tall format — plus a free guide for printing and framing.",
   },
 ]
 
@@ -31,14 +31,13 @@ export function ProcessSection() {
         {/* Section header */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
-            How It Works
+            How it works
           </p>
           <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Three simple steps to a masterpiece
+            Simple enough for anyone. Beautiful enough for any wall.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            No artistic skill needed. Just your favorite pet photo and a few
-            clicks.
+            No tech skills needed. No subscriptions. Just your favourite photo and a few minutes of your time.
           </p>
         </div>
 
@@ -55,7 +54,7 @@ export function ProcessSection() {
               </span>
 
               <div className="relative z-10">
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-organic-sm bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FDF4E8] text-[#E8863A] shadow-sm transition-colors group-hover:bg-[#FBE3C4]">
                   <item.icon className="h-6 w-6" />
                 </div>
 

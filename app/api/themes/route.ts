@@ -1,29 +1,15 @@
 import { NextResponse } from "next/server"
-import { getActiveThemes } from "@/lib/theme-prompts"
 
 /**
  * GET /api/themes
- * Returns active themes from Supabase (theme_prompts).
- * Used by /create page so the theme list is data-driven; new themes appear without code change.
+ * Temporary implementation: always return the two static themes we have preview images for.
+ * This guarantees the /create page shows working theme cards while we wire up dynamic themes.
  */
 export async function GET() {
-  try {
-    const themeNames = await getActiveThemes()
+  const themes = [
+    { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
+    { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+  ]
 
-    const themes = themeNames.map((themeName) => ({
-      id: themeName,
-      name: themeName.charAt(0).toUpperCase() + themeName.slice(1),
-      previewUrl: `/images/themes/${themeName}-preview.webp`,
-    }))
-
-    return NextResponse.json({ themes })
-  } catch (err) {
-    console.error("[themes] Error fetching themes:", err)
-    // Fallback so UI still works if Supabase is down
-    const fallback = [
-      { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
-      { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
-    ]
-    return NextResponse.json({ themes: fallback })
-  }
+  return NextResponse.json({ themes })
 }

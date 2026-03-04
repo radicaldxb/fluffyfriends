@@ -6,12 +6,11 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
-  { label: "Create", href: "/create" },
   { label: "How It Works", href: "/#process" },
   { label: "Gallery", href: "/#gallery" },
-  { label: "Print Options", href: "/#print-options" },
   { label: "Pricing", href: "/#pricing" },
   { label: "Reviews", href: "/#reviews" },
+  { label: "Gift", href: "/#gifts" },
 ]
 
 export function Navbar() {
@@ -47,10 +46,10 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <Button
             size="sm"
-            className="hidden bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm px-4 sm:inline-flex"
+            className="hidden sm:inline-flex rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02]"
             asChild
           >
-            <a href="/create">Create My Portrait</a>
+            <a href="/create">Make My Portrait</a>
           </Button>
           <button
             className="text-foreground p-2 md:hidden -m-2"
@@ -79,10 +78,10 @@ export function Navbar() {
             <li className="mt-2 pt-2 border-t border-border/50">
               <Button
                 size="sm"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm"
+                className="w-full rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02]"
                 asChild
               >
-                <a href="/create" onClick={() => setMobileOpen(false)}>Create My Portrait</a>
+                <a href="/create" onClick={() => setMobileOpen(false)}>Make My Portrait</a>
               </Button>
             </li>
           </ul>

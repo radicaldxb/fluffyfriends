@@ -15,14 +15,20 @@ export function Footer() {
         </a>
 
         <nav className="flex flex-wrap justify-center gap-x-6 gap-y-1">
-          <a href="/privacy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy</a>
-          <a href="/terms" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Terms</a>
+          <a href="/privacy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</a>
+          <a href="/terms" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Terms of Service</a>
           <a href="/support" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Support</a>
           <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Instagram</a>
         </nav>
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground/90">
+            Portraits made with love, built to last. 🐾
+          </p>
+          <p className="text-sm text-muted-foreground">
+            FluffyFriends — because every pet deserves to be immortalised.
+          </p>
+          <p className="text-xs text-muted-foreground">
             We never sell or share your photos. Secure checkout. Happiness guarantee.
           </p>
           <p className="text-xs text-muted-foreground">

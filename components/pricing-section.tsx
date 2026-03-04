@@ -1,51 +1,67 @@
-import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const plans = [
   {
-    name: "4K Digital Download",
-    price: "$29",
+    name: "Starter",
+    price: "$17",
     priceNote: "one-time",
-    description: "Print‑ready, ultra‑sharp file delivered to your inbox.",
+    credits: "1 credit",
+    tagline: "Try it once. We think you'll come back.",
+    badge: null as string | null,
+    saving: null as string | null,
     features: [
-      "One museum‑quality portrait of your pet",
-      "4K+ resolution (print‑ready up to A2)",
-      "Instant delivery to your inbox",
-      "Full personal print rights",
+      "1 personalised portrait",
+      "Name worked into the portrait",
+      "Wide + tall format included",
+      "A1 print quality",
+      "Free print guide",
+      "Personal print rights — print as many times as you like",
     ],
-    cta: "Get 4K Download",
+    cta: "Create my portrait",
     featured: false,
   },
   {
-    name: "Premium Print + 5 Pack",
-    price: "$99",
+    name: "Portrait Pack",
+    price: "$49",
     priceNote: "one-time",
-    description:
-      "One framed hero print plus five unique portraits in different styles.",
+    credits: "4 credits",
+    tagline: "Four portraits. Your choice of pets, your choice of themes.",
+    badge: "Most Popular",
+    saving: "Worth $68 — you save $19",
     features: [
-      "1 premium framed print of your favorite",
-      "5 unique portraits in different themes",
-      "All files in 4K+ resolution",
-      "Perfect as a gift set or gallery wall",
+      "4 personalised portraits",
+      "Mix themes or pets — completely flexible",
+      "Name worked into every portrait",
+      "Wide + tall format on every portrait",
+      "A1 print quality",
+      "Free print guide",
+      "Personal print rights",
+      "Credits never expire",
     ],
-    cta: "Get Premium Bundle",
-    featured: false,
-  },
-  {
-    name: "Printed & Delivered",
-    price: "From $59",
-    priceNote: "+ shipping",
-    description:
-      "We print, frame, and ship your artwork straight to your door.",
-    features: [
-      "Premium print on archival paper",
-      "Multiple sizes & finishes available",
-      "Shipped by trusted print partners",
-      "Includes 4K digital file",
-      "Perfect as a gift or wall centerpiece",
-    ],
-    cta: "Get Printed Art",
+    cta: "Get the Portrait Pack",
     featured: true,
+  },
+  {
+    name: "Family Pack",
+    price: "$79",
+    priceNote: "one-time",
+    credits: "8 credits",
+    tagline: "Eight portraits for the whole family. Every pet. Every theme.",
+    badge: "Best Value",
+    saving: "Worth $136 — you save $57",
+    features: [
+      "8 personalised portraits",
+      "Perfect for multiple pets",
+      "Name worked into every portrait",
+      "Wide + tall format on every portrait",
+      "A1 print quality",
+      "Free print guide",
+      "Personal print rights",
+      "Credits never expire",
+      "Beautiful as a gift set",
+    ],
+    cta: "Get the Family Pack",
+    featured: false,
   },
 ]
 
@@ -59,22 +75,26 @@ export function PricingSection() {
             Pricing
           </p>
           <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Choose how you want your art
+            Transparent pricing. No surprises. Ever.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Start with a print‑ready 4K download, or let us handle the printing
-            and shipping for you.
+            One credit, one portrait. Use them however you like — one pet, many themes, or one theme for all your pets. Credits never expire.
           </p>
           <p className="mt-2 text-sm font-medium text-foreground">
-            Create your portrait first, then choose your delivery option at checkout.
+            Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             No subscription • No hidden fees • Price shown is final (ex. local tax)
           </p>
         </div>
 
-        {/* Cards — glassmorphism */}
-        <div className="mt-16 grid gap-6 md:grid-cols-3">
+        {/* Credit explainer — above cards */}
+        <p className="mt-10 text-center text-sm text-muted-foreground">
+          🎟️ 1 credit = 1 portrait · Mix and match any way you like · Credits never expire
+        </p>
+
+        {/* Cards */}
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -84,10 +104,10 @@ export function PricingSection() {
                   : "hover:shadow-lg"
               }`}
             >
-              {plan.featured && (
+              {(plan.badge === "Most Popular" || plan.badge === "Best Value") && (
                 <div className="absolute top-0 right-0 rounded-bl-organic bg-primary px-4 py-1">
-                  <span className="text-xs font-semibold text-primary-foreground">
-                    Most Popular
+                  <span className="text-xs font-semibold text-white">
+                    {plan.badge}
                   </span>
                 </div>
               )}
@@ -96,7 +116,10 @@ export function PricingSection() {
                 {plan.name}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {plan.description}
+                {plan.tagline}
+              </p>
+              <p className="mt-2 text-xs font-medium text-primary">
+                {plan.credits}
               </p>
 
               <div className="mt-6 flex items-baseline gap-1">
@@ -105,12 +128,19 @@ export function PricingSection() {
                 </span>
                 <span className="text-sm text-muted-foreground">{plan.priceNote}</span>
               </div>
+              {plan.saving && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {plan.saving}
+                </p>
+              )}
 
               <ul className="mt-6 flex flex-col gap-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
-                    <Check className="h-4 w-4 shrink-0 text-primary" />
-                    <span className="text-sm text-muted-foreground">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/60 bg-[#FDF4E8] text-[12px] font-semibold text-primary">
+                      ✓
+                    </span>
+                    <span className="text-sm font-semibold text-foreground">
                       {feature}
                     </span>
                   </li>
@@ -118,14 +148,19 @@ export function PricingSection() {
               </ul>
 
               <Button
-                className="mt-8 w-full rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90"
+                className="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
                 asChild
               >
-                <a href="/create">{plan.cta}</a>
+                <a href="/create">{plan.cta} →</a>
               </Button>
             </div>
           ))}
         </div>
+
+        {/* Trust line below cards */}
+        <p className="mt-10 text-center text-sm font-medium text-foreground">
+          Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
+        </p>
       </div>
     </section>
   )

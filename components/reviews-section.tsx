@@ -2,19 +2,19 @@ import { Button } from "@/components/ui/button"
 
 const reviews = [
   {
-    name: "Sophie & Milo",
+    name: "Sarah M., proud owner of Biscuit 🐾",
     quote:
-      "The premium bundle gave us a hero print for the hallway and four extra portraits we rotate on our bookshelf. Everyone comments on it.",
+      "I genuinely did not expect it to look this good. The name detail in the portrait — I completely lost it. It's now framed above our fireplace and everyone who visits asks where I got it.",
   },
   {
-    name: "James & Luna",
+    name: "Tom R., proud owner of Luna 🐾",
     quote:
-      "The 4K files are insanely sharp. We printed one large canvas locally and it looks like something from a gallery.",
+      "Bought it as a birthday gift for my partner. She screamed. The quality of the file is incredible — we printed it A2 and every single hair is sharp. It looks like a real painting.",
   },
   {
-    name: "Amira & Nala",
+    name: "Priya K., proud owner of Mochi 🐾",
     quote:
-      "We ordered the printed option as a gift. It arrived framed, ready to hang, and the orange tones look perfect on our dark wall.",
+      "Was honestly a bit sceptical. Now I've ordered three. The free print guide made everything so easy — I walked into my local print shop, handed them the file, and walked out with something I'll keep forever.",
   },
 ]
 
@@ -24,14 +24,13 @@ export function ReviewsSection() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-primary">
-            Loved by pet parents
+            Reviews
           </p>
           <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Real walls, real reactions
+            The moment they saw it, they cried.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            See how other FluffyFriends owners are using their portraits — from
-            print‑ready downloads to full gallery walls with the Premium Print + 5 Pack.
+            In the best possible way.
           </p>
         </div>
 
@@ -57,10 +56,10 @@ export function ReviewsSection() {
           </p>
           <Button
             size="lg"
-            className="rounded-organic-sm bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
             asChild
           >
-            <a href="/create">Create My Portrait</a>
+            <a href="/create">Make My Portrait</a>
           </Button>
         </div>
       </div>

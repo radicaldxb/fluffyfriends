@@ -9,20 +9,23 @@ import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import Image from "next/image"
-import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, Sparkles } from "lucide-react"
+import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, Sparkles, SunMedium, User, Camera } from "lucide-react"
 
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
 
 const WIZARD_STEPS = [
-  { id: 1, label: "Style", short: "1" },
-  { id: 2, label: "Photo", short: "2" },
-  { id: 3, label: "Go", short: "3" },
+  { id: 1, label: "Choose a theme", short: "1" },
+  { id: 2, label: "Upload their photo", short: "2" },
+  { id: 3, label: "Pay & create", short: "3" },
 ] as const
 
 type ThemeItem = { id: string; name: string; previewUrl: string }
 
 export default function CreatePortraitPage() {
-  const [themes, setThemes] = useState<ThemeItem[]>([])
+  const [themes] = useState<ThemeItem[]>([
+    { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
+    { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+  ])
   const [theme, setTheme] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -70,7 +73,6 @@ export default function CreatePortraitPage() {
                 "This photo doesn't meet our requirements. Please upload a single pet only (no group photos, people, or objects)."
             )
             return
-            return
           }
           if (matched?.id) {
             setResultPetName(matched.pet_name ?? null)
@@ -100,33 +102,6 @@ export default function CreatePortraitPage() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
-
-  useEffect(() => {
-    let cancelled = false
-    fetch("/api/themes")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && Array.isArray(data.themes) && data.themes.length > 0) {
-          setThemes(data.themes)
-        } else if (!cancelled) {
-          setThemes([
-            { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
-            { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
-          ])
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setThemes([
-            { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
-            { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
-          ])
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   function applyFile(selected: File | null) {
     if (previewUrl) {
@@ -222,7 +197,7 @@ export default function CreatePortraitPage() {
       uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
       processingStartedAtRef.current = Date.now()
       setStatus("processing")
-      setMessage("We’re checking your photo to make sure it’s a single pet (no people or objects).")
+      setMessage("Taking a look at their photo…")
     } catch (err) {
       setStatus("error")
       setMessage(err instanceof Error ? err.message : "Something went wrong.")
@@ -283,6 +258,11 @@ export default function CreatePortraitPage() {
 
   const selectedTheme = themes.find((t) => t.id === theme)
 
+  // [Pet Name] for copy — "their" when no name
+  const petNameDisplay = petName.trim()
+  const theirOrName = petNameDisplay ? `${petNameDisplay}'s` : "their"
+  const pageTitle = petNameDisplay ? `Create ${petNameDisplay}'s portrait` : "Create your portrait"
+
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
   const progressPercent = showWizard ? (wizardStep / 3) * 100 : 100
@@ -308,6 +288,12 @@ export default function CreatePortraitPage() {
 
           {showWizard && (
             <>
+              <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                {pageTitle}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Takes less than three minutes. No tech skills needed.
+              </p>
               {/* Step indicator — minimal, not a blob */}
               <div className="mt-6 flex items-center justify-center gap-2" aria-label="Progress">
                 {WIZARD_STEPS.map((s, i) => (
@@ -348,8 +334,10 @@ export default function CreatePortraitPage() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    <h2 className="text-xl font-semibold text-foreground">Pick a style</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Your pet in this look. Choose one.</p>
+                    <h2 className="text-xl font-semibold text-foreground">What&apos;s their theme?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Browse our collection and pick the one that feels most like them. Their name will be worked into every portrait — whatever you choose.
+                    </p>
                     <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                       {themes.length === 0 ? (
                         <div className="col-span-full flex gap-2">
@@ -371,16 +359,14 @@ export default function CreatePortraitPage() {
                             )}
                             style={{ animationDelay: `${index * 30}ms` }}
                           >
-                            <div className="relative aspect-square w-full bg-muted">
-                              <Image
+                            <div className="relative w-full h-40 overflow-hidden rounded-organic-sm bg-muted">
+                              {/* Use native img here to avoid any Image config issues so previews always show */}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
                                 src={t.previewUrl}
                                 alt={t.name}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                unoptimized
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none"
-                                }}
+                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
                               />
                               {theme === t.id && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
@@ -397,17 +383,38 @@ export default function CreatePortraitPage() {
                         ))
                       )}
                     </div>
-                    <div className="mt-8 flex justify-end">
+                    <div className="mt-6">
+                      <label htmlFor="pet-name-step1" className="block text-sm font-medium text-foreground">
+                        What&apos;s their name?
+                      </label>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Exactly as you&apos;d like it to appear in the portrait
+                      </p>
+                      <input
+                        id="pet-name-step1"
+                        type="text"
+                        value={petName}
+                        onChange={(e) => setPetName(e.target.value.slice(0, 12))}
+                        maxLength={12}
+                        placeholder="e.g. Jimmy"
+                        className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      />
+                    </div>
+                    {/* Primary CTA – match hero CTA layout and spacing */}
+                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                       <Button
                         type="button"
                         onClick={goNext}
                         disabled={!theme}
-                        className="rounded-organic-sm px-6"
+                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
                       >
-                        Continue
-                        <ChevronRight className="ml-1 h-4 w-4" />
+                        Next — upload their photo
+                        <ChevronRight className="ml-0.5 h-4 w-4" />
                       </Button>
                     </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      You won&apos;t be charged until step 3
+                    </p>
                   </div>
                 )}
 
@@ -420,8 +427,27 @@ export default function CreatePortraitPage() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    <h2 className="text-xl font-semibold text-foreground">Add your pet&apos;s photo</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">One pet only — dog or cat. We&apos;ll check before processing.</p>
+                    <h2 className="text-xl font-semibold text-foreground">
+                      Upload {theirOrName} photo
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      One clear photo is all we need. We&apos;ll check it before you pay — no surprises, no wasted money.
+                    </p>
+                    <p className="mt-4 text-sm font-semibold text-foreground">What makes a great photo</p>
+                    <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <SunMedium className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>Well lit — natural light works best</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <User className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>One pet only — no group shots please</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
+                        <span>Face towards the camera — the more detail, the better the portrait</span>
+                      </li>
+                    </ul>
                     <input
                       ref={fileInputRef}
                       id="pet-photo"
@@ -452,29 +478,15 @@ export default function CreatePortraitPage() {
                         <>
                           <ImageOff className="h-10 w-10 text-muted-foreground" aria-hidden />
                           <span className="mt-2 text-sm font-medium text-foreground">
-                            Drag a photo here or tap to choose
+                            Drop {theirOrName} photo here, or click to browse
                           </span>
-                          <span className="mt-0.5 text-xs text-muted-foreground">JPEG, PNG or WebP · max 10 MB</span>
+                          <span className="mt-0.5 text-xs text-muted-foreground">JPG or PNG · Up to 10 MB</span>
                         </>
                       )}
                     </label>
-                    <div className="mt-4">
-                      <label htmlFor="pet-name" className="block text-sm font-medium text-foreground">
-                        Pet name or nickname (optional)
-                      </label>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Keep it short and sweet (max 12 characters). On some styles this name can appear on the artwork itself.
-                      </p>
-                      <input
-                        id="pet-name"
-                        type="text"
-                        value={petName}
-                        onChange={(e) => setPetName(e.target.value.slice(0, 12))}
-                        maxLength={12}
-                        placeholder="e.g. Max, Luna"
-                        className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                      />
-                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Photo reviewed before payment — no surprises
+                    </p>
                     <div className="mt-8 flex justify-between">
                       <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
                         <ChevronLeft className="mr-1 h-4 w-4" />
@@ -484,10 +496,10 @@ export default function CreatePortraitPage() {
                         type="button"
                         onClick={goNext}
                         disabled={!file}
-                        className="rounded-organic-sm px-6"
+                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
                       >
-                        Continue
-                        <ChevronRight className="ml-1 h-4 w-4" />
+                        Continue → pay and create
+                        <ChevronRight className="ml-0.5 h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -502,8 +514,12 @@ export default function CreatePortraitPage() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    <h2 className="text-xl font-semibold text-foreground">You&apos;re all set</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">Quick confirm, then we&apos;ll create your portrait.</p>
+                    <h2 className="text-xl font-semibold text-foreground">
+                      Almost there — {theirOrName} portrait is ready
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Quick confirm, then we&apos;ll create your portrait.
+                    </p>
 
                     {/* Summary */}
                     <div className="mt-6 flex gap-4 rounded-organic border border-border bg-card p-4">
@@ -520,8 +536,26 @@ export default function CreatePortraitPage() {
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-foreground">{selectedTheme?.name ?? "Style"}</p>
-                        <p className="text-sm text-muted-foreground">{petName.trim() || "Your pet"}</p>
+                        <p className="text-sm text-muted-foreground">{petNameDisplay || "Your pet"}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Wide + tall format · A1 print quality · Free print guide included
+                        </p>
                       </div>
+                    </div>
+
+                    <p className="mt-4 text-xs font-medium text-foreground">What happens next</p>
+                    <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+                      <li>{theirOrName} portrait starts the moment payment goes through</li>
+                      <li>Two print-ready files arrive in your inbox within minutes</li>
+                      <li>Wide format + tall format — both included</li>
+                      <li>Your free print guide shows you exactly how to get it printed and framed</li>
+                    </ul>
+
+                    <div className="mt-4 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
+                      <p className="text-xs font-medium text-foreground">Not happy? We&apos;ll make it right.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        If the portrait isn&apos;t what you hoped for, we&apos;ll regenerate it — up to four times. Still not right? Full refund. No questions, no hassle, no hard feelings.
+                      </p>
                     </div>
 
                     {/* Lightweight consent — minimal, not a scary box */}
@@ -540,19 +574,24 @@ export default function CreatePortraitPage() {
                       </label>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="mt-8 flex justify-between">
-                      <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
-                        <ChevronLeft className="mr-1 h-4 w-4" />
-                        Back
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={!agreeTerms || !ageConfirm || status === "uploading"}
-                        className="rounded-organic-sm px-6"
-                      >
-                        {status === "uploading" ? "Uploading…" : "Create my portrait"}
-                        <Sparkles className="ml-1 h-4 w-4" />
-                      </Button>
+                    <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
+                      <p className="text-xs text-muted-foreground">
+                        Secure payment · All major cards accepted · One-time only · No subscription
+                      </p>
+                      <div className="flex justify-between">
+                        <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
+                          <ChevronLeft className="mr-1 h-4 w-4" />
+                          Back
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={!agreeTerms || !ageConfirm || status === "uploading"}
+                          className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                        >
+                          {status === "uploading" ? "Uploading…" : "Make My Portrait"}
+                          <Sparkles className="ml-1 h-4 w-4" />
+                        </Button>
+                      </div>
                     </form>
                   </div>
                 )}
@@ -569,7 +608,7 @@ export default function CreatePortraitPage() {
                 >
                   {isRejectionError ? (
                     <>
-                      <p className="font-medium text-foreground">This photo couldn&apos;t be used</p>
+                      <p className="font-medium text-foreground">Let&apos;s try a different photo</p>
                       <p className="mt-1 text-sm text-muted-foreground">{message}</p>
                       <p className="mt-2 text-xs text-foreground">One pet only · no people or other animals.</p>
                       <Button type="button" variant="outline" size="sm" className="mt-3 rounded-organic-sm" onClick={handleTryAnotherPhoto}>
@@ -600,10 +639,11 @@ export default function CreatePortraitPage() {
                   className="h-full w-full object-cover scale-[1.05]"
                 />
               </div>
-              <p className="mt-6 text-lg font-semibold text-foreground">Checking your photo</p>
-              <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                This usually takes under a minute. We&apos;ll let you know if we need a different photo.
+              <p className="mt-6 text-lg font-semibold text-foreground">
+                Taking a look at {theirOrName} photo…
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Just making sure it&apos;ll work beautifully
               </p>
               <div className="mt-6 flex gap-1.5">
                 {[0, 1, 2].map((i) => (
@@ -616,10 +656,11 @@ export default function CreatePortraitPage() {
           {/* Success — validation passed, now move to payment */}
           {status === "success" && resultPortraitId && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10 text-center">
-              <p className="text-lg font-semibold text-foreground">Your photo looks perfect</p>
+              <p className="text-lg font-semibold text-foreground">
+                {petNameDisplay ? `${petNameDisplay}'s photo looks great` : "Their photo looks great"}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground max-w-md">
-                We&apos;ve confirmed it&apos;s a clear photo of a single pet. We&apos;ll use it as the base for your
-                chosen style.
+                We&apos;re confident this will make a stunning portrait. Continue when you&apos;re ready.
               </p>
 
               {/* Approved photo preview with check mark */}
@@ -649,7 +690,10 @@ export default function CreatePortraitPage() {
               )}
 
               <div className="mt-8 flex flex-col items-center gap-3">
-                <Button className="rounded-organic-sm px-8 py-6 text-base" asChild>
+                <Button
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                  asChild
+                >
                   <a href={`/checkout?portrait=${encodeURIComponent(resultPortraitId)}`}>
                     Continue to payment
                   </a>

@@ -1,102 +1,124 @@
-import { ArrowRight, Star } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { BeforeAfterSlider } from "@/components/before-after-slider"
+import { ArrowRight } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28">
-      {/* Subtle radial glow behind hero */}
+    <section className="relative overflow-hidden bg-background pt-16 pb-16 md:pt-24 md:pb-24">
+      {/* Subtle radial glow behind hero, inspired by redesign */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[800px] opacity-20"
+        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[900px] opacity-30"
         style={{
           background:
             "radial-gradient(ellipse at center, rgba(232,149,74,0.15), transparent 70%)",
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-6">
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-16">
           {/* Left – Copy */}
           <div className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left">
-            {/* Trust badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-organic-sm border border-border bg-secondary px-4 py-1.5">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-3.5 w-3.5 fill-primary text-primary"
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-muted-foreground">
-                Loved by pet parents
-              </span>
-            </div>
+            {/* Eyebrow – emotional, not pushy */}
+            <p className="mb-6 text-sm font-medium uppercase tracking-widest text-primary">
+              Made with love. Made to last.
+            </p>
 
             <h1 className="text-balance text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Your Pet, Reimagined as{" "}
-              <span className="text-primary">Fine Art</span>
+              Your Pet,
+              <br />
+              <span className="text-primary">Reimagined</span>
+              <br />
+              as Fine Art.
             </h1>
 
             <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg">
-              One photo of your furry friend. Dozens of art styles. Get a
-              museum-quality portrait — download in 4K or have it printed and
-              delivered to your door.
+              One photo is all it takes. We craft a personalised, print-ready portrait of your pet — with their name worked into every detail. Beautiful enough to frame. Sharp enough to fill an entire wall.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button
-                size="lg"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-organic-sm px-8 text-base font-medium"
-                asChild
+              <Link
+                href="/create"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
               >
-                <a href="/create">
-                  Create My Portrait
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="rounded-organic-sm border-border text-foreground hover:bg-secondary/50 px-8 text-base"
-                asChild
+                Make My Portrait
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+              <Link
+                href="#gallery"
+                className="inline-flex items-center gap-2 bg-white hover:bg-[#F2EEE2] text-[#1A1208] font-semibold text-base px-7 py-3.5 rounded-full border border-[#1A120820] transition-all duration-200"
               >
-                <a href="#gallery">See examples</a>
-              </Button>
+                See real portraits
+              </Link>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
-              One-time purchase • No subscription • Happiness guarantee
-            </p>
-
-            {/* Social proof */}
-            <div className="mt-8 flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-8 w-8 rounded-organic-sm border-2 border-background bg-secondary"
-                    style={{
-                      background: `oklch(${0.3 + i * 0.1} 0.04 ${200 + i * 30})`,
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Portraits created by our community
-              </p>
+            {/* Trust strip – from copy doc */}
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              {["From $17, one-time", "No subscription", "Two formats included", "Happiness guarantee"].map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center gap-1.5"
+                >
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#E8863A80] bg-[#FDF4E8] text-[12px] font-semibold text-[#E8863A]">
+                    ✓
+                  </span>
+                  <span className="font-semibold text-foreground">{t}</span>
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* Right – Before/After Slider */}
-          <div className="w-full max-w-md flex-1 lg:max-w-lg">
-            <p className="mb-2 text-center text-xs text-muted-foreground lg:text-left">Drag to compare</p>
-            <BeforeAfterSlider
-              beforeSrc="/images/pet-before.webp"
-              afterSrc="/images/pet-after.webp"
-              beforeAlt="Original pet photo"
-              afterAlt="Your pet as fine art"
-            />
+          {/* Right – Before / After card, styled like redesign */}
+          <div className="relative flex w-full flex-1 justify-center lg:justify-end">
+            <div className="relative w-full max-w-md">
+              {/* Main portrait card (After) */}
+              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-foreground shadow-2xl shadow-foreground/20">
+                <Image
+                  src="/images/pet-after.webp"
+                  alt="Your pet as fine art"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                {/* Name badge overlay */}
+                <div className="absolute bottom-3 left-5 rounded-2xl bg-background/90 px-4 py-2.5 shadow-lg backdrop-blur-sm z-20">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Portrait for
+                  </p>
+                  <p className="text-lg font-bold leading-tight text-foreground">Jimmy 🐾</p>
+                </div>
+                {/* After badge */}
+              <div className="absolute right-4 top-4 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow">
+                  After ✨
+                </div>
+              </div>
+
+              {/* Before thumbnail card */}
+              <div className="absolute -left-16 -bottom-4 hidden w-40 overflow-hidden rounded-2xl border border-border bg-muted shadow-lg sm:block z-10">
+                <div className="relative aspect-[4/5]">
+                  <Image
+                    src="/images/pet-before.webp"
+                    alt="Original pet photo"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute left-2 top-2 rounded-full bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
+                    Before
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating theme badge */}
+              <div className="absolute -left-6 top-1/3 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg">
+                <p className="mb-1 text-xs text-muted-foreground">Theme</p>
+                <p className="text-sm font-bold text-foreground">🚒 Fireman</p>
+              </div>
+
+              {/* Floating quality badge */}
+              <div className="absolute -right-4 bottom-1/3 rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-xl">
+                <p className="text-xs font-medium opacity-80">Print ready</p>
+                <p className="text-sm font-bold">Up to A1 ↑</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
