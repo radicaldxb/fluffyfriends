@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Cake, TreePine, Heart, Gift } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const occasions = [
   { icon: Cake, label: "Birthday" },
@@ -44,12 +45,13 @@ export function GiftSection() {
         </p>
 
         <div className="mt-10 flex justify-center">
-          <Link
-            href="/create"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+          <Button
+            size="lg"
+            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+            asChild
           >
-            Send the gift →
-          </Link>
+            <Link href="/create">Send the gift →</Link>
+          </Button>
         </div>
       </div>
     </section>

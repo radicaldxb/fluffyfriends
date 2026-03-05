@@ -54,8 +54,8 @@ export function PrintOptionsSection() {
                 <div className="flex aspect-[4/3] items-center justify-center rounded-organic-sm bg-muted/50">
                   <Icon className="h-14 w-14 text-primary/80" aria-hidden />
                 </div>
-                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#E8863A20] bg-white px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#E8863A80] bg-[#FDF4E8] text-[12px] font-semibold text-[#E8863A]">
+                <div className="mt-4 inline-flex items-center gap-2 rounded-organic-sm border border-primary/20 bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/60 bg-primary/10 text-[12px] font-semibold text-primary">
                     ✓
                   </span>
                   <span>{option.size}</span>
@@ -79,7 +79,8 @@ export function PrintOptionsSection() {
             from a single photo.
           </p>
           <Button
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+            size="lg"
+            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
             asChild
           >
             <a href="/create">See pricing</a>

@@ -117,6 +117,7 @@ export default function CreatePortraitPage() {
     setIsValidationReject(false)
     setStatus("processing")
     setMessage("Taking a look at their photo…")
+    const resolvedPetName = petName.trim() || "My Pet"
     try {
       const formData = new FormData()
       formData.set("file", file)

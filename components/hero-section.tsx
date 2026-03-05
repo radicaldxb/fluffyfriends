@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export function HeroSection() {
   return (
@@ -37,19 +38,24 @@ export function HeroSection() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/create"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+              <Button
+                size="lg"
+                className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+                asChild
               >
-                Make My Portrait
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-              <Link
-                href="#gallery"
-                className="inline-flex items-center gap-2 bg-white hover:bg-[#F2EEE2] text-[#1A1208] font-semibold text-base px-7 py-3.5 rounded-full border border-[#1A120820] transition-all duration-200"
+                <Link href="/create">
+                  Make My Portrait
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold h-auto"
+                asChild
               >
-                See real portraits
-              </Link>
+                <Link href="#gallery">See real portraits</Link>
+              </Button>
             </div>
             {/* Trust strip – from copy doc */}
             <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
@@ -58,7 +64,7 @@ export function HeroSection() {
                   key={t}
                   className="inline-flex items-center gap-1.5"
                 >
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#E8863A80] bg-[#FDF4E8] text-[12px] font-semibold text-[#E8863A]">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
                     ✓
                   </span>
                   <span className="font-semibold text-foreground">{t}</span>
@@ -87,7 +93,7 @@ export function HeroSection() {
                   <p className="text-lg font-bold leading-tight text-foreground">Jimmy 🐾</p>
                 </div>
                 {/* After badge */}
-              <div className="absolute right-4 top-4 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow">
+              <div className="absolute right-4 top-4 rounded-organic-pill bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow">
                   After ✨
                 </div>
               </div>
@@ -101,7 +107,7 @@ export function HeroSection() {
                     fill
                     className="object-cover"
                   />
-                  <div className="absolute left-2 top-2 rounded-full bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
+                  <div className="absolute left-2 top-2 rounded-organic-pill bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
                     Before
                   </div>
                 </div>

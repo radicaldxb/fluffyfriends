@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
 
 const staticPortraits = [
   { src: "/images/gallery-fireman.jpg", theme: "Fireman", pet: "French Bulldog" },
@@ -104,12 +105,14 @@ export function GallerySection() {
         )}
 
         <div className="mt-10 flex justify-center">
-          <Link
-            href="/gallery"
-            className="inline-flex items-center gap-2 rounded-full border border-[#1A120820] bg-white px-7 py-3.5 text-sm font-semibold text-[#1A1208] transition-all duration-200 hover:bg-[#F2EEE2]"
+          <Button
+            size="lg"
+            variant="outline"
+            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-sm font-semibold h-auto"
+            asChild
           >
-            See your pet here
-          </Link>
+            <Link href="/gallery">See your pet here</Link>
+          </Button>
         </div>
       </div>
     </section>

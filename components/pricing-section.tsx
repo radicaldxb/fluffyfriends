@@ -137,7 +137,7 @@ export function PricingSection() {
               <ul className="mt-6 flex flex-col gap-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
-                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/60 bg-[#FDF4E8] text-[12px] font-semibold text-primary">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-organic-sm border border-primary/60 bg-primary/10 text-[12px] font-semibold text-primary">
                       ✓
                     </span>
                     <span className="text-sm font-semibold text-foreground">
@@ -148,7 +148,8 @@ export function PricingSection() {
               </ul>
 
               <Button
-                className="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+                size="lg"
+                className="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                 asChild
               >
                 <a href="/create">{plan.cta} →</a>

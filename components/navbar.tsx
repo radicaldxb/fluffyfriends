@@ -45,8 +45,8 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <Button
-            size="sm"
-            className="hidden sm:inline-flex rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02]"
+            size="lg"
+            className="hidden sm:inline-flex rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
             asChild
           >
             <a href="/create">Make My Portrait</a>
@@ -77,8 +77,8 @@ export function Navbar() {
             ))}
             <li className="mt-2 pt-2 border-t border-border/50">
               <Button
-                size="sm"
-                className="w-full rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02]"
+                size="lg"
+                className="w-full rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
                 asChild
               >
                 <a href="/create" onClick={() => setMobileOpen(false)}>Make My Portrait</a>

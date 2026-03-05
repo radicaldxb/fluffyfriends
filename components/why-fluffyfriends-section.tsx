@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Tag, LayoutGrid, BookOpen, Frame, Ticket, Check, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const features = [
   {
@@ -67,7 +68,7 @@ export function WhyFluffyfriendsSection() {
                 key={f.title}
                 className="flex flex-col gap-4 rounded-organic border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:gap-6"
               >
-                <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-organic-sm bg-[#FDF4E8] text-primary">
+                <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-organic-sm bg-primary/10 text-primary">
                   <Icon className="h-6 w-6" aria-hidden />
                 </div>
                 <div>
@@ -131,12 +132,13 @@ export function WhyFluffyfriendsSection() {
         </div>
 
         <div className="mt-10 flex justify-center">
-          <Link
-            href="/create"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90"
+          <Button
+            size="lg"
+            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+            asChild
           >
-            Make My Portrait →
-          </Link>
+            <Link href="/create">Make My Portrait →</Link>
+          </Button>
         </div>
       </div>
     </section>
