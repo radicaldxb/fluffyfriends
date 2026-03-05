@@ -110,14 +110,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         url: session.url,
-        order_id: order.id,
       },
       { status: 200 },
     )
   } catch (err) {
+    const message =
+      err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error"
     console.error("[create-checkout] Unexpected error:", err)
     return NextResponse.json(
-      { error: "Request failed" },
+      { error: `Request failed: ${message}` },
       { status: 500 },
     )
   }
