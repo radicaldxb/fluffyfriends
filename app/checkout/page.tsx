@@ -16,7 +16,7 @@ function CheckoutContent() {
   const themeFromQuery = searchParams.get("theme")?.trim() || null
 
   const [email, setEmail] = useState("")
-  const [firstName, setFirstName] = useState("")
+  const [fullName, setFullName] = useState("")
   const [productId, setProductId] = useState<ProductId>("pack_4_4k")
   const [status, setStatus] = useState<"form" | "submitting" | "success" | "error">("form")
   const [orderId, setOrderId] = useState<string | null>(null)
@@ -31,14 +31,14 @@ function CheckoutContent() {
       return
     }
     const trimmedEmail = email.trim()
-    const trimmedFirstName = firstName.trim()
+    const trimmedFullName = fullName.trim()
 
     if (!trimmedEmail) {
       setErrorMessage("Please enter your email.")
       return
     }
-    if (!trimmedFirstName) {
-      setErrorMessage("Please enter your first name.")
+    if (!trimmedFullName) {
+      setErrorMessage("Please enter your full name.")
       return
     }
 
@@ -51,7 +51,9 @@ function CheckoutContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: trimmedEmail,
-          first_name: trimmedFirstName,
+          // Split full name into first + last for API compatibility
+          first_name: trimmedFullName.split(" ")[0] || trimmedFullName,
+          last_name: trimmedFullName.split(" ").slice(1).join(" "),
           product_id: productId,
           portrait_id: portraitId,
           ...(themeFromQuery && { theme: themeFromQuery }),
@@ -142,20 +144,6 @@ function CheckoutContent() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-          {/* Portrait preview */}
-          <div className="rounded-organic border border-border bg-card p-4">
-            <p className="text-sm font-medium text-foreground mb-3">Your portrait</p>
-            <div className="relative aspect-video w-full max-w-sm mx-auto overflow-hidden rounded-organic-sm bg-muted">
-              <Image
-                src={`/api/portrait-preview?id=${encodeURIComponent(portraitId)}`}
-                alt="Your portrait"
-                fill
-                className="object-contain"
-                unoptimized
-              />
-            </div>
-          </div>
-
           {/* Email + name */}
           <div className="space-y-4">
             <p className="text-sm font-medium text-foreground">Your details</p>
@@ -172,14 +160,16 @@ function CheckoutContent() {
               />
             </div>
             <div>
-              <label htmlFor="checkout-first-name" className="block text-sm text-muted-foreground mb-1">First name *</label>
+              <label htmlFor="checkout-full-name" className="block text-sm text-muted-foreground mb-1">
+                Full name *
+              </label>
               <input
-                id="checkout-first-name"
+                id="checkout-full-name"
                 type="text"
                 required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="How should we call you?"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="What should we put on your order?"
                 className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               />
             </div>

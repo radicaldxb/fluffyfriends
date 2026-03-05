@@ -1,7 +1,6 @@
-import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Nunito } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import './globals.css'
+import type { Metadata, Viewport } from "next"
+import { Geist, Geist_Mono, Nunito } from "next/font/google"
+import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -40,10 +39,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${nunito.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${geist.variable} ${geistMono.variable} ${nunito.variable}`}
+      suppressHydrationWarning
+    >
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         {children}
-        <Analytics />
       </body>
     </html>
   )
