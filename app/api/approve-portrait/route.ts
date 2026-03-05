@@ -28,7 +28,7 @@ async function resolveSessionContext(sessionId: string) {
 
   const { data: portraitRow, error: portraitError } = await supabase
     .from("pet_portraits")
-    .select("id, pet_name, image_url, original_image_url")
+    .select("id, pet_name, image_url, original_image_url, user_email, created_at, status")
     .eq("id", portraitId)
     .single()
 
@@ -39,13 +39,42 @@ async function resolveSessionContext(sessionId: string) {
   const rawPetName = (portraitRow.pet_name as string | null) || "My Pet"
   const resolvedPetName = rawPetName.trim() || "My Pet"
 
+  const customerEmail =
+    session.customer_details?.email ||
+    (session.customer_email as string | null) ||
+    (portraitRow.user_email as string | null) ||
+    ""
+
+  let imageUrl = (portraitRow.image_url as string | null) || ""
+  let effectivePortraitId = portraitRow.id as string
+
+  // Fallback: if the original payment-linked row never received an image_url
+  // (e.g. WF2 inserted a new completed row instead), try to find the most
+  // recent completed portrait for this customer + pet name and use that.
+  if (!imageUrl && customerEmail) {
+    const { data: fallbackRow, error: fallbackError } = await supabase
+      .from("pet_portraits")
+      .select("id, image_url, original_image_url, created_at, status")
+      .eq("user_email", customerEmail)
+      .eq("pet_name", resolvedPetName)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (!fallbackError && fallbackRow?.image_url) {
+      imageUrl = fallbackRow.image_url as string
+      effectivePortraitId = fallbackRow.id as string
+    }
+  }
+
   const totalCents = typeof session.amount_total === "number" ? session.amount_total : 0
   const currency = session.currency || "usd"
 
   return {
-    portraitId: portraitRow.id as string,
+    portraitId: effectivePortraitId,
     petName: resolvedPetName,
-    imageUrl: (portraitRow.image_url as string | null) || "",
+    imageUrl,
     originalImageUrl: (portraitRow.original_image_url as string | null) || null,
     totalCents,
     currency,
