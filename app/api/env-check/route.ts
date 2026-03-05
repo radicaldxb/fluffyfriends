@@ -7,11 +7,13 @@ import { NextResponse } from "next/server"
  */
 export async function GET() {
   const webhook = process.env.N8N_WEBHOOK_URL?.trim()
+  const orderPaidWebhook = process.env.N8N_ORDER_PAID_WEBHOOK_URL?.trim()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
 
   return NextResponse.json({
     n8nWebhookConfigured: !!webhook,
+    n8nOrderPaidConfigured: !!orderPaidWebhook,
     supabaseConfigured: !!(supabaseUrl && supabaseKey),
     hint: !webhook
       ? "Add N8N_WEBHOOK_URL to .env.local in the project root, then restart the dev server (npm run dev)."
