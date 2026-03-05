@@ -47,150 +47,111 @@ export async function POST(request: NextRequest) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session
       const metadata = session.metadata || {}
-      const orderId = metadata.order_id
 
       try {
-        if (!orderId) {
-          console.error("[stripe-webhook] Missing order_id in session metadata")
+        const portraitIdRaw = (metadata.portrait_id as string | undefined) || null
+        const portraitId = portraitIdRaw?.trim() || ""
+
+        if (!portraitId) {
+          console.error("[stripe-webhook] Missing portrait_id in session metadata")
         } else {
-          // Mark order as paid
-          const { error: updateError } = await supabase
-            .from("orders")
-            .update({
-              status: "paid",
-              payment_provider: "stripe",
-              payment_id: session.id,
-            })
-            .eq("id", orderId)
-
-          if (updateError) {
-            console.error("[stripe-webhook] Failed to update order:", updateError)
-          }
-
-          // Fetch order + order_items so we can send an order-paid payload to n8n
-          const { data: orderRow, error: orderError } = await supabase
-            .from("orders")
-            .select("id, email, name, amount_cents")
-            .eq("id", orderId)
+          const { data: portraitRow, error: portraitError } = await supabase
+            .from("pet_portraits")
+            .select("id, pet_name, theme, original_image_url, showcase_consent")
+            .eq("id", portraitId)
             .single()
 
-          if (orderError || !orderRow) {
-            console.error("[stripe-webhook] Failed to load order row:", orderError)
+          if (portraitError || !portraitRow) {
+            console.error("[stripe-webhook] Failed to load pet_portraits row:", portraitError)
           } else {
-            const { data: items, error: itemsError } = await supabase
-              .from("order_items")
-              .select("product_id, price_cents, credits_remaining, portrait_ids")
-              .eq("order_id", orderId)
+            const rawPetName = (portraitRow.pet_name as string | null) || "My Pet"
+            const resolvedPetName = rawPetName.trim() || "My Pet"
+            const theme = (
+              ((portraitRow.theme as string | null) || "").trim() ||
+              (metadata.theme as string | undefined) ||
+              ""
+            ).toLowerCase()
 
-            if (itemsError || !items || items.length === 0) {
-              console.error("[stripe-webhook] Failed to load order_items:", itemsError)
-            } else {
-              const item = items[0]
-              // Prefer portrait_id from Stripe metadata (create-checkout sent this),
-              // fall back to any portrait_ids stored on the order_items row.
-              const portraitIdFromMetadata = (metadata.portrait_id as string | undefined) || null
-              const portraitIds =
-                portraitIdFromMetadata != null && portraitIdFromMetadata !== ""
-                  ? [portraitIdFromMetadata]
-                  : ((item.portrait_ids as string[]) || [])
-
-              const portraitId = portraitIds[0]
-              if (!portraitId) {
-                console.error("[stripe-webhook] No portrait_id available on order_items/metadata")
+            let prompt = ""
+            try {
+              if (!theme) {
+                console.error("[stripe-webhook] Missing theme on pet_portraits row")
               } else {
-                const { data: portraitRow, error: portraitError } = await supabase
-                  .from("pet_portraits")
-                  .select("id, pet_name, theme, original_image_url, showcase_consent")
-                  .eq("id", portraitId)
-                  .single()
+                const { prompt: basePrompt, hasNameTag, nameTagInstruction } =
+                  await getPromptAndNameTagConfig(theme)
 
-                if (portraitError || !portraitRow) {
-                  console.error("[stripe-webhook] Failed to load pet_portraits row:", portraitError)
-                } else {
-                  const rawPetName = (portraitRow.pet_name as string | null) || "My Pet"
-                  const resolvedPetName = rawPetName.trim() || "My Pet"
-                const theme = (
-                  ((portraitRow.theme as string | null) || "").trim() ||
-                  (metadata.theme as string | undefined) ||
-                  ""
-                ).toLowerCase()
-
-                  let prompt = ""
-                  try {
-                    if (!theme) {
-                      console.error("[stripe-webhook] Missing theme on pet_portraits row")
-                    } else {
-                      const { prompt: basePrompt, hasNameTag, nameTagInstruction } =
-                        await getPromptAndNameTagConfig(theme)
-
-                      prompt = basePrompt
-                      // Append name-tag instruction if needed
-                      if (hasNameTag && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
-                        const appendix = nameTagInstruction ?? DEFAULT_NAMETAG_INSTRUCTION
-                        prompt = `${prompt}\n\n9. NAME PATCH: ${appendix}`
-                      }
-
-                      // Replace {{PET_NAME}} placeholders
-                      const placeholderRegex = /\{\{\s*PET_NAME\s*\}\}/gi
-                      prompt = prompt.replace(placeholderRegex, resolvedPetName)
-                    }
-                  } catch (err) {
-                    console.error("[stripe-webhook] Failed to build prompt for order-paid payload:", err)
-                  }
-
-                  const firstName =
-                    (orderRow.name || "").split(" ")[0] || (metadata.first_name as string | undefined) || ""
-
-                  const payload = {
-                    portrait_id: portraitRow.id,
-                    pet_image_url: (portraitRow.original_image_url as string | null) || "",
-                    pet_name: resolvedPetName,
-                    theme,
-                    prompt,
-                    order_id: orderRow.id,
-                    user_email: orderRow.email,
-                    user_first_name: firstName,
-                    total_cents: item.price_cents ?? orderRow.amount_cents,
-                    currency: session.currency || "usd",
-                    showcase_consent: Boolean(portraitRow.showcase_consent),
-                  }
-
-                  const orderPaidUrl =
-                    process.env.N8N_ORDER_PAID_WEBHOOK_URL ||
-                    process.env.N8N_ORDER_PAID_URL ||
-                    ""
-
-                  if (!orderPaidUrl) {
-                    console.error(
-                      "[stripe-webhook] N8N order-paid webhook URL not configured (set N8N_ORDER_PAID_WEBHOOK_URL)",
-                    )
-                  } else {
-                    try {
-                      await fetch(orderPaidUrl, {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(payload),
-                      })
-
-                      // Mark portrait as generating once we've handed it off to n8n
-                      const { error: portraitStatusError } = await supabase
-                        .from("pet_portraits")
-                        .update({ status: "generating" })
-                        .eq("id", portraitRow.id)
-
-                      if (portraitStatusError) {
-                        console.error(
-                          "[stripe-webhook] Failed to update pet_portraits status to generating:",
-                          portraitStatusError,
-                        )
-                      }
-                    } catch (err) {
-                      console.error("[stripe-webhook] Failed to call n8n order-paid webhook:", err)
-                    }
-                  }
+                prompt = basePrompt
+                // Append name-tag instruction if needed
+                if (hasNameTag && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
+                  const appendix = nameTagInstruction ?? DEFAULT_NAMETAG_INSTRUCTION
+                  prompt = `${prompt}\n\n9. NAME PATCH: ${appendix}`
                 }
+
+                // Replace {{PET_NAME}} placeholders
+                const placeholderRegex = /\{\{\s*PET_NAME\s*\}\}/gi
+                prompt = prompt.replace(placeholderRegex, resolvedPetName)
+              }
+            } catch (err) {
+              console.error("[stripe-webhook] Failed to build prompt for order-paid payload:", err)
+            }
+
+            const customerEmail =
+              session.customer_details?.email ||
+              (session.customer_email as string | null) ||
+              ""
+            const customerName = session.customer_details?.name || ""
+            const firstName = (customerName || "").split(" ")[0] || ""
+
+            const totalCents =
+              typeof session.amount_total === "number" ? session.amount_total : null
+
+            const payload = {
+              portrait_id: portraitRow.id,
+              pet_image_url: (portraitRow.original_image_url as string | null) || "",
+              pet_name: resolvedPetName,
+              theme,
+              prompt,
+              order_id: session.id,
+              user_email: customerEmail,
+              user_first_name: firstName,
+              total_cents: totalCents,
+              currency: session.currency || "usd",
+              showcase_consent: Boolean(portraitRow.showcase_consent),
+            }
+
+            const orderPaidUrl =
+              process.env.N8N_ORDER_PAID_WEBHOOK_URL ||
+              process.env.N8N_ORDER_PAID_URL ||
+              ""
+
+            if (!orderPaidUrl) {
+              console.error(
+                "[stripe-webhook] N8N order-paid webhook URL not configured (set N8N_ORDER_PAID_WEBHOOK_URL)",
+              )
+            } else {
+              try {
+                await fetch(orderPaidUrl, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(payload),
+                })
+
+                // Mark portrait as generating once we've handed it off to n8n
+                const { error: portraitStatusError } = await supabase
+                  .from("pet_portraits")
+                  .update({ status: "generating" })
+                  .eq("id", portraitRow.id)
+
+                if (portraitStatusError) {
+                  console.error(
+                    "[stripe-webhook] Failed to update pet_portraits status to generating:",
+                    portraitStatusError,
+                  )
+                }
+              } catch (err) {
+                console.error("[stripe-webhook] Failed to call n8n order-paid webhook:", err)
               }
             }
           }
