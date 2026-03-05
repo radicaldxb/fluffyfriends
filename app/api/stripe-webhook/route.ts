@@ -109,7 +109,11 @@ export async function POST(request: NextRequest) {
                 } else {
                   const rawPetName = (portraitRow.pet_name as string | null) || "My Pet"
                   const resolvedPetName = rawPetName.trim() || "My Pet"
-                  const theme = ((portraitRow.theme as string | null) || "").toLowerCase()
+                const theme = (
+                  ((portraitRow.theme as string | null) || "").trim() ||
+                  (metadata.theme as string | undefined) ||
+                  ""
+                ).toLowerCase()
 
                   let prompt = ""
                   try {

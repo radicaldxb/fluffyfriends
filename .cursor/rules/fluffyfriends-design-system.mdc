@@ -31,6 +31,14 @@ Use this as the single source of truth for layout, colors, typography, and compo
 - **Cards / panels:** `rounded-organic` (utility from globals).
 - **Buttons, badges, small surfaces:** `rounded-organic-sm`.
 - **Do not use** `rounded-full` or `rounded-3xl` for new UI; prefer organic utilities so the system stays consistent.
+- **Never** add hardcoded hex colors (e.g. `#000`, `#F09A54`) in JSX/CSS; always use semantic tokens from `app/globals.css`.
+
+## Checkout success flow (4 steps)
+
+1. **Step 1:** Stripe payment page (external).
+2. **Step 2:** Success URL shows "Payment received" + loader only (no preview card).
+3. **Step 3:** When portrait is ready, show preview + "Approve this portrait" and "Create another" (use SketchDivider between step 2 and 3).
+4. **Step 4:** After approve, show "You're all set" + "Check your email" (no preview). See `docs/CURSOR_DESIGN_AND_FLOW.md`.
 
 ## Buttons
 

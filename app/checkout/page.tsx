@@ -13,6 +13,7 @@ import { Check } from "lucide-react"
 function CheckoutContent() {
   const searchParams = useSearchParams()
   const portraitId = searchParams.get("portrait")?.trim() || null
+  const themeFromQuery = searchParams.get("theme")?.trim() || null
 
   const [email, setEmail] = useState("")
   const [firstName, setFirstName] = useState("")
@@ -53,6 +54,7 @@ function CheckoutContent() {
           first_name: trimmedFirstName,
           product_id: productId,
           portrait_id: portraitId,
+          ...(themeFromQuery && { theme: themeFromQuery }),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -101,7 +103,7 @@ function CheckoutContent() {
       <main className="min-h-screen bg-background">
         <Navbar />
         <section className="mx-auto max-w-lg px-4 py-14 md:py-20 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary mb-6">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-6">
             <Check className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
@@ -210,7 +212,7 @@ function CheckoutContent() {
                     )}
                   </div>
                   {p.badge && (
-                    <span className="mt-2 inline-block rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
+                    <span className="mt-2 inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
                       {p.badge}
                     </span>
                   )}

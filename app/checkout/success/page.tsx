@@ -3,10 +3,11 @@
 import { Suspense, useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { SketchDivider } from "@/components/sketch-divider"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { AlertCircle, Check } from "lucide-react"
+import { AlertCircle, Check, Mail } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 
 type PreviewState =
@@ -151,66 +152,76 @@ function SuccessContent() {
     }
   }
 
+  const isStep2Loading =
+    (preview.status === "idle" || preview.status === "loading") && approveStatus !== "success"
+  const isStep3Preview = preview.status === "ready" && approveStatus !== "success"
+  const isStep4Completed = approveStatus === "success"
+  const isError = preview.status === "error"
+
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <section className="mx-auto flex max-w-2xl flex-1 flex-col items-center px-4 py-14 md:py-20 text-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary mb-3">
-          <Check className="h-6 w-6" />
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-          Payment received
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground max-w-lg">
-          Thank you for your order. Preview your portrait below and, when you&apos;re happy, approve
-          it so we can prepare your print‑ready files.
-        </p>
 
-        <div className="mt-8 flex flex-col items-center gap-4">
-          <div className="relative h-32 w-32 overflow-hidden rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
-            <video
-              src="/video/FF-Loader.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="h-full w-full object-cover scale-[1.05]"
-            />
+      {/* Step 2: Payment success — loading image */}
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
+        <div className="mx-auto max-w-xl text-center">
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-4">
+            <Check className="h-7 w-7" />
           </div>
-          <p className="mt-2 text-sm text-muted-foreground max-w-md">
-            Our studio is rendering and preparing your artwork. Approving your portrait lets us
-            upscale it for large, razor‑sharp prints.
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            Payment received
+          </h1>
+          <p className="mt-2 text-muted-foreground text-pretty">
+            Thank you for your order. We’re preparing your portrait preview.
           </p>
-        </div>
 
-        <div className="mt-10 w-full max-w-xl rounded-organic border border-border bg-card p-5 text-left">
-          {preview.status === "loading" && (
-            <p className="text-sm text-muted-foreground text-center">
-              Loading your portrait preview…
-            </p>
+          {isStep2Loading && (
+            <>
+              <div className="mt-10 flex justify-center">
+                <div className="relative h-32 w-32 overflow-hidden rounded-organic-sm border-2 border-primary/40 bg-primary/5">
+                  <video
+                    src="/video/FF-Loader.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-full object-cover scale-[1.05]"
+                  />
+                </div>
+              </div>
+              <p className="mt-6 text-sm text-muted-foreground max-w-md mx-auto">
+                Our studio is rendering your artwork. This usually takes a minute or two.
+              </p>
+            </>
           )}
 
-          {preview.status === "error" && (
-            <div className="flex items-start gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
-              <AlertCircle className="mt-[2px] h-4 w-4 text-destructive" />
+          {isError && (
+            <div className="mt-8 flex items-start justify-center gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-4 text-left max-w-md mx-auto">
+              <AlertCircle className="mt-[2px] h-5 w-5 shrink-0 text-destructive" />
               <p className="text-sm text-destructive">{preview.message}</p>
             </div>
           )}
+        </div>
+      </section>
 
-          {preview.status === "ready" && (
-            <>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary mb-2">
+      {isStep3Preview && (
+        <>
+          <SketchDivider />
+          {/* Step 3: Preview — approve or create another */}
+          <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
+            <div className="mx-auto max-w-xl">
+              <p className="text-sm font-medium uppercase tracking-widest text-primary mb-1">
                 Step 3 · Approve your portrait
               </p>
-              <h2 className="text-lg font-bold text-foreground">
+              <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
                 Does this look like {preview.petName}?
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Take a close look at the pose, expression, and details. When you&apos;re happy,
-                approve it and we&apos;ll email your high‑resolution downloads.
+              <p className="mt-2 text-muted-foreground text-pretty">
+                Take a close look at the pose and details. When you’re happy, approve and we’ll
+                email your print‑ready files.
               </p>
 
-              <div className="mt-4">
+              <div className="mt-6 rounded-organic border border-border bg-card p-5">
                 <div className="relative aspect-video w-full overflow-hidden rounded-organic-sm bg-muted">
                   <Image
                     src={`/api/portrait-preview?id=${encodeURIComponent(preview.portraitId)}`}
@@ -220,57 +231,105 @@ function SuccessContent() {
                     unoptimized
                   />
                 </div>
-              </div>
-
-              <p className="mt-3 text-xs text-muted-foreground">
-                Order total:{" "}
-                <span className="font-medium text-foreground">
-                  {preview.amountDisplay} {preview.currency}
-                </span>
-                . You&apos;ll receive both wide and tall print‑ready files plus a print guide.
-              </p>
-
-              {approveError && (
-                <div className="mt-3 flex items-start gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
-                  <AlertCircle className="mt-[2px] h-4 w-4 text-destructive" />
-                  <p className="text-xs text-destructive">{approveError}</p>
-                </div>
-              )}
-
-              <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                <Button
-                  onClick={handleApprove}
-                  disabled={
-                    approveStatus === "submitting" ||
-                    approveStatus === "success" ||
-                    preview.status !== "ready"
-                  }
-                  className="inline-flex items-center justify-center bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 rounded-organic-sm"
-                >
-                  {approveStatus === "submitting"
-                    ? "Approving…"
-                    : approveStatus === "success"
-                      ? "Approved — check your inbox"
-                      : "Approve this portrait"}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Not quite right? We&apos;ll soon add an option to request another render before you
-                  approve.
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Order total:{" "}
+                  <span className="font-medium text-foreground">
+                    {preview.amountDisplay} {preview.currency}
+                  </span>
+                  . You’ll receive wide and tall print‑ready files plus a print guide.
                 </p>
-              </div>
-            </>
-          )}
-        </div>
 
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <Button className="rounded-organic-sm" asChild>
-            <Link href="/create">Create another portrait</Link>
-          </Button>
-          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-            Back to home
-          </Link>
-        </div>
-      </section>
+                {approveError && (
+                  <div className="mt-3 flex items-start gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
+                    <AlertCircle className="mt-[2px] h-4 w-4 shrink-0 text-destructive" />
+                    <p className="text-sm text-destructive">{approveError}</p>
+                  </div>
+                )}
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Button
+                    onClick={handleApprove}
+                    disabled={approveStatus === "submitting"}
+                    className="rounded-organic-sm"
+                  >
+                    {approveStatus === "submitting"
+                      ? "Approving…"
+                      : "Approve this portrait"}
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Not quite right? You can request another render or upload a new photo next.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col items-center gap-3">
+                <Button variant="outline" className="rounded-organic-sm" asChild>
+                  <Link href="/create">Create another portrait</Link>
+                </Button>
+                <Link
+                  href="/"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Back to home
+                </Link>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {isStep4Completed && (
+        <>
+          <SketchDivider />
+          {/* Step 4: Completed — check email */}
+          <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
+            <div className="mx-auto max-w-xl text-center">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-4">
+                <Mail className="h-7 w-7" />
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                You’re all set
+              </h2>
+              <p className="mt-4 text-muted-foreground text-pretty max-w-md mx-auto">
+                Check your email in the next few minutes. We’re upscaling your portrait and will
+                send you the download link and print guide. If you don’t see it, check your spam
+                folder.
+              </p>
+              <div className="mt-10 flex flex-col items-center gap-3">
+                <Button className="rounded-organic-sm" asChild>
+                  <Link href="/create">Create another portrait</Link>
+                </Button>
+                <Link
+                  href="/"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Back to home
+                </Link>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {isStep2Loading && !isError && (
+        <>
+          <SketchDivider />
+          <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
+            <div className="mx-auto max-w-xl flex flex-col items-center gap-3">
+              <Button variant="outline" className="rounded-organic-sm" asChild>
+                <Link href="/create">Create another portrait</Link>
+              </Button>
+              <Link
+                href="/"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to home
+              </Link>
+            </div>
+          </section>
+        </>
+      )}
+
       <Footer />
     </main>
   )
@@ -282,7 +341,7 @@ export default function CheckoutSuccessPage() {
       fallback={
         <main className="min-h-screen bg-background flex flex-col">
           <Navbar />
-          <section className="mx-auto flex max-w-lg flex-1 flex-col items-center px-4 py-14 text-center">
+          <section className="mx-auto max-w-7xl flex-1 px-4 py-14 sm:px-6 text-center">
             <p className="text-muted-foreground">Loading…</p>
           </section>
           <Footer />

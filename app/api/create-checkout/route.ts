@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
       : null
     const portraitId =
       typeof body.portrait_id === "string" ? body.portrait_id.trim() : ""
+    const themeFromBody =
+      typeof body.theme === "string" ? body.theme.trim().toLowerCase() : ""
 
     if (!email || !firstName || !productId || !portraitId) {
       return NextResponse.json(
@@ -143,6 +145,7 @@ export async function POST(request: NextRequest) {
         portrait_id: portraitId,
         product_id: productId,
         first_name: firstName,
+        ...(themeFromBody && { theme: themeFromBody }),
       },
       success_url: successUrl,
       cancel_url: `${siteUrl}/checkout?portrait=${encodeURIComponent(portraitId)}`,
