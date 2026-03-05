@@ -1,9 +1,9 @@
 /**
  * Product definitions for checkout.
- * Single source of truth; add print products here when ready.
+ * Single source of truth; kept in sync with PricingSection copy.
  */
 
-export type ProductId = "single_4k" | "pack_4_4k"
+export type ProductId = "starter" | "portrait_pack" | "family_pack"
 
 export interface Product {
   id: ProductId
@@ -19,24 +19,35 @@ export interface Product {
 
 export const PRODUCTS: Product[] = [
   {
-    id: "single_4k",
-    name: "1 Portrait (4K)",
-    description: "One high-resolution download",
-    priceCents: 2900,
-    priceDisplay: "$29",
+    id: "starter",
+    name: "Starter",
+    description: "Try it once. We think you'll come back.",
+    priceCents: 1700,
+    priceDisplay: "$17",
     perPortrait: 1,
     type: "download",
   },
   {
-    id: "pack_4_4k",
-    name: "4 Portraits (4K)",
-    description: "This one + 3 credits (use anytime, any pet, within 12 months)",
-    priceCents: 7900,
-    priceDisplay: "$79",
+    id: "portrait_pack",
+    name: "Portrait Pack",
+    description: "Four portraits. Your choice of pets, your choice of themes.",
+    priceCents: 4900,
+    priceDisplay: "$49",
     perPortrait: 4,
     type: "download",
-    badge: "Best value",
-    savePercent: 32,
+    badge: "Most Popular",
+    savePercent: 28, // approx: 4 * 17 = 68 → save 19
+  },
+  {
+    id: "family_pack",
+    name: "Family Pack",
+    description: "Eight portraits for the whole family. Every pet. Every theme.",
+    priceCents: 7900,
+    priceDisplay: "$79",
+    perPortrait: 8,
+    type: "download",
+    badge: "Best Value",
+    savePercent: 42, // approx: 8 * 17 = 136 → save 57
   },
 ]
 

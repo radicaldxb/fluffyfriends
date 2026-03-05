@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase"
 import { getProduct, type ProductId } from "@/lib/products"
 import Stripe from "stripe"
 
-const VALID_IDS: ProductId[] = ["single_4k", "pack_4_4k"]
+const VALID_IDS: ProductId[] = ["starter", "portrait_pack", "family_pack"]
 
 function getStripeClient(secret: string) {
   return new Stripe(secret, {
