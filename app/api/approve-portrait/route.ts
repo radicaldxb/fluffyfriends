@@ -58,7 +58,7 @@ async function resolveSessionContext(sessionId: string) {
 
   const { data: portraitRow, error: portraitError } = await supabase
     .from("pet_portraits")
-    .select("id, pet_name, theme, image_url, original_image_url")
+    .select("id, pet_name, image_url, original_image_url")
     .eq("id", portraitId)
     .single()
 
