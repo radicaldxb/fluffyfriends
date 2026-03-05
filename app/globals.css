@@ -24,7 +24,8 @@
   --popover-foreground: var(--brand-ink);
 
   --primary: var(--brand-orange);
-  --primary-foreground: #1c1b19;
+  /* Buttons and primary accents use white text on orange */
+  --primary-foreground: #ffffff;
 
   --secondary: #f0ebe3;
   --secondary-foreground: var(--brand-ink);
@@ -129,6 +130,9 @@
   }
   .rounded-organic-sm {
     border-radius: var(--radius-organic-sm);
+  }
+  .rounded-organic-pill {
+    border-radius: var(--radius-organic-pill);
   }
   .rounded-bl-organic {
     border-bottom-left-radius: 1.35rem;

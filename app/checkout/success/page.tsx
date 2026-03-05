@@ -286,7 +286,7 @@ function SuccessContent() {
           {isStep2Loading && (
             <>
               <div className="mt-10 flex justify-center">
-                <div className="relative h-32 w-32 overflow-hidden rounded-organic-sm border-2 border-primary/40 bg-primary/5">
+                <div className="relative h-32 w-32 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5">
                   <video
                     src="/video/FF-Loader.mp4"
                     autoPlay

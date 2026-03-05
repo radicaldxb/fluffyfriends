@@ -138,7 +138,7 @@ function CheckoutContent() {
           Get your 4K download
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Secure payment · Instant download (test flow — no payment yet)
+          Secure payment · All major cards accepted · One-time only · No subscription
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-8">
@@ -223,7 +223,7 @@ function CheckoutContent() {
 
           {/* Trust line */}
           <p className="text-xs text-muted-foreground">
-            Payment integration coming soon. This test records your order only — no charge.
+            Secure payment · All major cards accepted · One-time only · No subscription
           </p>
 
           {errorMessage && (

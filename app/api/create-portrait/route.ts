@@ -167,10 +167,6 @@ export async function POST(request: NextRequest) {
     showcase_consent: showcaseConsent,
   }
 
-  let webhookOk = false
-  let webhookStatus: number | null = null
-  let webhookError: string | null = null
-  let webhookBody: any = null
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 15000)
@@ -181,60 +177,79 @@ export async function POST(request: NextRequest) {
       signal: controller.signal,
     })
     clearTimeout(timeout)
-    webhookStatus = res.status
-    webhookOk = res.ok
+
     const text = await res.text().catch(() => "")
+    let body: any = {}
     if (text) {
       try {
-        webhookBody = JSON.parse(text)
+        body = JSON.parse(text)
       } catch {
-        // ignore parse errors; we'll fall back to generic error handling
+        // fall through to generic error handling below
       }
     }
+
     if (!res.ok) {
-      webhookError = text.slice(0, 200) || res.statusText
+      const reason =
+        typeof body?.reason === "string" && body.reason.trim().length > 0
+          ? body.reason.trim()
+          : text.slice(0, 200) || res.statusText || "Validator request failed."
+      // If n8n explicitly marked the photo as rejected, surface that as a validation error
+      if (body?.rejected) {
+        return NextResponse.json(
+          {
+            rejected: true,
+            reason,
+          },
+          { status: 400 },
+        )
+      }
+
+      console.error("[create-portrait] WF1 webhook error:", { status: res.status, reason })
+      return NextResponse.json(
+        {
+          error: "Portrait validation is temporarily unavailable. Please try again in a moment.",
+        },
+        { status: 503 },
+      )
     }
-  } catch (err) {
-    webhookError = err instanceof Error ? err.message : "Request failed"
-  }
 
-  // If validator explicitly rejected the photo, surface that to the user
-  if (webhookBody && webhookBody.rejected) {
-    const reason =
-      typeof webhookBody.reason === "string" && webhookBody.reason.trim().length > 0
-        ? webhookBody.reason.trim()
-        : "This photo doesn't meet our requirements. Please upload a clear photo of a single pet (no people or objects)."
+    // Expected success shape from WF1:
+    // { success: true, portrait_id: "..." }
+    const success = body?.success !== false
+    const portraitId = typeof body?.portrait_id === "string" ? body.portrait_id : null
+
+    if (!success || !portraitId) {
+      const reason =
+        typeof body?.reason === "string" && body.reason.trim().length > 0
+          ? body.reason.trim()
+          : "This photo doesn't meet our requirements. Please upload a clear photo of a single pet (no people or objects)."
+      return NextResponse.json(
+        {
+          rejected: true,
+          reason,
+        },
+        { status: 400 },
+      )
+    }
+
     return NextResponse.json(
       {
-        error: reason,
-        rejected: true,
+        success: true,
+        portrait_id: portraitId,
+        upload_url: uploadUrl,
+        pet_name: resolvedPetName,
       },
-      { status: 400 },
+      { status: 200 },
     )
-  }
-
-  // If n8n did not accept the job, return error so the user gets honest feedback
-  if (!webhookOk) {
-    console.error("[create-portrait] Webhook failed:", { webhookStatus, webhookError })
+  } catch (err) {
+    console.error("[create-portrait] WF1 webhook exception:", err)
     return NextResponse.json(
       {
-        error: "Portrait creation is temporarily unavailable. Please try again in a moment.",
-        ...(webhookStatus != null && { webhook_status: webhookStatus }),
-        ...(webhookError && { webhook_error: webhookError }),
+        error: "Portrait validation failed. Please try again in a moment.",
       },
       { status: 503 },
     )
   }
-
-  return NextResponse.json(
-    {
-      queued: true,
-      upload_url: uploadUrl,
-      pet_name: petName,
-      message: "Your portrait is being created. It may take a few minutes.",
-    },
-    { status: 200 },
-  )
   } catch (error) {
     // Log full error details for debugging
     const errorId = `err_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`

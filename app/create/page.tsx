@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
-import { supabase } from "@/lib/supabase"
 import Image from "next/image"
 import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, Sparkles, SunMedium, User, Camera } from "lucide-react"
 
@@ -51,67 +50,6 @@ export default function CreatePortraitPage() {
   const [isValidationReject, setIsValidationReject] = useState(false)
   const [hasConsented, setHasConsented] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const uploadUrlRef = useRef<string | null>(null)
-  const processingStartedAtRef = useRef<number>(0)
-
-  useEffect(() => {
-    if (status === "processing") {
-      const interval = setInterval(async () => {
-        try {
-          const { data: rows, error } = await supabase
-            .from("pet_portraits")
-            .select("id, image_url, created_at, pet_name, original_image_url, status, rejection_reason")
-            .order("created_at", { ascending: false })
-            .limit(15)
-          if (error) {
-            console.error("Poll error:", error)
-            return
-          }
-          const startedAt = processingStartedAtRef.current
-          const uploadUrl = uploadUrlRef.current
-          const cutoff = startedAt - 5000
-          const withOriginal = (row: { original_image_url?: string }) =>
-            (row as { original_image_url?: string }).original_image_url
-          const withStatus = (row: { status?: string; rejection_reason?: string }) =>
-            (row as { status?: string; rejection_reason?: string })
-
-          // Only ever treat a row as belonging to this attempt if the original_image_url
-          // exactly matches the uploadUrl we just got back from the API. We intentionally
-          // do NOT fall back to "newest after start" to avoid showing success for
-          // unrelated or older portraits.
-          const exactMatch = (rows ?? []).find((row) => uploadUrl && withOriginal(row) === uploadUrl)
-          const matched = exactMatch
-          if (matched && withStatus(matched).status === "rejected") {
-            setIsValidationReject(true)
-            setStatus("error")
-            setMessage(
-              (matched as { rejection_reason?: string }).rejection_reason ||
-                "This photo doesn't meet our requirements. Please upload a single pet only (no group photos, people, or objects)."
-            )
-            return
-          }
-          if (matched?.id) {
-            setResultPetName(matched.pet_name ?? null)
-            setResultPortraitId((matched as { id?: string }).id ?? null)
-            setStatus("success")
-          }
-        } catch (err) {
-          console.error("Poll error:", err)
-        }
-      }, 3000)
-      const timeout = setTimeout(() => {
-        clearInterval(interval)
-        if (status === "processing") {
-          setStatus("error")
-          setMessage("This is taking longer than usual. Your portrait may still appear in the gallery soon.")
-        }
-      }, 300000)
-      return () => {
-        clearInterval(interval)
-        clearTimeout(timeout)
-      }
-    }
-  }, [status])
 
   useEffect(() => {
     return () => {
@@ -186,41 +124,36 @@ export default function CreatePortraitPage() {
       if (petName.trim()) formData.set("pet_name", petName.trim())
       formData.set("showcase_consent", showcasePermission ? "true" : "false")
       const res = await fetch("/api/create-portrait", { method: "POST", body: formData })
-      const contentType = res.headers.get("content-type")
-      const text = await res.text()
-      if (!contentType?.includes("application/json")) {
+      const data = (await res.json().catch(() => ({}))) as {
+        success?: boolean
+        portrait_id?: string
+        upload_url?: string
+        rejected?: boolean
+        reason?: string
+        error?: string
+      }
+
+      if (!res.ok || data.rejected) {
+        const rawReason =
+          typeof data.reason === "string" && data.reason.trim().length > 0
+            ? data.reason.trim()
+            : data.error || "This photo doesn't meet our requirements. Please upload a clear photo of a single pet."
+
+        setIsValidationReject(true)
         setStatus("error")
-        setMessage(`Server error: ${text || res.status}`)
+        setMessage(rawReason)
         return
       }
-      let data: { error?: string; error_id?: string; webhook_ok?: boolean; webhook_error?: string; webhook_status?: number; upload_url?: string } = {}
-      try {
-        data = text ? JSON.parse(text) : {}
-      } catch {
+
+      if (!data.success || !data.portrait_id) {
         setStatus("error")
-        setMessage("Invalid response from server.")
+        setMessage("We couldn't start your portrait. Please try again in a moment.")
         return
       }
-      if (!res.ok) {
-        if (data.rejected) {
-          setIsValidationReject(true)
-        }
-        setStatus("error")
-        setMessage(
-          data.error ||
-            (data.rejected
-              ? "This photo doesn't meet our requirements. Please upload a clear photo of a single pet."
-              : `Request failed (${res.status})` + (data.error_id ? ` (${data.error_id})` : ""))
-        )
-        return
-      }
-      if (data.webhook_ok === false) {
-        setStatus("error")
-        setMessage(data.webhook_error || `Workflow didn't start (${data.webhook_status ?? "no response"}).`)
-        return
-      }
-      uploadUrlRef.current = typeof data.upload_url === "string" ? data.upload_url : null
-      processingStartedAtRef.current = Date.now()
+
+      setResultPortraitId(data.portrait_id)
+      setResultPetName(resolvedPetName)
+      setStatus("success")
     } catch (err) {
       setStatus("error")
       setMessage(err instanceof Error ? err.message : "Something went wrong.")
@@ -256,8 +189,6 @@ export default function CreatePortraitPage() {
     setAgeConfirm(false)
     setShowcasePermission(true)
     setHasConsented(false)
-    uploadUrlRef.current = null
-    processingStartedAtRef.current = 0
     fileInputRef.current && (fileInputRef.current.value = "")
   }
 
@@ -692,7 +623,7 @@ export default function CreatePortraitPage() {
           {/* Processing – validation only */}
           {status === "processing" && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
-              <div className="relative h-32 w-32 overflow-hidden rounded-organic-sm border-2 border-primary/40 bg-primary/5 shadow-sm">
+              <div className="relative h-32 w-32 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5 shadow-sm">
                 <video
                   src="/video/FF-Loader.mp4"
                   autoPlay
