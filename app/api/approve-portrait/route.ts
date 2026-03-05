@@ -19,41 +19,11 @@ async function resolveSessionContext(sessionId: string) {
   const session = await stripe.checkout.sessions.retrieve(sessionId)
 
   const metadata = session.metadata || {}
-  const orderId = (metadata.order_id as string | undefined) || null
-  const portraitIdFromMetadata = (metadata.portrait_id as string | undefined) || null
+  const portraitIdRaw = (metadata.portrait_id as string | undefined) || null
+  const portraitId = portraitIdRaw?.trim() || ""
 
-  if (!orderId) {
-    throw new Error("Missing order_id in Stripe session metadata")
-  }
-
-  const { data: orderRow, error: orderError } = await supabase
-    .from("orders")
-    .select("id, email, name, amount_cents")
-    .eq("id", orderId)
-    .single()
-
-  if (orderError || !orderRow) {
-    throw new Error("Failed to load order for approve-portrait")
-  }
-
-  const { data: items, error: itemsError } = await supabase
-    .from("order_items")
-    .select("product_id, price_cents, credits_remaining, portrait_ids")
-    .eq("order_id", orderId)
-
-  if (itemsError || !items || items.length === 0) {
-    throw new Error("Failed to load order_items for approve-portrait")
-  }
-
-  const item = items[0]
-  const portraitIds: string[] =
-    portraitIdFromMetadata != null && portraitIdFromMetadata !== ""
-      ? [portraitIdFromMetadata]
-      : ((item.portrait_ids as string[]) || [])
-
-  const portraitId = portraitIds[0]
   if (!portraitId) {
-    throw new Error("No portrait_id available for approve-portrait")
+    throw new Error("Missing portrait_id in Stripe session metadata")
   }
 
   const { data: portraitRow, error: portraitError } = await supabase
@@ -69,27 +39,16 @@ async function resolveSessionContext(sessionId: string) {
   const rawPetName = (portraitRow.pet_name as string | null) || "My Pet"
   const resolvedPetName = rawPetName.trim() || "My Pet"
 
-  const firstNameFromOrder = (orderRow.name || "").split(" ")[0] || ""
-  const firstNameFromMetadata = (metadata.first_name as string | undefined) || ""
-  const firstName = firstNameFromOrder || firstNameFromMetadata || ""
-
-  const totalCents =
-    (item.price_cents as number | null | undefined) != null
-      ? (item.price_cents as number)
-      : (orderRow.amount_cents as number | null | undefined) || 0
-
+  const totalCents = typeof session.amount_total === "number" ? session.amount_total : 0
   const currency = session.currency || "usd"
 
   return {
-    orderId: orderRow.id as string,
-    email: orderRow.email as string,
-    firstName,
-    totalCents,
-    currency,
     portraitId: portraitRow.id as string,
     petName: resolvedPetName,
     imageUrl: (portraitRow.image_url as string | null) || "",
     originalImageUrl: (portraitRow.original_image_url as string | null) || null,
+    totalCents,
+    currency,
   }
 }
 
@@ -119,7 +78,6 @@ export async function GET(request: NextRequest) {
       {
         portrait_id: ctx.portraitId,
         pet_name: ctx.petName,
-        order_id: ctx.orderId,
         amount_cents: ctx.totalCents,
         currency: ctx.currency,
       },
@@ -141,10 +99,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sessionId =
       typeof body.session_id === "string" ? body.session_id.trim() : ""
+    const email = typeof body.email === "string" ? body.email.trim() : ""
+    const fullName = typeof body.full_name === "string" ? body.full_name.trim() : ""
+    const city = typeof body.city === "string" ? body.city.trim() : ""
+    const country = typeof body.country === "string" ? body.country.trim() : ""
+    const state = typeof body.state === "string" ? body.state.trim() : ""
+    const newsletterConsent =
+      typeof body.newsletter_consent === "boolean" ? body.newsletter_consent : false
 
     if (!sessionId) {
       return NextResponse.json(
         { error: "Missing session_id in request body" },
+        { status: 400 },
+      )
+    }
+
+    if (!email || !fullName || !city || !country) {
+      return NextResponse.json(
+        { error: "Missing email, full_name, city, or country" },
         { status: 400 },
       )
     }
@@ -162,6 +134,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Upsert user
+    const { data: userRow, error: userError } = await supabase
+      .from("users")
+      .upsert(
+        {
+          email,
+          full_name: fullName,
+          city,
+          country,
+          state: state || null,
+          newsletter_consent: newsletterConsent,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "email" },
+      )
+      .select("id")
+      .single()
+
+    if (userError || !userRow) {
+      console.error("[approve-portrait][POST] Failed to upsert user:", userError)
+      return NextResponse.json(
+        { error: "Failed to save your details. Please try again." },
+        { status: 500 },
+      )
+    }
+
+    // Attach user to portrait
+    const { error: portraitUpdateError } = await supabase
+      .from("pet_portraits")
+      .update({ user_id: userRow.id })
+      .eq("id", ctx.portraitId)
+
+    if (portraitUpdateError) {
+      console.error("[approve-portrait][POST] Failed to attach user to portrait:", portraitUpdateError)
+      return NextResponse.json(
+        { error: "Failed to link your portrait. Please try again." },
+        { status: 500 },
+      )
+    }
+
     const upscalerUrl =
       process.env.N8N_UPSCALE_AND_EMAIL_WEBHOOK_URL?.trim() ||
       "https://n8n.srv943460.hstgr.cloud/webhook/upscale-and-email"
@@ -176,9 +188,8 @@ export async function POST(request: NextRequest) {
           portrait_id: ctx.portraitId,
           original_image_url: originalImageUrl,
           avif_url: ctx.imageUrl || null,
-          order_id: ctx.orderId,
-          user_email: ctx.email,
-          user_first_name: ctx.firstName,
+          user_email: email,
+          user_first_name: fullName.split(" ")[0] || fullName,
           total_cents: ctx.totalCents,
           currency: ctx.currency,
         }),
@@ -206,11 +217,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // After WF3 completes, fetch updated URLs so we can return download links
+    const { data: updatedPortrait, error: updatedPortraitError } = await supabase
+      .from("pet_portraits")
+      .select("landscape_url, portrait_url")
+      .eq("id", ctx.portraitId)
+      .single()
+
+    if (updatedPortraitError || !updatedPortrait) {
+      console.error("[approve-portrait][POST] Failed to load updated portrait URLs:", updatedPortraitError)
+      return NextResponse.json(
+        {
+          error:
+            "Upscale completed, but we could not load your download links yet. Please refresh in a moment.",
+        },
+        { status: 500 },
+      )
+    }
+
     return NextResponse.json(
       {
         ok: true,
-        message:
-          "Portrait approved. We’ll upscale your image and email your print‑ready files shortly.",
+        landscape_url: updatedPortrait.landscape_url,
+        portrait_url: updatedPortrait.portrait_url,
       },
       { status: 200 },
     )

@@ -31,6 +31,16 @@ function SuccessContent() {
   const [preview, setPreview] = useState<PreviewState>({ status: "idle" })
   const [approveStatus, setApproveStatus] = useState<ApproveStatus>("idle")
   const [approveError, setApproveError] = useState<string>("")
+  const [email, setEmail] = useState("")
+  const [fullName, setFullName] = useState("")
+  const [city, setCity] = useState("")
+  const [country, setCountry] = useState("")
+  const [stateRegion, setStateRegion] = useState("")
+  const [newsletterConsent, setNewsletterConsent] = useState(true)
+  const [downloadLinks, setDownloadLinks] = useState<{
+    landscapeUrl: string
+    portraitUrl: string
+  } | null>(null)
 
   useEffect(() => {
     if (!sessionId && !portraitFromQuery) {
@@ -122,7 +132,8 @@ function SuccessContent() {
     }
   }, [sessionId, portraitFromQuery])
 
-  async function handleApprove() {
+  async function handleSubmitDetails(e: React.FormEvent) {
+    e.preventDefault()
     if (!sessionId || approveStatus === "submitting" || approveStatus === "success") return
     setApproveStatus("submitting")
     setApproveError("")
@@ -131,23 +142,35 @@ function SuccessContent() {
       const res = await fetch("/api/approve-portrait", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({
+          session_id: sessionId,
+          email: email.trim(),
+          full_name: fullName.trim(),
+          city: city.trim(),
+          country: country.trim(),
+          state: stateRegion.trim(),
+          newsletter_consent: newsletterConsent,
+        }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
+      if (!res.ok || !data.ok) {
         setApproveStatus("error")
         setApproveError(
-          data.error || "We couldn't start the upscale yet. Please try again in a moment.",
+          data.error || "We couldn't send your files yet. Please try again in a moment.",
         )
         return
       }
+      setDownloadLinks({
+        landscapeUrl: data.landscape_url as string,
+        portraitUrl: data.portrait_url as string,
+      })
       setApproveStatus("success")
     } catch (err) {
       setApproveStatus("error")
       setApproveError(
         err instanceof Error
           ? err.message
-          : "We couldn't start the upscale yet. Please try again in a moment.",
+          : "We couldn't send your files yet. Please try again in a moment.",
       )
     }
   }
@@ -168,12 +191,33 @@ function SuccessContent() {
               <Mail className="h-7 w-7" />
             </div>
             <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-              You’re all set
+              Your portrait is on its way 🐾
             </h2>
             <p className="mt-4 text-muted-foreground text-pretty max-w-md mx-auto">
-              Check your email in the next few minutes. We’re upscaling your portrait and will send
-              you the download link and print guide. If you don’t see it, check your spam folder.
+              Your files are also on their way to your inbox — check your spam folder if you don’t
+              see them within 5 minutes.
             </p>
+            {downloadLinks && (
+              <div className="mt-8 flex flex-col items-center gap-3">
+                <Button
+                  asChild
+                  className="w-full rounded-organic-sm sm:w-auto"
+                >
+                  <a href={downloadLinks.landscapeUrl} target="_blank" rel="noreferrer">
+                    Download Wide Format →
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full rounded-organic-sm sm:w-auto"
+                >
+                  <a href={downloadLinks.portraitUrl} target="_blank" rel="noreferrer">
+                    Download Tall Format →
+                  </a>
+                </Button>
+              </div>
+            )}
             <div className="mt-10 flex flex-col items-center gap-3">
               <Button className="rounded-organic-sm" asChild>
                 <Link href="/create">Create another portrait</Link>
@@ -200,14 +244,14 @@ function SuccessContent() {
         <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
           <div className="mx-auto max-w-xl">
             <p className="text-sm font-medium uppercase tracking-widest text-primary mb-1">
-              Step 3 · Approve your portrait
+              Step 3 · Preview & details
             </p>
             <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               Does this look like {preview.petName}?
             </h2>
             <p className="mt-2 text-muted-foreground text-pretty">
-              Take a close look at the pose and details. When you’re happy, approve and we’ll email
-              your print‑ready files.
+              Take a close look. When you’re happy, fill in your details below and we’ll send your
+              print‑ready files straight to your inbox.
             </p>
 
             <div className="mt-6 rounded-organic border border-border bg-card p-5">
@@ -228,25 +272,137 @@ function SuccessContent() {
                 . You’ll receive wide and tall print‑ready files plus a print guide.
               </p>
 
-              {approveError && (
-                <div className="mt-3 flex items-start gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
-                  <AlertCircle className="mt-[2px] h-4 w-4 shrink-0 text-destructive" />
-                  <p className="text-sm text-destructive">{approveError}</p>
+              <form onSubmit={handleSubmitDetails} className="mt-6 space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <label
+                      htmlFor="success-email"
+                      className="block text-sm text-muted-foreground mb-1"
+                    >
+                      Email address *
+                    </label>
+                    <input
+                      id="success-email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="success-full-name"
+                      className="block text-sm text-muted-foreground mb-1"
+                    >
+                      Full name *
+                    </label>
+                    <input
+                      id="success-full-name"
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      placeholder="What should we put on your order?"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="success-city"
+                      className="block text-sm text-muted-foreground mb-1"
+                    >
+                      City *
+                    </label>
+                    <input
+                      id="success-city"
+                      type="text"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      placeholder="Where should we imagine this hanging?"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="success-country"
+                      className="block text-sm text-muted-foreground mb-1"
+                    >
+                      Country *
+                    </label>
+                    <select
+                      id="success-country"
+                      required
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    >
+                      <option value="">Select your country</option>
+                      <option value="United States">United States</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="Canada">Canada</option>
+                      <option value="Australia">Australia</option>
+                      <option value="Netherlands">Netherlands</option>
+                      <option value="Germany">Germany</option>
+                      <option value="France">France</option>
+                      <option value="Belgium">Belgium</option>
+                      <option value="Sweden">Sweden</option>
+                      <option value="Norway">Norway</option>
+                      <option value="Denmark">Denmark</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  {(country === "United States" || country === "US") && (
+                    <div>
+                      <label
+                        htmlFor="success-state"
+                        className="block text-sm text-muted-foreground mb-1"
+                      >
+                        State
+                      </label>
+                      <input
+                        id="success-state"
+                        type="text"
+                        value={stateRegion}
+                        onChange={(e) => setStateRegion(e.target.value)}
+                        className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                        placeholder="Optional"
+                      />
+                    </div>
+                  )}
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={newsletterConsent}
+                      onChange={(e) => setNewsletterConsent(e.target.checked)}
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-ring"
+                    />
+                    Send me updates about new themes and offers
+                  </label>
                 </div>
-              )}
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button
-                  onClick={handleApprove}
-                  disabled={approveStatus === "submitting"}
-                  className="rounded-organic-sm"
-                >
-                  {approveStatus === "submitting" ? "Approving…" : "Approve this portrait"}
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  Not quite right? You can request another render or upload a new photo next.
-                </p>
-              </div>
+                {approveError && (
+                  <div className="flex items-start gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
+                    <AlertCircle className="mt-[2px] h-4 w-4 shrink-0 text-destructive" />
+                    <p className="text-sm text-destructive">{approveError}</p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Button
+                    type="submit"
+                    disabled={approveStatus === "submitting"}
+                    className="w-full rounded-organic-sm"
+                  >
+                    {approveStatus === "submitting" ? "Sending your files…" : "Send my files →"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Your files will also appear on this page immediately after submitting.
+                  </p>
+                </div>
+              </form>
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-3">

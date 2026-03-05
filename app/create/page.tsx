@@ -8,7 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, Sparkles, SunMedium, User, Camera } from "lucide-react"
+import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
+import { PRODUCTS, type ProductId } from "@/lib/products"
 
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
 
@@ -49,6 +50,9 @@ export default function CreatePortraitPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [isValidationReject, setIsValidationReject] = useState(false)
   const [hasConsented, setHasConsented] = useState(false)
+  const [selectedProductId, setSelectedProductId] = useState<ProductId>("portrait_pack")
+  const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
+  const [checkoutError, setCheckoutError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -219,6 +223,7 @@ export default function CreatePortraitPage() {
   const isRejectionError = status === "error" && isValidationReject
 
   const selectedTheme = themes.find((t) => t.id === theme)
+  const selectedProduct = PRODUCTS.find((p) => p.id === selectedProductId)
 
   // [Pet Name] for copy — "their" when no name
   const petNameDisplay = petName.trim()
@@ -527,80 +532,7 @@ export default function CreatePortraitPage() {
                   </div>
                 )}
 
-                {/* Step 3 — Review & create (soft consent) */}
-                {wizardStep === 3 && (
-                  <div
-                    key="step3"
-                    className={cn(
-                      "animate-in fade-in-0 duration-300",
-                      slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
-                    )}
-                  >
-                    <h2 className="text-xl font-semibold text-foreground">
-                      Almost there — {theirOrName} portrait is ready
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Quick confirm, then we&apos;ll create your portrait.
-                    </p>
-
-                    {/* Summary */}
-                    <div className="mt-6 flex gap-4 rounded-organic border border-border bg-card p-4">
-                      {selectedTheme && (
-                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-organic-sm bg-muted">
-                          <Image src={selectedTheme.previewUrl} alt="" fill className="object-cover" unoptimized />
-                        </div>
-                      )}
-                      {previewUrl && (
-                        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-organic-sm bg-muted">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={previewUrl} alt="" className="h-full w-full object-cover" />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">{selectedTheme?.name ?? "Style"}</p>
-                        <p className="text-sm text-muted-foreground">{petNameDisplay || "Your pet"}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Wide + tall format · A1 print quality · Free print guide included
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="mt-4 text-xs font-medium text-foreground">What happens next</p>
-                    <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-                      <li>{theirOrName} portrait starts the moment payment goes through</li>
-                      <li>Two print-ready files arrive in your inbox within minutes</li>
-                      <li>Wide format + tall format — both included</li>
-                      <li>Your free print guide shows you exactly how to get it printed and framed</li>
-                    </ul>
-
-                    <div className="mt-4 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
-                      <p className="text-xs font-medium text-foreground">Not happy? We&apos;ll make it right.</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        If the portrait isn&apos;t what you hoped for, we&apos;ll regenerate it — up to four times. Still not right? Full refund. No questions, no hassle, no hard feelings.
-                      </p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
-                      <p className="text-xs text-muted-foreground">
-                        Secure payment · All major cards accepted · One-time only · No subscription
-                      </p>
-                      <div className="flex justify-between">
-                        <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
-                          <ChevronLeft className="mr-1 h-4 w-4" />
-                          Back
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={!agreeTerms || !ageConfirm || status === "uploading"}
-                          className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
-                        >
-                          {status === "uploading" ? "Uploading…" : "Make My Portrait"}
-                          <Sparkles className="ml-1 h-4 w-4" />
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                )}
+                {/* Step 3 currently unused – payment happens after validation success section below */}
               </div>
 
               {/* Error state — only when wizard is shown and there's an error (non-validator errors only) */}
@@ -659,7 +591,7 @@ export default function CreatePortraitPage() {
                 {petNameDisplay ? `${petNameDisplay} is looking great` : "This photo is looking great"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground max-w-md">
-                We&apos;re confident this will make a stunning portrait. Continue when you&apos;re ready.
+                We&apos;re confident this will make a stunning portrait. Choose your package and continue to payment.
               </p>
 
               {/* Approved photo preview with check mark */}
@@ -688,17 +620,92 @@ export default function CreatePortraitPage() {
                 </p>
               )}
 
-              <div className="mt-8 flex flex-col items-center gap-3">
+              {/* Package selection */}
+              <div className="mt-8 w-full max-w-xl text-left">
+                <p className="text-sm font-medium text-foreground mb-3 text-center sm:text-left">
+                  Choose your package
+                </p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {PRODUCTS.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedProductId(p.id)}
+                      className={cn(
+                        "rounded-organic-sm border-2 p-4 text-left transition-all",
+                        selectedProductId === p.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/50",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-foreground">{p.name}</span>
+                        {selectedProductId === p.id && <Check className="h-4 w-4 text-primary" />}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <span className="text-lg font-bold text-foreground">{p.priceDisplay}</span>
+                        {p.savePercent != null && (
+                          <span className="text-xs font-medium text-primary">Save {p.savePercent}%</span>
+                        )}
+                      </div>
+                      {p.badge && (
+                        <span className="mt-2 inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
+                          {p.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {checkoutError && (
+                <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
+              )}
+
+              <div className="mt-6 flex flex-col items-center gap-3">
                 <Button
+                  onClick={async () => {
+                    if (!resultPortraitId) return
+                    setCheckoutStatus("submitting")
+                    setCheckoutError("")
+                    try {
+                      const res = await fetch("/api/create-checkout", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          product_id: selectedProductId,
+                          portrait_id: resultPortraitId,
+                          ...(theme && { theme }),
+                        }),
+                      })
+                      const data = await res.json().catch(() => ({}))
+                      if (!res.ok || !data.url) {
+                        setCheckoutStatus("error")
+                        setCheckoutError(
+                          data.error || "We couldn&apos;t start checkout. Please try again in a moment.",
+                        )
+                        return
+                      }
+                      window.location.href = data.url as string
+                    } catch (err) {
+                      setCheckoutStatus("error")
+                      setCheckoutError(
+                        err instanceof Error ? err.message : "We couldn&apos;t start checkout. Please try again.",
+                      )
+                    }
+                  }}
+                  disabled={checkoutStatus === "submitting"}
                   className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
-                  asChild
                 >
-                  <a href={`/checkout?portrait=${encodeURIComponent(resultPortraitId)}&theme=${encodeURIComponent(theme || "")}`}>
-                    Continue to payment
-                  </a>
+                  {checkoutStatus === "submitting"
+                    ? "Connecting to Stripe…"
+                    : selectedProduct
+                      ? `Continue to payment — ${selectedProduct.priceDisplay}`
+                      : "Continue to payment"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Secure Stripe payment · We only charge once per portrait.
+                  Secure Stripe payment · One-time purchase · No subscription.
                 </p>
                 <Button variant="outline" onClick={handleReset} className="mt-2 rounded-organic-sm">
                   Start over with a different photo
