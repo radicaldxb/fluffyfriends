@@ -327,7 +327,7 @@ export default function CreatePortraitPage() {
               </p>
               {/* Step indicator — minimal, not a blob */}
               <div className="mt-6 flex items-center justify-center gap-2" aria-label="Progress">
-                {WIZARD_STEPS.map((s, i) => (
+                        {WIZARD_STEPS.map((s, i) => (
                   <div key={s.id} className="flex items-center">
                     <div
                       className={cn(
@@ -342,14 +342,14 @@ export default function CreatePortraitPage() {
                     >
                       {wizardStep > s.id ? <Check className="h-4 w-4" /> : s.short}
                     </div>
-                    {i < WIZARD_STEPS.length - 1 && (
-                      <div
-                        className={cn(
-                          "mx-1.5 h-0.5 w-6 rounded-full transition-colors duration-300 sm:w-8",
-                          wizardStep > s.id ? "bg-primary" : "bg-border"
-                        )}
-                      />
-                    )}
+                      {i < WIZARD_STEPS.length - 1 && (
+                        <div
+                          className={cn(
+                            "mx-1.5 h-0.5 w-6 rounded-organic-sm transition-colors duration-300 sm:w-8",
+                            wizardStep > s.id ? "bg-primary" : "bg-border",
+                          )}
+                        />
+                      )}
                   </div>
                 ))}
               </div>
@@ -437,7 +437,7 @@ export default function CreatePortraitPage() {
                         type="button"
                         onClick={goNext}
                         disabled={!theme}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
+                        className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                       >
                         Next — upload their photo
                         <ChevronRight className="ml-0.5 h-4 w-4" />
@@ -586,7 +586,7 @@ export default function CreatePortraitPage() {
                         type="button"
                         onClick={handleCheckImage}
                         disabled={!file || (!hasConsented && (!ageConfirm || !agreeTerms))}
-                        className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
+                        className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                       >
                         Continue — check image
                         <ChevronRight className="ml-0.5 h-4 w-4" />
@@ -660,7 +660,7 @@ export default function CreatePortraitPage() {
                         <Button
                           type="submit"
                           disabled={!agreeTerms || !ageConfirm || status === "uploading"}
-                          className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
+                          className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                         >
                           {status === "uploading" ? "Uploading…" : "Make My Portrait"}
                           <Sparkles className="ml-1 h-4 w-4" />
@@ -692,7 +692,7 @@ export default function CreatePortraitPage() {
           {/* Processing – validation only */}
           {status === "processing" && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
-              <div className="relative h-32 w-32 overflow-hidden rounded-[999px] border-2 border-primary/40 bg-primary/5 shadow-sm">
+              <div className="relative h-32 w-32 overflow-hidden rounded-organic-sm border-2 border-primary/40 bg-primary/5 shadow-sm">
                 <video
                   src="/video/FF-Loader.mp4"
                   autoPlay
@@ -710,7 +710,11 @@ export default function CreatePortraitPage() {
               </p>
               <div className="mt-6 flex gap-1.5">
                 {[0, 1, 2].map((i) => (
-                  <span key={i} className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+                  <span
+                    key={i}
+                    className="h-2 w-2 rounded-organic-sm bg-primary animate-pulse"
+                    style={{ animationDelay: `${i * 150}ms` }}
+                  />
                 ))}
               </div>
             </div>
@@ -738,7 +742,7 @@ export default function CreatePortraitPage() {
                         className="h-auto w-full max-h-72 object-cover"
                       />
                     </div>
-                    <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md">
+                    <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-organic-sm bg-emerald-500 text-white shadow-md">
                       <Check className="h-5 w-5" />
                     </div>
                   </div>
@@ -754,7 +758,7 @@ export default function CreatePortraitPage() {
 
               <div className="mt-8 flex flex-col items-center gap-3">
                 <Button
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
+                  className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                   asChild
                 >
                   <a href={`/checkout?portrait=${encodeURIComponent(resultPortraitId)}&theme=${encodeURIComponent(theme || "")}`}>

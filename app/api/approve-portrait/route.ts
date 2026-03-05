@@ -103,6 +103,18 @@ export async function GET(request: NextRequest) {
 
     const ctx = await resolveSessionContext(sessionId)
 
+    // Only expose the preview once the portrait actually has an image_url.
+    // Until then, keep the frontend in the loading state and let it poll.
+    if (!ctx.imageUrl) {
+      return NextResponse.json(
+        {
+          error: "Portrait is still generating. Please wait a bit longer.",
+          code: "PORTRAIT_NOT_READY",
+        },
+        { status: 202 },
+      )
+    }
+
     return NextResponse.json(
       {
         portrait_id: ctx.portraitId,
