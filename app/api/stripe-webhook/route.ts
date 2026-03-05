@@ -130,13 +130,41 @@ export async function POST(request: NextRequest) {
               )
             } else {
               try {
-                await fetch(orderPaidUrl, {
+                console.log(
+                  "[stripe-webhook] Calling WF2",
+                  JSON.stringify({
+                    portrait_id: payload.portrait_id,
+                    orderPaidUrl,
+                    total_cents: payload.total_cents,
+                    currency: payload.currency,
+                  }),
+                )
+
+                const res = await fetch(orderPaidUrl, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify(payload),
                 })
+
+                const text = await res.text().catch(() => "")
+                if (!res.ok) {
+                  console.error(
+                    "[stripe-webhook] WF2 responded with non-200",
+                    JSON.stringify({
+                      status: res.status,
+                      body: text.slice(0, 200),
+                    }),
+                  )
+                } else {
+                  console.log(
+                    "[stripe-webhook] WF2 call ok",
+                    JSON.stringify({
+                      status: res.status,
+                    }),
+                  )
+                }
 
                 // Mark portrait as generating once we've handed it off to n8n
                 const { error: portraitStatusError } = await supabase
