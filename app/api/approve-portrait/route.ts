@@ -239,19 +239,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // After WF3 completes, fetch updated URLs so we can return download links
-    const { data: updatedPortrait, error: updatedPortraitError } = await supabase
-      .from("pet_portraits")
-      .select("landscape_url, portrait_url")
-      .eq("id", ctx.portraitId)
-      .single()
+    // After WF3 completes, poll Supabase briefly for updated URLs so we can
+    // return download links directly on the success page.
+    const maxAttempts = 15
+    const delayMs = 2000
+    let updatedPortrait: { landscape_url: string | null; portrait_url: string | null } | null = null
+    let lastError: unknown = null
 
-    if (updatedPortraitError || !updatedPortrait) {
-      console.error("[approve-portrait][POST] Failed to load updated portrait URLs:", updatedPortraitError)
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const { data, error } = await supabase
+        .from("pet_portraits")
+        .select("landscape_url, portrait_url")
+        .eq("id", ctx.portraitId)
+        .single()
+
+      if (!error && data?.landscape_url && data?.portrait_url) {
+        updatedPortrait = data as { landscape_url: string; portrait_url: string }
+        break
+      }
+
+      lastError = error
+      // Small delay before trying again to give WF3 time to finish.
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+
+    if (!updatedPortrait?.landscape_url || !updatedPortrait?.portrait_url) {
+      console.error(
+        "[approve-portrait][POST] Timed out waiting for upscaled URLs",
+        lastError,
+      )
       return NextResponse.json(
         {
           error:
-            "Upscale completed, but we could not load your download links yet. Please refresh in a moment.",
+            "Upscale completed, but we could not load your download links yet. Please refresh this page in a moment.",
         },
         { status: 500 },
       )

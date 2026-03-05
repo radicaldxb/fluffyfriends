@@ -36,6 +36,58 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const portraitId =
+      typeof body.portrait_id === "string" ? (body.portrait_id as string).trim() : ""
+
+    // New path: WF2 sends a specific portrait_id plus preview + Gemini URLs.
+    // In this case we update the existing pet_portraits row directly by id and
+    // do not try to match by original_image_url or upload anything to Storage.
+    if (portraitId) {
+      const avifUrl =
+        typeof body.image_url === "string" ? (body.image_url as string).trim() : ""
+      const geminiImageUrl =
+        typeof body.gemini_image_url === "string"
+          ? (body.gemini_image_url as string).trim()
+          : ""
+      const statusFromBody =
+        typeof body.status === "string" ? (body.status as string).trim() : ""
+      const status = statusFromBody || "preview"
+
+      const updatePayload: Record<string, unknown> = {
+        status,
+      }
+      if (avifUrl) {
+        updatePayload.image_url = avifUrl
+      }
+      if (geminiImageUrl) {
+        updatePayload.original_image_url = geminiImageUrl
+      }
+
+      const { error: updateError } = await supabase
+        .from("pet_portraits")
+        .update(updatePayload)
+        .eq("id", portraitId)
+
+      if (updateError) {
+        console.error("[receive-n8n-image] portrait_id update error:", updateError)
+        return NextResponse.json(
+          {
+            error: "Failed to update portrait with generated image",
+            details: updateError.message,
+          },
+          { status: 500 },
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        portrait_id: portraitId,
+        image_url: avifUrl || null,
+        original_image_url: geminiImageUrl || null,
+        status,
+      })
+    }
+
     const originalImageUrl = body.original_image_url ?? body.test_image ?? null
     // Rejection from n8n subject validation (single-pet check): no image, just store reason for client to show
     const rejected = body.rejected === true
