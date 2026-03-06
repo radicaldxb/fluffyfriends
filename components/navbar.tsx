@@ -11,6 +11,7 @@ const navLinks = [
   { label: "Pricing", href: "/#pricing" },
   { label: "Reviews", href: "/#reviews" },
   { label: "Gift", href: "/#gifts" },
+  { label: "My Portraits", href: "/my-portraits" },
 ]
 
 export function Navbar() {

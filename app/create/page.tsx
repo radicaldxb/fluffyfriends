@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,9 @@ function cleanValidatorMessage(raw: string | null): string {
 }
 
 export default function CreatePortraitPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const emailFromQuery = searchParams.get("email")?.trim() || ""
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
@@ -54,12 +58,25 @@ export default function CreatePortraitPage() {
   const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
   const [checkoutError, setCheckoutError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
 
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  useEffect(() => {
+    if (!emailFromQuery) return
+    fetch(`/api/portrait-balance?email=${encodeURIComponent(emailFromQuery)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.has_portraits) {
+          setPortraitsRemaining(data.portraits_remaining)
+        }
+      })
+      .catch(() => {})
+  }, [emailFromQuery])
 
   function applyFile(selected: File | null) {
     if (previewUrl) {
@@ -239,6 +256,17 @@ export default function CreatePortraitPage() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
+      {portraitsRemaining !== null && portraitsRemaining > 0 && (
+        <div className="w-full bg-primary/10 border-b border-primary/20 px-4 py-3 text-center text-sm">
+          🐾 Welcome back! You have{" "}
+          <strong>
+            {portraitsRemaining} portrait
+            {portraitsRemaining !== 1 ? "s" : ""} remaining
+          </strong>
+          . No payment needed at the end.
+        </div>
+      )}
+
       {/* Top progress bar — smooth, always visible during wizard */}
       {showWizard && (
         <div className="sticky top-[57px] z-40 h-1 bg-muted">
@@ -380,9 +408,6 @@ export default function CreatePortraitPage() {
                         <ChevronRight className="ml-0.5 h-4 w-4" />
                       </Button>
                     </div>
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      You won&apos;t be charged until step 3
-                    </p>
                   </div>
                 )}
 
@@ -687,7 +712,16 @@ export default function CreatePortraitPage() {
                         )
                         return
                       }
-                      window.location.href = data.url as string
+                      const checkoutUrl = data.url as string
+                      if (portraitsRemaining && portraitsRemaining > 0 && emailFromQuery) {
+                        router.push(
+                          `/checkout/success?portrait=${encodeURIComponent(
+                            resultPortraitId,
+                          )}&email=${encodeURIComponent(emailFromQuery)}`,
+                        )
+                      } else {
+                        window.location.href = checkoutUrl
+                      }
                     } catch (err) {
                       setCheckoutStatus("error")
                       setCheckoutError(

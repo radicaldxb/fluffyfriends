@@ -8,7 +8,12 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 
-type Portrait = { src: string; pet: string }
+type Portrait = {
+  src: string
+  pet: string
+  city?: string | null
+  country?: string | null
+}
 
 export default function GalleryPage() {
   const [portraits, setPortraits] = useState<Portrait[]>([])
@@ -18,7 +23,9 @@ export default function GalleryPage() {
     async function fetchAll() {
       const { data } = await supabase
         .from("pet_portraits")
-        .select("image_url, pet_name, status, showcase_consent")
+        .select(
+          "image_url, pet_name, status, showcase_consent, user_id, users(city, country)",
+        )
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -28,6 +35,8 @@ export default function GalleryPage() {
           filtered.map((row) => ({
             src: row.image_url!,
             pet: row.pet_name || "Pet",
+            city: row.users?.city ?? null,
+            country: row.users?.country ?? null,
           }))
         )
       }
@@ -88,9 +97,14 @@ export default function GalleryPage() {
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                     unoptimized={portrait.src.startsWith("http")}
                   />
-                  <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/80 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/80 to-transparent p-3">
                     <p className="text-sm font-semibold text-foreground">
                       {portrait.pet}
+                      {portrait.city && portrait.country && (
+                        <span className="ml-1 font-normal text-xs text-muted-foreground">
+                          · {portrait.city}, {portrait.country}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

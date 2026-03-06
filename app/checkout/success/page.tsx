@@ -28,11 +28,12 @@ function SuccessContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get("session_id")?.trim() || ""
   const portraitFromQuery = searchParams.get("portrait")?.trim() || ""
+  const emailFromQuery = searchParams.get("email")?.trim() || ""
 
   const [preview, setPreview] = useState<PreviewState>({ status: "idle" })
   const [approveStatus, setApproveStatus] = useState<ApproveStatus>("idle")
   const [approveError, setApproveError] = useState<string>("")
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(emailFromQuery)
   const [fullName, setFullName] = useState("")
   const [city, setCity] = useState("")
   const [country, setCountry] = useState("")
@@ -42,6 +43,7 @@ function SuccessContent() {
     landscapeUrl: string
     portraitUrl: string
   } | null>(null)
+  const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
 
   useEffect(() => {
     if (!sessionId && !portraitFromQuery) {
@@ -165,6 +167,9 @@ function SuccessContent() {
         landscapeUrl: data.landscape_url as string,
         portraitUrl: data.portrait_url as string,
       })
+      if (typeof data.portraits_remaining === "number") {
+        setPortraitsRemaining(data.portraits_remaining)
+      }
       setApproveStatus("success")
     } catch (err) {
       setApproveStatus("error")
@@ -219,6 +224,29 @@ function SuccessContent() {
                 </Button>
               </div>
             )}
+            {typeof portraitsRemaining === "number" && portraitsRemaining > 0 && (
+              <div className="mt-8 rounded-organic border border-primary/30 bg-primary/5 p-5 text-center">
+                <p className="text-sm font-medium text-foreground">
+                  🐾 You have {portraitsRemaining} portrait
+                  {portraitsRemaining !== 1 ? "s" : ""} remaining in your pack
+                </p>
+                <Button className="mt-3 rounded-organic-sm" asChild>
+                  <Link href={`/create?email=${encodeURIComponent(email)}`}>
+                    Create your next portrait →
+                  </Link>
+                </Button>
+              </div>
+            )}
+            {typeof portraitsRemaining === "number" && portraitsRemaining === 0 && (
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  You've used all your portraits.
+                </p>
+                <Button variant="outline" className="mt-2 rounded-organic-sm" asChild>
+                  <Link href="/#pricing">Get more portraits →</Link>
+                </Button>
+              </div>
+            )}
             <div className="mt-10 flex flex-col items-center gap-3">
               <Button className="rounded-organic-sm" asChild>
                 <Link href="/create">Create another portrait</Link>
@@ -229,6 +257,17 @@ function SuccessContent() {
               >
                 Back to home
               </Link>
+            </div>
+            <div className="mt-8 pt-6 border-t border-border text-center">
+              <p className="text-sm text-muted-foreground">
+                Not happy with your portrait? We'd love to make it right.{" "}
+                <a
+                  href="mailto:support@fluffyfriends.online"
+                  className="underline hover:text-foreground"
+                >
+                  Get in touch
+                </a>
+              </p>
             </div>
           </div>
         </section>
@@ -291,6 +330,9 @@ function SuccessContent() {
                       className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                       placeholder="you@example.com"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      This is how you'll access your portraits — no account needed.
+                    </p>
                   </div>
                   <div>
                     <label
@@ -307,23 +349,6 @@ function SuccessContent() {
                       onChange={(e) => setFullName(e.target.value)}
                       className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                       placeholder="What should we put on your order?"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="success-city"
-                      className="block text-sm text-muted-foreground mb-1"
-                    >
-                      City *
-                    </label>
-                    <input
-                      id="success-city"
-                      type="text"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                      placeholder="Where should we imagine this hanging?"
                     />
                   </div>
                   <div>
@@ -354,6 +379,23 @@ function SuccessContent() {
                       <option value="Denmark">Denmark</option>
                       <option value="Other">Other</option>
                     </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="success-city"
+                      className="block text-sm text-muted-foreground mb-1"
+                    >
+                      City *
+                    </label>
+                    <input
+                      id="success-city"
+                      type="text"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                      placeholder="Where should we imagine this hanging?"
+                    />
                   </div>
                   {(country === "United States" || country === "US") && (
                     <div>
@@ -397,7 +439,9 @@ function SuccessContent() {
                     disabled={approveStatus === "submitting"}
                     className="w-full rounded-organic-sm"
                   >
-                    {approveStatus === "submitting" ? "Sending your files…" : "Send my files →"}
+                    {approveStatus === "submitting"
+                      ? "Sending your portraits…"
+                      : "Email my portraits →"}
                   </Button>
                   <p className="text-xs text-muted-foreground">
                     Your files will also appear on this page immediately after submitting.

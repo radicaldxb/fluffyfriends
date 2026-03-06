@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
 import { HeroDifferentiatorStrip } from "@/components/hero-differentiator-strip"
@@ -17,6 +18,14 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <p className="text-sm text-muted-foreground mt-3">
+          Already have a portrait pack?{" "}
+          <Link href="/my-portraits" className="underline hover:text-foreground">
+            Access my portraits →
+          </Link>
+        </p>
+      </div>
       <HeroDifferentiatorStrip />
       <SketchDivider />
       <ImmortaliseSection />

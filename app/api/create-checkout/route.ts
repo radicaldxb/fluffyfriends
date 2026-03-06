@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const amountCents = product.priceCents
+    const packageName = productId
 
     // Create Stripe Checkout Session only – orders are created in the Stripe webhook
     const stripe = getStripeClient(stripeSecret)
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         portrait_id: portraitId,
         product_id: productId,
+        package: packageName,
         ...(themeFromBody && { theme: themeFromBody }),
       },
       success_url: successUrl,

@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
     }
 
     const ctx = await resolveSessionContext(sessionId)
+    let deductResult: { portraits_remaining?: number } | null = null
 
     const originalImageUrl = ctx.originalImageUrl || ctx.imageUrl
     if (!originalImageUrl) {
@@ -240,6 +241,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Deduct portrait from balance after WF3 is triggered
+    if (email) {
+      try {
+        const deductRes = await fetch(
+          `${process.env.NEXT_PUBLIC_SITE_URL}/api/deduct-portrait`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          },
+        )
+        if (!deductRes.ok) {
+          console.error("[approve-portrait][POST] Failed to deduct portrait from balance")
+        } else {
+          deductResult = await deductRes.json().catch(() => null)
+        }
+      } catch (err) {
+        console.error("[approve-portrait][POST] Error calling deduct-portrait:", err)
+      }
+    }
+
     // After WF3 completes, poll Supabase briefly for updated URLs so we can
     // return download links directly on the success page.
     const maxAttempts = 15
@@ -283,6 +305,7 @@ export async function POST(request: NextRequest) {
         ok: true,
         landscape_url: updatedPortrait.landscape_url,
         portrait_url: updatedPortrait.portrait_url,
+        portraits_remaining: deductResult?.portraits_remaining ?? null,
       },
       { status: 200 },
     )
