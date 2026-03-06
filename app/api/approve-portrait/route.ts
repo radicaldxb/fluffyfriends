@@ -49,7 +49,7 @@ async function resolveSessionContext(sessionId: string) {
     const { data: fallbackRows, error: fallbackError } = await supabase
       .from("pet_portraits")
       .select("id, image_url, original_image_url, created_at, status, pet_name")
-      .eq("status", "completed")
+      .in("status", ["preview", "completed"])
       .order("created_at", { ascending: false })
       .limit(10)
 
