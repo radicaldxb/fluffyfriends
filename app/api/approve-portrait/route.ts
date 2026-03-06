@@ -46,19 +46,47 @@ async function resolveSessionContext(sessionId: string) {
   // (e.g. WF2 inserted a new completed row instead), try to find the most
   // recent completed portrait for this pet name and use that.
   if (!imageUrl) {
-    const { data: fallbackRow, error: fallbackError } = await supabase
+    const { data: fallbackRows, error: fallbackError } = await supabase
       .from("pet_portraits")
-      .select("id, image_url, original_image_url, created_at, status")
-      .eq("pet_name", resolvedPetName)
+      .select("id, image_url, original_image_url, created_at, status, pet_name")
       .eq("status", "completed")
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .limit(10)
 
-    if (!fallbackError && fallbackRow?.image_url) {
+    const normalizedPetName = resolvedPetName.trim().toLowerCase()
+    const fallbackRow =
+      fallbackRows?.find((r) => (r.pet_name as string)?.trim() === resolvedPetName.trim()) ??
+      fallbackRows?.find(
+        (r) =>
+          (r.pet_name as string)?.trim().toLowerCase() === normalizedPetName && r.image_url
+      )
+
+    const fallbackFound = !fallbackError && !!fallbackRow?.image_url
+    if (fallbackFound && fallbackRow?.image_url) {
       imageUrl = fallbackRow.image_url as string
       effectivePortraitId = fallbackRow.id as string
     }
+
+    // Log when we're still not ready so Netlify logs show why preview hangs
+    if (!imageUrl) {
+      console.warn(
+        "[approve-portrait][GET] PORTRAIT_NOT_READY",
+        JSON.stringify({
+          portrait_id: portraitId,
+          pet_name: resolvedPetName,
+          fallback_tried: true,
+          fallback_found: fallbackFound,
+          recent_completed_count: fallbackRows?.length ?? 0,
+          hint: "Ensure WF2 'Notify App — Portrait Ready' sends portrait_id (and image_url, gemini_image_url) to /api/receive-n8n-image so this row gets updated.",
+        })
+      )
+    }
+  }
+
+  // If we still don't have an image_url but we do have an original_image_url,
+  // fall back to that so the success page and gallery can still render a preview.
+  if (!imageUrl && portraitRow.original_image_url) {
+    imageUrl = portraitRow.original_image_url as string
   }
 
   const totalCents = typeof session.amount_total === "number" ? session.amount_total : 0
@@ -75,14 +103,29 @@ async function resolveSessionContext(sessionId: string) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const sessionId = request.nextUrl.searchParams.get("session_id")?.trim()
+  const sessionId = request.nextUrl.searchParams.get("session_id")?.trim()
+  // Log every request so Netlify shows something when you search "approve-portrait"
+  console.log(
+    "[approve-portrait][GET] request",
+    sessionId ? `session_id=${sessionId.slice(0, 12)}…` : "missing session_id",
+  )
 
+  try {
     if (!sessionId) {
       return NextResponse.json({ error: "Missing session_id" }, { status: 400 })
     }
 
     const ctx = await resolveSessionContext(sessionId)
+    const hasImage = !!ctx.imageUrl
+    console.log(
+      "[approve-portrait][GET] resolved",
+      JSON.stringify({
+        portrait_id: ctx.portraitId,
+        pet_name: ctx.petName,
+        has_image: hasImage,
+        status: hasImage ? 200 : 202,
+      }),
+    )
 
     // Only expose the preview once the portrait actually has an image_url.
     // Until then, keep the frontend in the loading state and let it poll.

@@ -11,7 +11,8 @@ import { AlertCircle, Check, Mail } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 
 type PreviewState =
-  | { status: "idle" | "loading" }
+  | { status: "idle" }
+  | { status: "loading"; attempt?: number }
   | {
       status: "ready"
       portraitId: string
@@ -67,7 +68,7 @@ function SuccessContent() {
         return
       }
 
-      setPreview({ status: "loading" })
+      setPreview({ status: "loading", attempt })
       try {
         const res = await fetch(`/api/approve-portrait?session_id=${encodeURIComponent(sessionId)}`)
         const data = await res.json().catch(() => ({}))
@@ -456,6 +457,14 @@ function SuccessContent() {
               <p className="mt-6 text-sm text-muted-foreground max-w-md mx-auto">
                 Our studio is rendering your artwork. This usually takes a minute or two.
               </p>
+              {preview.status === "loading" &&
+                typeof (preview as { attempt?: number }).attempt === "number" &&
+                (preview as { attempt: number }).attempt >= 10 && (
+                  <p className="mt-3 text-xs text-muted-foreground max-w-md mx-auto">
+                    Taking longer than usual? Try refreshing the page in a minute — your portrait may
+                    already be ready.
+                  </p>
+                )}
             </>
           )}
 
