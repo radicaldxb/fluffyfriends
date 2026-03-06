@@ -42,64 +42,8 @@ async function resolveSessionContext(sessionId: string) {
   let imageUrl = (portraitRow.image_url as string | null) || ""
   let effectivePortraitId = portraitRow.id as string
 
-  // Fallback: if the original payment-linked row never received an image_url
-  // (e.g. WF2 inserted a new completed row instead), try to find the most
-  // recent completed portrait for this pet name and use that.
   if (!imageUrl) {
-    const { data: fallbackRows, error: fallbackError } = await supabase
-      .from("pet_portraits")
-      .select("id, image_url, original_image_url, created_at, status, pet_name")
-      .in("status", ["preview", "completed"])
-      .order("created_at", { ascending: false })
-      .limit(10)
-
-    const normalizedPetName = resolvedPetName.trim().toLowerCase()
-    const fallbackRow =
-      fallbackRows?.find((r) => (r.pet_name as string)?.trim() === resolvedPetName.trim()) ??
-      fallbackRows?.find(
-        (r) =>
-          (r.pet_name as string)?.trim().toLowerCase() === normalizedPetName && r.image_url
-      )
-
-    const fallbackFound = !fallbackError && !!fallbackRow?.image_url
-    if (fallbackFound && fallbackRow?.image_url) {
-      imageUrl = fallbackRow.image_url as string
-      effectivePortraitId = fallbackRow.id as string
-    }
-
-    // Final safety fallback: if we still don't have an image_url, use the most
-    // recent non-rejected portrait that has an image_url so the success page
-    // and gallery can always show something instead of hanging forever.
-    if (!imageUrl) {
-      const { data: latestAny, error: latestAnyError } = await supabase
-        .from("pet_portraits")
-        .select("id, image_url, pet_name, created_at, status")
-        .not("image_url", "is", null)
-        .neq("status", "rejected")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (!latestAnyError && latestAny?.image_url) {
-        imageUrl = latestAny.image_url as string
-        effectivePortraitId = latestAny.id as string
-      }
-    }
-
-    // Log when we're still not ready so Netlify logs show why preview hangs
-    if (!imageUrl) {
-      console.warn(
-        "[approve-portrait][GET] PORTRAIT_NOT_READY",
-        JSON.stringify({
-          portrait_id: portraitId,
-          pet_name: resolvedPetName,
-          fallback_tried: true,
-          fallback_found: fallbackFound,
-          recent_completed_count: fallbackRows?.length ?? 0,
-          hint: "Ensure WF2 'Notify App — Portrait Ready' sends portrait_id (and image_url, gemini_image_url) to /api/receive-n8n-image so this row gets updated.",
-        })
-      )
-    }
+    console.warn("[approve-portrait][GET] Portrait not ready yet", { portrait_id: portraitId })
   }
 
   const totalCents = typeof session.amount_total === "number" ? session.amount_total : 0
