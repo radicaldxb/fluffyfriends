@@ -83,12 +83,6 @@ async function resolveSessionContext(sessionId: string) {
     }
   }
 
-  // If we still don't have an image_url but we do have an original_image_url,
-  // fall back to that so the success page and gallery can still render a preview.
-  if (!imageUrl && portraitRow.original_image_url) {
-    imageUrl = portraitRow.original_image_url as string
-  }
-
   const totalCents = typeof session.amount_total === "number" ? session.amount_total : 0
   const currency = session.currency || "usd"
 
