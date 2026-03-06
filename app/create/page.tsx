@@ -12,6 +12,8 @@ import Image from "next/image"
 import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
 import { PRODUCTS, type ProductId } from "@/lib/products"
 
+export const dynamic = "force-dynamic"
+
 type Status = "idle" | "uploading" | "processing" | "success" | "error"
 
 const WIZARD_STEPS = [
