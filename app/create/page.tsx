@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -31,7 +31,26 @@ function cleanValidatorMessage(raw: string | null): string {
   return stripped.charAt(0).toUpperCase() + stripped.slice(1)
 }
 
-export default function CreatePortraitPage() {
+function CreatePageFallback() {
+  return (
+    <main className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <section className="py-10 md:py-14 flex-1">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6">
+          <div className="mt-8 flex items-center justify-center gap-2 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "150ms" }} />
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "300ms" }} />
+          </div>
+        </div>
+      </section>
+      <SketchDivider />
+      <Footer />
+    </main>
+  )
+}
+
+function CreatePortraitContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const emailFromQuery = searchParams.get("email")?.trim() || ""
@@ -755,5 +774,13 @@ export default function CreatePortraitPage() {
       <SketchDivider />
       <Footer />
     </main>
+  )
+}
+
+export default function CreatePortraitPage() {
+  return (
+    <Suspense fallback={<CreatePageFallback />}>
+      <CreatePortraitContent />
+    </Suspense>
   )
 }

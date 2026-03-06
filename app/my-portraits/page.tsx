@@ -1,6 +1,6 @@
  "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -25,7 +25,25 @@ type Portrait = {
   created_at: string
 }
 
-export default function MyPortraitsPage() {
+function MyPortraitsFallback() {
+  return (
+    <main className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <section className="py-10 md:py-14 flex-1">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6">
+          <div className="mt-8 flex items-center justify-center gap-2 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "150ms" }} />
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" style={{ animationDelay: "300ms" }} />
+          </div>
+        </div>
+      </section>
+      <Footer />
+    </main>
+  )
+}
+
+function MyPortraitsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const emailFromQuery = searchParams.get("email")?.trim().toLowerCase() || ""
@@ -284,13 +302,12 @@ export default function MyPortraitsPage() {
             </p>
             <Button
               className="rounded-organic-sm"
-              asChild
               onClick={() => {
                 if (!email) return
                 router.push(`/create?email=${encodeURIComponent(email)}`)
               }}
             >
-              <span>Create next portrait →</span>
+              Create next portrait →
             </Button>
           </div>
         )}
@@ -300,4 +317,10 @@ export default function MyPortraitsPage() {
   )
 }
 
-
+export default function MyPortraitsPage() {
+  return (
+    <Suspense fallback={<MyPortraitsFallback />}>
+      <MyPortraitsContent />
+    </Suspense>
+  )
+}
