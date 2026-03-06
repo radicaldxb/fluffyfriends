@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import Stripe from "stripe"
 import { supabase } from "@/lib/supabase"
 import { getPromptAndNameTagConfig } from "@/lib/theme-prompts"
 import { DEFAULT_NAMETAG_INSTRUCTION } from "@/lib/themes"
-
-function getStripeClient(secret: string) {
-  return new Stripe(secret, {
-    apiVersion: "2023-10-16",
-  })
-}
+import { getStripeClient } from "@/lib/stripe"
 
 export async function POST(request: NextRequest) {
   try {
@@ -117,6 +111,35 @@ export async function POST(request: NextRequest) {
               total_cents: totalCents,
               currency: session.currency || "usd",
               showcase_consent: Boolean(portraitRow.showcase_consent),
+            }
+
+            // Record portrait purchase for this session (portrait pack system)
+            const packageName = (metadata.package as string | undefined) || "starter"
+            const portraitsMap: Record<string, number> = {
+              starter: 1,
+              portrait_pack: 4,
+              family_pack: 8,
+            }
+            const portraitsTotal = portraitsMap[packageName] || 1
+
+            if (customerEmail) {
+              const { error: purchaseError } = await supabase
+                .from("portrait_purchases")
+                .insert({
+                  email: customerEmail,
+                  stripe_session_id: session.id,
+                  package: packageName,
+                  portraits_total: portraitsTotal,
+                  portraits_used: 0,
+                  portraits_remaining: portraitsTotal,
+                })
+
+              if (purchaseError) {
+                console.error(
+                  "[stripe-webhook] Failed to create portrait_purchases row:",
+                  purchaseError,
+                )
+              }
             }
 
             const orderPaidUrl =

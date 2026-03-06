@@ -196,9 +196,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const upscalerUrl =
-      process.env.N8N_UPSCALE_AND_EMAIL_WEBHOOK_URL?.trim() ||
-      "https://n8n.srv943460.hstgr.cloud/webhook/upscale-and-email"
+    const upscalerUrl = process.env.N8N_UPSCALE_AND_EMAIL_WEBHOOK_URL?.trim()
+    if (!upscalerUrl) {
+      throw new Error("N8N_UPSCALE_AND_EMAIL_WEBHOOK_URL is not configured")
+    }
 
     try {
       const res = await fetch(upscalerUrl, {

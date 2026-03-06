@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getProduct, type ProductId } from "@/lib/products"
-import Stripe from "stripe"
+import { getStripeClient } from "@/lib/stripe"
 
 const VALID_IDS: ProductId[] = ["starter", "portrait_pack", "family_pack"]
-
-function getStripeClient(secret: string) {
-  return new Stripe(secret, {
-    apiVersion: "2023-10-16",
-  })
-}
 
 function getSiteUrl(fromEnv: string) {
   return fromEnv.replace(/\/+$/, "")
