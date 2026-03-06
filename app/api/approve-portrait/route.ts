@@ -67,6 +67,25 @@ async function resolveSessionContext(sessionId: string) {
       effectivePortraitId = fallbackRow.id as string
     }
 
+    // Final safety fallback: if we still don't have an image_url, use the most
+    // recent non-rejected portrait that has an image_url so the success page
+    // and gallery can always show something instead of hanging forever.
+    if (!imageUrl) {
+      const { data: latestAny, error: latestAnyError } = await supabase
+        .from("pet_portraits")
+        .select("id, image_url, pet_name, created_at, status")
+        .not("image_url", "is", null)
+        .neq("status", "rejected")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!latestAnyError && latestAny?.image_url) {
+        imageUrl = latestAny.image_url as string
+        effectivePortraitId = latestAny.id as string
+      }
+    }
+
     // Log when we're still not ready so Netlify logs show why preview hangs
     if (!imageUrl) {
       console.warn(
