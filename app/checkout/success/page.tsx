@@ -179,7 +179,6 @@ function SuccessContent() {
       // Send user to My Portraits so they see all their portraits and download links in one place.
       router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
       return
-    }
     } catch (err) {
       setApproveStatus("error")
       setApproveError(
