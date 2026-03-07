@@ -683,8 +683,18 @@ function CreatePortraitContent() {
                       if (!resultPortraitId) return
                       setCheckoutStatus("submitting")
                       setCheckoutError("")
+                      // Fire WF2 before redirecting — returning customers skip Stripe so no webhook fires
+                      await fetch("/api/trigger-generation", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          portrait_id: resultPortraitId,
+                          email: emailFromQuery,
+                        }),
+                      })
+                      // Redirect to success page to wait for portrait preview
                       router.push(
-                        `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(emailFromQuery)}`
+                        `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(emailFromQuery)}`,
                       )
                     }}
                     disabled={checkoutStatus === "submitting"}

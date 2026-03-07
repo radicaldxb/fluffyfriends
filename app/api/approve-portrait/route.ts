@@ -123,11 +123,46 @@ export async function POST(request: NextRequest) {
     const newsletterConsent =
       typeof body.newsletter_consent === "boolean" ? body.newsletter_consent : false
 
-    if (!sessionId) {
-      return NextResponse.json(
-        { error: "Missing session_id in request body" },
-        { status: 400 },
-      )
+    const portraitIdDirect = typeof body.portrait_id === "string" ? body.portrait_id.trim() : ""
+
+    let ctx: {
+      portraitId: string
+      petName: string
+      imageUrl: string
+      originalImageUrl: string | null
+      totalCents: number
+      currency: string
+    }
+
+    if (portraitIdDirect && !sessionId) {
+      // Returning bundle customer — look up portrait directly, no Stripe session needed
+      const { data: portraitRow, error } = await supabase
+        .from("pet_portraits")
+        .select("id, pet_name, image_url, original_image_url")
+        .eq("id", portraitIdDirect)
+        .single()
+
+      if (error || !portraitRow) {
+        return NextResponse.json({ error: "Portrait not found" }, { status: 404 })
+      }
+
+      ctx = {
+        portraitId: portraitRow.id as string,
+        petName: (portraitRow.pet_name as string) || "My Pet",
+        imageUrl: (portraitRow.image_url as string) || "",
+        originalImageUrl: (portraitRow.original_image_url as string | null) || null,
+        totalCents: 0,
+        currency: "usd",
+      }
+    } else {
+      // New customer — existing Stripe flow
+      if (!sessionId) {
+        return NextResponse.json(
+          { error: "Missing session_id in request body" },
+          { status: 400 },
+        )
+      }
+      ctx = await resolveSessionContext(sessionId)
     }
 
     if (!email || !fullName || !city || !country) {
@@ -136,8 +171,6 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       )
     }
-
-    const ctx = await resolveSessionContext(sessionId)
     let deductResult: { portraits_remaining?: number } | null = null
 
     const originalImageUrl = ctx.originalImageUrl || ctx.imageUrl

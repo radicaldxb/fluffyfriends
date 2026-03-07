@@ -9,6 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { AlertCircle, Check, Mail } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
 
@@ -47,6 +48,7 @@ function SuccessContent() {
     portraitUrl: string
   } | null>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
+  const [userDetailsKnown, setUserDetailsKnown] = useState(false)
 
   useEffect(() => {
     if (!sessionId && !portraitFromQuery) {
@@ -138,9 +140,28 @@ function SuccessContent() {
     }
   }, [sessionId, portraitFromQuery])
 
+  useEffect(() => {
+    if (!emailFromQuery || sessionId) return
+
+    supabase
+      .from("users")
+      .select("full_name, city, country, state")
+      .eq("email", emailFromQuery)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.full_name && data?.city && data?.country) {
+          setFullName(data.full_name || "")
+          setCity(data.city || "")
+          setCountry(data.country || "")
+          setStateRegion(data.state || "")
+          setUserDetailsKnown(true)
+        }
+      })
+  }, [emailFromQuery, sessionId])
+
   async function handleSubmitDetails(e: React.FormEvent) {
     e.preventDefault()
-    if (!sessionId || approveStatus === "submitting" || approveStatus === "success") return
+    if (approveStatus === "submitting" || approveStatus === "success") return
     setApproveStatus("submitting")
     setApproveError("")
 
@@ -149,7 +170,8 @@ function SuccessContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_id: sessionId,
+          ...(sessionId && { session_id: sessionId }),
+          ...(portraitFromQuery && !sessionId && { portrait_id: portraitFromQuery }),
           email: email.trim(),
           full_name: fullName.trim(),
           city: city.trim(),
@@ -315,6 +337,23 @@ function SuccessContent() {
                 . You’ll receive wide and tall print‑ready files plus a print guide.
               </p>
 
+              {!sessionId && userDetailsKnown ? (
+                <div className="mt-8 flex flex-col items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    We'll send your print-ready files to <strong>{email}</strong>
+                  </p>
+                  {approveError && (
+                    <p className="text-sm text-destructive">{approveError}</p>
+                  )}
+                  <Button
+                    onClick={(e) => handleSubmitDetails(e as React.FormEvent)}
+                    disabled={approveStatus === "submitting"}
+                    className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 h-auto"
+                  >
+                    {approveStatus === "submitting" ? "Sending your portraits…" : "Email my portraits →"}
+                  </Button>
+                </div>
+              ) : (
               <form onSubmit={handleSubmitDetails} className="mt-6 space-y-4">
                 <div className="space-y-3">
                   <div>
@@ -463,6 +502,7 @@ function SuccessContent() {
                   </p>
                 </div>
               </form>
+              )}
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-3">
