@@ -23,6 +23,8 @@ type Portrait = {
   id: string
   pet_name: string | null
   theme: string | null
+  image_url: string | null
+  original_image_url: string | null
   landscape_url: string | null
   portrait_url: string | null
   created_at: string
@@ -107,7 +109,7 @@ function MyPortraitsContent() {
       if (userRow?.id) {
         const { data: portraitRows, error: portraitError } = await supabase
           .from("pet_portraits")
-          .select("id, pet_name, theme, landscape_url, portrait_url, created_at, status")
+          .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
           .eq("user_id", userRow.id)
           .eq("status", "completed")
           .order("created_at", { ascending: true })
@@ -121,6 +123,8 @@ function MyPortraitsContent() {
               id: p.id as string,
               pet_name: (p.pet_name as string) || null,
               theme: (p.theme as string) || null,
+              image_url: (p.image_url as string | null) ?? null,
+              original_image_url: (p.original_image_url as string | null) ?? null,
               landscape_url: (p.landscape_url as string | null) ?? null,
               portrait_url: (p.portrait_url as string | null) ?? null,
               created_at: p.created_at as string,
@@ -252,7 +256,18 @@ function MyPortraitsContent() {
               {portraits.map((p, index) => {
                 const landscapeValid = isValidDownloadUrl(p.landscape_url)
                 const portraitValid = isValidDownloadUrl(p.portrait_url)
-                const previewUrl = landscapeValid ? p.landscape_url! : portraitValid ? p.portrait_url! : null
+                const imageValid = isValidDownloadUrl(p.image_url)
+                const originalValid = isValidDownloadUrl(p.original_image_url)
+                const previewUrl =
+                  landscapeValid
+                    ? p.landscape_url!
+                    : portraitValid
+                      ? p.portrait_url!
+                      : imageValid
+                        ? p.image_url!
+                        : originalValid
+                          ? p.original_image_url!
+                          : null
                 return (
                   <div
                     key={p.id}
@@ -306,7 +321,9 @@ function MyPortraitsContent() {
                           </Button>
                         )}
                         {!landscapeValid && !portraitValid && (
-                          <span className="text-xs text-muted-foreground">Download links not available</span>
+                          <span className="text-xs text-muted-foreground">
+                            Download links not available yet. Check your email for the links, or they may still be generating.
+                          </span>
                         )}
                       </div>
                     </div>

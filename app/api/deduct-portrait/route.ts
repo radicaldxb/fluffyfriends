@@ -10,13 +10,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing email" }, { status: 400 })
   }
 
-  // Find the oldest active purchase with portraits remaining
+  const now = new Date().toISOString()
   const { data: purchase, error: fetchError } = await supabase
     .from("portrait_purchases")
     .select("id, portraits_used, portraits_remaining")
     .eq("email", email)
     .gt("portraits_remaining", 0)
-    .gt("expires_at", new Date().toISOString())
+    .or(`expires_at.is.null,expires_at.gt."${now}"`)
     .order("created_at", { ascending: true })
     .limit(1)
     .single()

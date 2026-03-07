@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, Suspense } from "react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -429,6 +430,12 @@ function CreatePortraitContent() {
                         <ChevronRight className="ml-0.5 h-4 w-4" />
                       </Button>
                     </div>
+                    <p className="text-sm text-muted-foreground text-center mt-3">
+                      Already have a portrait pack?{" "}
+                      <Link href="/my-portraits" className="underline hover:text-foreground transition-colors">
+                        Access my portraits →
+                      </Link>
+                    </p>
                   </div>
                 )}
 
@@ -630,14 +637,16 @@ function CreatePortraitContent() {
             </div>
           )}
 
-          {/* Success — validation passed, now move to payment */}
+          {/* Success — validation passed, now move to payment or use pack */}
           {status === "success" && resultPortraitId && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10 text-center">
               <p className="text-lg font-semibold text-foreground">
                 {petNameDisplay ? `${petNameDisplay} is looking great` : "This photo is looking great"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground max-w-md">
-                We&apos;re confident this will make a stunning portrait. Choose your package and continue to payment.
+                {portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery
+                  ? "Use one portrait from your pack — no payment needed."
+                  : "We're confident this will make a stunning portrait. Choose your package and continue to payment."}
               </p>
 
               {/* Approved photo preview with check mark */}
@@ -666,103 +675,122 @@ function CreatePortraitContent() {
                 </p>
               )}
 
-              {/* Package selection */}
-              <div className="mt-8 w-full max-w-xl text-left">
-                <p className="text-sm font-medium text-foreground mb-3 text-center sm:text-left">
-                  Choose your package
-                </p>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {PRODUCTS.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedProductId(p.id)}
-                      className={cn(
-                        "rounded-organic-sm border-2 p-4 text-left transition-all",
-                        selectedProductId === p.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/50",
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-foreground">{p.name}</span>
-                        {selectedProductId === p.id && <Check className="h-4 w-4 text-primary" />}
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
-                      <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-foreground">{p.priceDisplay}</span>
-                        {p.savePercent != null && (
-                          <span className="text-xs font-medium text-primary">Save {p.savePercent}%</span>
-                        )}
-                      </div>
-                      {p.badge && (
-                        <span className="mt-2 inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
-                          {p.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
+              {/* When user has remaining portraits + email: single CTA, no package selection */}
+              {portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery ? (
+                <div className="mt-8 flex flex-col items-center gap-3">
+                  <Button
+                    onClick={async () => {
+                      if (!resultPortraitId) return
+                      setCheckoutStatus("submitting")
+                      setCheckoutError("")
+                      router.push(
+                        `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(emailFromQuery)}`
+                      )
+                    }}
+                    disabled={checkoutStatus === "submitting"}
+                    className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+                  >
+                    {checkoutStatus === "submitting" ? "Taking you there…" : "Use 1 portrait from my pack →"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    No charge. We&apos;ll use one of your remaining portraits.
+                  </p>
+                  <Button variant="outline" onClick={handleReset} className="mt-2 rounded-organic-sm">
+                    Start over with a different photo
+                  </Button>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Package selection — only for new customers */}
+                  <div className="mt-8 w-full max-w-xl text-left">
+                    <p className="text-sm font-medium text-foreground mb-3 text-center sm:text-left">
+                      Choose your package
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      {PRODUCTS.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedProductId(p.id)}
+                          className={cn(
+                            "rounded-organic-sm border-2 p-4 text-left transition-all",
+                            selectedProductId === p.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-card hover:border-primary/50",
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-foreground">{p.name}</span>
+                            {selectedProductId === p.id && <Check className="h-4 w-4 text-primary" />}
+                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                          <div className="mt-2 flex items-baseline gap-2">
+                            <span className="text-lg font-bold text-foreground">{p.priceDisplay}</span>
+                            {p.savePercent != null && (
+                              <span className="text-xs font-medium text-primary">Save {p.savePercent}%</span>
+                            )}
+                          </div>
+                          {p.badge && (
+                            <span className="mt-2 inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
+                              {p.badge}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {checkoutError && (
-                <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
+                  {checkoutError && (
+                    <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
+                  )}
+
+                  <div className="mt-6 flex flex-col items-center gap-3">
+                    <Button
+                      onClick={async () => {
+                        if (!resultPortraitId) return
+                        setCheckoutStatus("submitting")
+                        setCheckoutError("")
+
+                        try {
+                          const res = await fetch("/api/create-checkout", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              product_id: selectedProductId,
+                              portrait_id: resultPortraitId,
+                              ...(theme && { theme }),
+                            }),
+                          })
+                          const data = await res.json().catch(() => ({}))
+                          if (!res.ok || !data.url) {
+                            setCheckoutStatus("error")
+                            setCheckoutError(data.error || "We couldn't start checkout. Please try again in a moment.")
+                            return
+                          }
+                          window.location.href = data.url as string
+                        } catch (err) {
+                          setCheckoutStatus("error")
+                          setCheckoutError(err instanceof Error ? err.message : "We couldn't start checkout. Please try again.")
+                        }
+                      }}
+                      disabled={checkoutStatus === "submitting"}
+                      className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+                    >
+                      {checkoutStatus === "submitting"
+                        ? "Connecting to Stripe…"
+                        : selectedProduct
+                          ? `Continue to payment — ${selectedProduct.priceDisplay}`
+                          : "Continue to payment"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Secure Stripe payment · One-time purchase · No subscription.
+                    </p>
+                    <Button variant="outline" onClick={handleReset} className="mt-2 rounded-organic-sm">
+                      Start over with a different photo
+                    </Button>
+                  </div>
+                </>
               )}
-
-              <div className="mt-6 flex flex-col items-center gap-3">
-                <Button
-                  onClick={async () => {
-                    if (!resultPortraitId) return
-                    setCheckoutStatus("submitting")
-                    setCheckoutError("")
-
-                    try {
-                      // For returning customers with portraits remaining — skip Stripe entirely
-                      if (portraitsRemaining && portraitsRemaining > 0 && emailFromQuery) {
-                        router.push(
-                          `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(emailFromQuery)}`
-                        )
-                        return
-                      }
-
-                      // New customers — go through Stripe
-                      const res = await fetch("/api/create-checkout", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          product_id: selectedProductId,
-                          portrait_id: resultPortraitId,
-                          ...(theme && { theme }),
-                        }),
-                      })
-                      const data = await res.json().catch(() => ({}))
-                      if (!res.ok || !data.url) {
-                        setCheckoutStatus("error")
-                        setCheckoutError(data.error || "We couldn't start checkout. Please try again in a moment.")
-                        return
-                      }
-                      window.location.href = data.url as string
-                    } catch (err) {
-                      setCheckoutStatus("error")
-                      setCheckoutError(err instanceof Error ? err.message : "We couldn't start checkout. Please try again.")
-                    }
-                  }}
-                  disabled={checkoutStatus === "submitting"}
-                  className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
-                >
-                  {checkoutStatus === "submitting"
-                    ? "Connecting to Stripe…"
-                    : selectedProduct
-                      ? `Continue to payment — ${selectedProduct.priceDisplay}`
-                      : "Continue to payment"}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Secure Stripe payment · One-time purchase · No subscription.
-                </p>
-                <Button variant="outline" onClick={handleReset} className="mt-2 rounded-organic-sm">
-                  Start over with a different photo
-                </Button>
-              </div>
             </div>
           )}
         </div>

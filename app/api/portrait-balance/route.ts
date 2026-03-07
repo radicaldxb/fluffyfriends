@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing email" }, { status: 400 })
   }
 
+  const now = new Date().toISOString()
   const { data, error } = await supabase
     .from("portrait_purchases")
     .select(
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     )
     .eq("email", email)
     .gt("portraits_remaining", 0)
-    .gt("expires_at", new Date().toISOString())
+    .or(`expires_at.is.null,expires_at.gt."${now}"`)
     .order("created_at", { ascending: false })
 
   if (error) {

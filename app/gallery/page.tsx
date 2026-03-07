@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
+import { isValidDownloadUrl } from "@/lib/utils"
 
 type Portrait = {
   src: string
@@ -23,20 +24,32 @@ export default function GalleryPage() {
     async function fetchAll() {
       const { data } = await supabase
         .from("pet_portraits")
-        .select('image_url, pet_name, showcase_consent, user_id, users(city, country)')
+        .select("image_url, original_image_url, pet_name, showcase_consent, user_id, users(city, country)")
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
       if (data?.length) {
         const filtered = data.filter((row) => row.showcase_consent === true)
-        setPortraits(
-          filtered.map((row) => ({
-            src: row.image_url!,
-            pet: row.pet_name || "Pet",
-            city: (row.users as { city?: string } | null)?.city ?? null,
-            country: (row.users as { country?: string } | null)?.country ?? null,
-          }))
-        )
+        const withValidSrc = filtered
+          .map((row) => {
+            const imageUrl = (row.image_url as string)?.trim()
+            const originalUrl = (row.original_image_url as string)?.trim()
+            const src = isValidDownloadUrl(imageUrl)
+              ? imageUrl!
+              : isValidDownloadUrl(originalUrl)
+                ? originalUrl!
+                : null
+            if (!src) return null
+            const users = row.users as { city?: string; country?: string } | null
+            return {
+              src,
+              pet: row.pet_name || "Pet",
+              city: users?.city ?? null,
+              country: users?.country ?? null,
+            }
+          })
+          .filter((p): p is Portrait => p !== null)
+        setPortraits(withValidSrc)
       }
       setLoading(false)
     }

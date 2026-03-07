@@ -5,22 +5,22 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
+import { isValidDownloadUrl } from "@/lib/utils"
 
 const staticPortraits = [
-  { src: "/images/gallery-fireman.jpg", theme: "Fireman", pet: "French Bulldog" },
-  { src: "/images/gallery-samurai.jpg", theme: "Samurai", pet: "Shiba Inu" },
-  { src: "/images/gallery-renaissance.jpg", theme: "Renaissance", pet: "British Shorthair" },
-  { src: "/images/gallery-astronaut.jpg", theme: "Astronaut", pet: "Labrador Retriever" },
-  { src: "/images/gallery-pirate.jpg", theme: "Pirate", pet: "Terrier" },
-  { src: "/images/gallery-wizard.jpg", theme: "Wizard", pet: "Persian Cat" },
+  { src: "/images/gallery-fireman.jpg", theme: "Fireman", pet: "French Bulldog", city: null as string | null, country: null as string | null },
+  { src: "/images/gallery-samurai.jpg", theme: "Samurai", pet: "Shiba Inu", city: null, country: null },
+  { src: "/images/gallery-renaissance.jpg", theme: "Renaissance", pet: "British Shorthair", city: null, country: null },
+  { src: "/images/gallery-astronaut.jpg", theme: "Astronaut", pet: "Labrador Retriever", city: null, country: null },
+  { src: "/images/gallery-pirate.jpg", theme: "Pirate", pet: "Terrier", city: null, country: null },
+  { src: "/images/gallery-wizard.jpg", theme: "Wizard", pet: "Persian Cat", city: null, country: null },
 ]
 
-type Portrait = { src: string; theme: string; pet: string }
+type Portrait = { src: string; theme: string; pet: string; city?: string | null; country?: string | null }
 
 const GALLERY_LIMIT = 12
 
 export function GallerySection() {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [fromDb, setFromDb] = useState<Portrait[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -28,20 +28,34 @@ export function GallerySection() {
     async function fetchRecent() {
       const { data } = await supabase
         .from("pet_portraits")
-        .select("image_url, pet_name, status, showcase_consent")
+        .select("image_url, original_image_url, pet_name, status, showcase_consent, users(city, country)")
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
-        .limit(GALLERY_LIMIT * 2)
+        .limit(GALLERY_LIMIT * 3)
       if (data?.length) {
         const filtered = data.filter((row) => row.showcase_consent === true)
-        setFromDb(
-          filtered.slice(0, GALLERY_LIMIT).map((row) => ({
-            src: row.image_url!,
-            theme: "Portrait",
-            pet: row.pet_name || "Pet",
-          }))
-        )
+        const withValidSrc = filtered
+          .map((row) => {
+            const imageUrl = (row.image_url as string)?.trim()
+            const originalUrl = (row.original_image_url as string)?.trim()
+            const src = isValidDownloadUrl(imageUrl)
+              ? imageUrl!
+              : isValidDownloadUrl(originalUrl)
+                ? originalUrl!
+                : null
+            if (!src) return null
+            const users = row.users as { city?: string; country?: string } | null
+            return {
+              src,
+              theme: "Portrait",
+              pet: row.pet_name || "Pet",
+              city: users?.city ?? null,
+              country: users?.country ?? null,
+            }
+          })
+          .filter((p): p is Portrait => p !== null)
+        setFromDb(withValidSrc.slice(0, GALLERY_LIMIT))
       }
       setLoading(false)
     }
@@ -78,8 +92,6 @@ export function GallerySection() {
                 <div
                   key={`${portrait.src}-${index}`}
                   className="group relative aspect-[4/5] overflow-hidden rounded-organic border border-border/50"
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
                 >
                   <Image
                     src={portrait.src}
@@ -90,13 +102,12 @@ export function GallerySection() {
                     unoptimized={portrait.src.startsWith("http")}
                   />
 
-                  <div
-                    className={`absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/90 via-background/30 to-transparent p-4 transition-opacity duration-300 ${
-                      hoveredIndex === index ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-foreground">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
+                    <p className="text-white text-sm font-semibold drop-shadow-sm">
                       {portrait.pet}
+                      {portrait.city && portrait.country && (
+                        <span className="font-normal text-white/90"> · {portrait.city}, {portrait.country}</span>
+                      )}
                     </p>
                   </div>
                 </div>
