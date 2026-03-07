@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { getStripeClient } from "@/lib/stripe"
 import { isValidDownloadUrl } from "@/lib/utils"
-import { isValidDownloadUrl } from "@/lib/utils"
 
 async function resolveSessionContext(sessionId: string) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY
