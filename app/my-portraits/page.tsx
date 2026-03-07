@@ -1,6 +1,7 @@
  "use client"
 
 import { useState, useEffect, Suspense } from "react"
+import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -220,15 +221,16 @@ function MyPortraitsContent() {
                       </span>
                     </div>
                     {p.portraits_remaining > 0 && (
-                      <div className="mt-3">
-                        <Button
-                          className="rounded-organic-sm"
-                          size="sm"
-                          asChild
-                        >
-                          <a href={`/create?email=${encodeURIComponent(email)}`}>
+                      <div className="mt-4 flex flex-col gap-2">
+                        <p className="text-sm font-semibold text-foreground">
+                          You have{" "}
+                          <span className="text-primary">{p.portraits_remaining} portrait{p.portraits_remaining !== 1 ? "s" : ""} remaining</span>{" "}
+                          in this pack.
+                        </p>
+                        <Button asChild className="rounded-organic-sm w-full sm:w-auto">
+                          <Link href={`/create?email=${encodeURIComponent(email)}`}>
                             Create another portrait →
-                          </a>
+                          </Link>
                         </Button>
                       </div>
                     )}

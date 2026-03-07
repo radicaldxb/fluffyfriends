@@ -81,9 +81,6 @@ function CreatePortraitContent() {
   const [checkoutError, setCheckoutError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
-  const [packEmail, setPackEmail] = useState<string>("")
-
-  const PACK_EMAIL_KEY = "fluffyfriends_pack_email"
 
   useEffect(() => {
     return () => {
@@ -101,36 +98,12 @@ function CreatePortraitContent() {
           if (cancelled) return
           const remaining = typeof data?.portraits_remaining === "number" ? data.portraits_remaining : 0
           setPortraitsRemaining(remaining)
-          if (remaining > 0 && typeof window !== "undefined") {
-            window.sessionStorage.setItem(PACK_EMAIL_KEY, emailFromQuery)
-          }
         })
         .catch(() => {
           if (!cancelled) setPortraitsRemaining(null)
         })
     }
     fetchBalance()
-    return () => { cancelled = true }
-  }, [emailFromQuery])
-
-  // When no email in URL, try stored pack email (e.g. user clicked "Make My Portrait" from nav after using pack)
-  useEffect(() => {
-    if (emailFromQuery) return
-    if (typeof window === "undefined") return
-    const stored = window.sessionStorage.getItem(PACK_EMAIL_KEY)
-    if (!stored) return
-    let cancelled = false
-    fetch(`/api/portrait-balance?email=${encodeURIComponent(stored)}`, { cache: "no-store" })
-      .then((r) => r.json().catch(() => ({})))
-      .then((data) => {
-        if (cancelled) return
-        const remaining = typeof data?.portraits_remaining === "number" ? data.portraits_remaining : 0
-        if (remaining > 0) {
-          setPackEmail(stored)
-          setPortraitsRemaining(remaining)
-        }
-      })
-      .catch(() => {})
     return () => { cancelled = true }
   }, [emailFromQuery])
 
@@ -298,7 +271,7 @@ function CreatePortraitContent() {
   const selectedTheme = themes.find((t) => t.id === theme)
   const selectedProduct = PRODUCTS.find((p) => p.id === selectedProductId)
 
-  const effectivePackEmail = emailFromQuery || packEmail
+  const effectivePackEmail = emailFromQuery
   const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
 
   // [Pet Name] for copy — "their" when no name

@@ -7,7 +7,7 @@ import { SketchDivider } from "@/components/sketch-divider"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { AlertCircle, Check, Mail } from "lucide-react"
+import { AlertCircle, Check, Mail, Palette, Ruler, Frame, Paperclip, Send, Inbox, Download } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
@@ -49,6 +49,18 @@ function SuccessContent() {
   } | null>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
   const [userDetailsKnown, setUserDetailsKnown] = useState(false)
+  const [loaderStep, setLoaderStep] = useState(0)
+
+  const LOADER_STEPS = [
+    { icon: Palette, text: "Preparing your portrait files…" },
+    { icon: Ruler, text: "Sizing up your wide format print…" },
+    { icon: Frame, text: "Sizing up your tall format print…" },
+    { icon: Mail, text: "Addressing your email…" },
+    { icon: Paperclip, text: "Attaching both print files…" },
+    { icon: Send, text: "Sending your email now…" },
+    { icon: Inbox, text: "Email on its way! Check spam just in case…" },
+    { icon: Download, text: "Preparing your download page…" },
+  ]
 
   useEffect(() => {
     if (!sessionId && !portraitFromQuery) {
@@ -155,49 +167,64 @@ function SuccessContent() {
       })
   }, [emailFromQuery, sessionId])
 
+  useEffect(() => {
+    if (approveStatus !== "submitting") return
+    setLoaderStep(0)
+    const maxStep = LOADER_STEPS.length - 1
+    const interval = setInterval(() => {
+      setLoaderStep((prev) => Math.min(prev + 1, maxStep))
+    }, 6000)
+    return () => clearInterval(interval)
+  }, [approveStatus])
+
   async function handleSubmitDetails(e: React.FormEvent) {
     e.preventDefault()
     if (approveStatus === "submitting" || approveStatus === "success") return
     setApproveStatus("submitting")
     setApproveError("")
 
-    try {
-      const res = await fetch("/api/approve-portrait", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...(sessionId && { session_id: sessionId }),
-          ...(portraitFromQuery && !sessionId && { portrait_id: portraitFromQuery }),
-          email: email.trim(),
-          full_name: fullName.trim(),
-          city: city.trim(),
-          country: country.trim(),
-          state: stateRegion.trim(),
-          newsletter_consent: newsletterConsent,
-        }),
+    // Defer fetch so the loader UI has time to render before the request starts
+    requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
+        try {
+          const res = await fetch("/api/approve-portrait", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...(sessionId && { session_id: sessionId }),
+              ...(portraitFromQuery && !sessionId && { portrait_id: portraitFromQuery }),
+              email: email.trim(),
+              full_name: fullName.trim(),
+              city: city.trim(),
+              country: country.trim(),
+              state: stateRegion.trim(),
+              newsletter_consent: newsletterConsent,
+            }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (!res.ok || !data.ok) {
+            setApproveStatus("error")
+            const message =
+              (typeof data.error === "string" && data.error) ||
+              (data.details ? `${data.error || "Error"}: ${data.details}` : null) ||
+              "We couldn't send your files yet. Please try again in a moment."
+            setApproveError(message)
+            return
+          }
+          if (data.ok) {
+            router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
+            return
+          }
+        } catch (err) {
+          setApproveStatus("error")
+          setApproveError(
+            err instanceof Error
+              ? err.message
+              : "We couldn't send your files yet. Please try again in a moment.",
+          )
+        }
       })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data.ok) {
-        setApproveStatus("error")
-        const message =
-          (typeof data.error === "string" && data.error) ||
-          (data.details ? `${data.error || "Error"}: ${data.details}` : null) ||
-          "We couldn't send your files yet. Please try again in a moment."
-        setApproveError(message)
-        return
-      }
-      if (data.ok) {
-        router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
-        return
-      }
-    } catch (err) {
-      setApproveStatus("error")
-      setApproveError(
-        err instanceof Error
-          ? err.message
-          : "We couldn't send your files yet. Please try again in a moment.",
-      )
-    }
+    })
   }
 
   const isStep2Loading =
@@ -341,13 +368,44 @@ function SuccessContent() {
                   {approveError && (
                     <p className="text-sm text-destructive">{approveError}</p>
                   )}
-                  <Button
-                    onClick={(e) => handleSubmitDetails(e as React.FormEvent)}
-                    disabled={approveStatus === "submitting"}
-                    className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 h-auto"
-                  >
-                    {approveStatus === "submitting" ? "Sending your portraits…" : "Email my portraits →"}
-                  </Button>
+                  {approveStatus === "submitting" ? (
+                    <div className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
+                      <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
+                        <div className="flex justify-center mb-3 text-primary transition-all duration-500">
+                          {(() => {
+                            const StepIcon = LOADER_STEPS[loaderStep].icon
+                            return <StepIcon className="h-10 w-10" aria-hidden />
+                          })()}
+                        </div>
+                        <p className="text-sm font-medium text-foreground">
+                          {LOADER_STEPS[loaderStep].text}
+                        </p>
+                        <div className="flex justify-center gap-1.5 mt-4">
+                          {LOADER_STEPS.map((_, i) => (
+                            <div
+                              key={i}
+                              className={`h-1.5 rounded-full transition-all duration-500 ${
+                                i <= loaderStep
+                                  ? "w-4 bg-primary"
+                                  : "w-1.5 bg-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Please don&apos;t close this tab — we&apos;re getting everything ready for you.
+                      </p>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={(e) => handleSubmitDetails(e as React.FormEvent)}
+                      disabled={approveStatus === "submitting"}
+                      className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 h-auto"
+                    >
+                      Email my portraits →
+                    </Button>
+                  )}
                 </div>
               ) : (
               <form onSubmit={handleSubmitDetails} className="mt-6 space-y-4">
@@ -484,18 +542,49 @@ function SuccessContent() {
                 )}
 
                 <div className="space-y-2">
-                  <Button
-                    type="submit"
-                    disabled={approveStatus === "submitting"}
-                    className="w-full rounded-organic-sm"
-                  >
-                    {approveStatus === "submitting"
-                      ? "Sending your portraits…"
-                      : "Email my portraits →"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Your files will also appear on this page immediately after submitting.
-                  </p>
+                  {approveStatus === "submitting" ? (
+                    <div className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
+                      <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
+                        <div className="flex justify-center mb-3 text-primary transition-all duration-500">
+                          {(() => {
+                            const StepIcon = LOADER_STEPS[loaderStep].icon
+                            return <StepIcon className="h-10 w-10" aria-hidden />
+                          })()}
+                        </div>
+                        <p className="text-sm font-medium text-foreground">
+                          {LOADER_STEPS[loaderStep].text}
+                        </p>
+                        <div className="flex justify-center gap-1.5 mt-4">
+                          {LOADER_STEPS.map((_, i) => (
+                            <div
+                              key={i}
+                              className={`h-1.5 rounded-full transition-all duration-500 ${
+                                i <= loaderStep
+                                  ? "w-4 bg-primary"
+                                  : "w-1.5 bg-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Please don&apos;t close this tab — we&apos;re getting everything ready for you.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Button
+                        type="submit"
+                        disabled={approveStatus === "submitting"}
+                        className="w-full rounded-organic-sm"
+                      >
+                        Email my portraits →
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Your files will also appear on this page immediately after submitting.
+                      </p>
+                    </>
+                  )}
                 </div>
               </form>
               )}

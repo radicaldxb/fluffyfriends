@@ -310,6 +310,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Poll for landscape_url and portrait_url so My Portraits has download links when we redirect (up to 90s)
+    const pollStart = Date.now()
+    const pollIntervalMs = 4000
+    const isUrlReady = (s: unknown) =>
+      typeof s === "string" && s.trim().startsWith("https://")
+
+    while (Date.now() - pollStart < 90_000) {
+      const { data: check } = await supabase
+        .from("pet_portraits")
+        .select("landscape_url, portrait_url")
+        .eq("id", ctx.portraitId)
+        .single()
+
+      if (check && isUrlReady(check.landscape_url) && isUrlReady(check.portrait_url)) {
+        break
+      }
+      await new Promise((r) => setTimeout(r, pollIntervalMs))
+    }
+
     // Deduct portrait from balance after WF3 is triggered
     if (email) {
       try {
