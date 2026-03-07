@@ -9,6 +9,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { AlertCircle, Check, Mail } from "lucide-react"
 import { useSearchParams } from "next/navigation"
+import { isValidDownloadUrl } from "@/lib/utils"
+
+export const dynamic = "force-dynamic"
 
 type PreviewState =
   | { status: "idle" }
@@ -163,10 +166,12 @@ function SuccessContent() {
         )
         return
       }
-      setDownloadLinks({
-        landscapeUrl: data.landscape_url as string,
-        portraitUrl: data.portrait_url as string,
-      })
+      if (isValidDownloadUrl(data.landscape_url) && isValidDownloadUrl(data.portrait_url)) {
+        setDownloadLinks({
+          landscapeUrl: data.landscape_url as string,
+          portraitUrl: data.portrait_url as string,
+        })
+      }
       if (typeof data.portraits_remaining === "number") {
         setPortraitsRemaining(data.portraits_remaining)
       }
@@ -191,7 +196,7 @@ function SuccessContent() {
     return (
       <main className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
+        <section className="flex-1 mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
           <div className="mx-auto max-w-xl text-center">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-4">
               <Mail className="h-7 w-7" />
@@ -224,6 +229,11 @@ function SuccessContent() {
                 </Button>
               </div>
             )}
+            {!downloadLinks && (
+              <p className="mt-6 text-sm text-muted-foreground max-w-md mx-auto">
+                Your download links are in the email we sent you. If you don’t see it, check your spam folder.
+              </p>
+            )}
             {typeof portraitsRemaining === "number" && portraitsRemaining > 0 && (
               <div className="mt-8 rounded-organic border border-primary/30 bg-primary/5 p-5 text-center">
                 <p className="text-sm font-medium text-foreground">
@@ -248,9 +258,6 @@ function SuccessContent() {
               </div>
             )}
             <div className="mt-10 flex flex-col items-center gap-3">
-              <Button className="rounded-organic-sm" asChild>
-                <Link href="/create">Create another portrait</Link>
-              </Button>
               <Link
                 href="/"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -472,7 +479,7 @@ function SuccessContent() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
+      <section className="flex-1 mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
         <div className="mx-auto max-w-xl text-center">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-4">
             <Check className="h-7 w-7" />

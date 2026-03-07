@@ -23,9 +23,7 @@ export default function GalleryPage() {
     async function fetchAll() {
       const { data } = await supabase
         .from("pet_portraits")
-        .select(
-          "image_url, pet_name, status, showcase_consent, user_id, users(city, country)",
-        )
+        .select('image_url, pet_name, showcase_consent, user_id, users(city, country)')
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -35,8 +33,8 @@ export default function GalleryPage() {
           filtered.map((row) => ({
             src: row.image_url!,
             pet: row.pet_name || "Pet",
-            city: row.users?.city ?? null,
-            country: row.users?.country ?? null,
+            city: (row.users as { city?: string } | null)?.city ?? null,
+            country: (row.users as { country?: string } | null)?.country ?? null,
           }))
         )
       }
@@ -46,10 +44,10 @@ export default function GalleryPage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
-      <section className="py-14 md:py-20">
+      <section className="flex-1 py-14 md:py-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div>
@@ -97,13 +95,11 @@ export default function GalleryPage() {
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                     unoptimized={portrait.src.startsWith("http")}
                   />
-                  <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-background/80 to-transparent p-3">
-                    <p className="text-sm font-semibold text-foreground">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
+                    <p className="text-white text-sm font-semibold drop-shadow-sm">
                       {portrait.pet}
                       {portrait.city && portrait.country && (
-                        <span className="ml-1 font-normal text-xs text-muted-foreground">
-                          · {portrait.city}, {portrait.country}
-                        </span>
+                        <span className="font-normal text-white/90"> · {portrait.city}, {portrait.country}</span>
                       )}
                     </p>
                   </div>

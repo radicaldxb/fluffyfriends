@@ -6,6 +6,9 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
+import { isValidDownloadUrl } from "@/lib/utils"
+
+export const dynamic = "force-dynamic"
 
 type Purchase = {
   id: string
@@ -142,9 +145,9 @@ function MyPortraitsContent() {
     purchases.length > 0 || portraits.length > 0 || totalRemaining > 0
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <section className="mx-auto max-w-3xl px-4 py-14 md:py-20">
+      <section className="flex-1 mx-auto max-w-3xl px-4 py-14 md:py-20">
         <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
           My portraits
         </h1>
@@ -246,46 +249,70 @@ function MyPortraitsContent() {
               Completed portraits
             </h2>
             <div className="space-y-3">
-              {portraits.map((p, index) => (
-                <div
-                  key={p.id}
-                  className="rounded-organic border border-border bg-card px-4 py-3 text-sm"
-                >
-                  <p className="font-medium text-foreground">
-                    ✅ Portrait {index + 1} —{" "}
-                    {p.pet_name || "Your pet"}
-                    {p.theme && (
-                      <span className="text-muted-foreground">
-                        {" "}
-                        · {p.theme}
-                      </span>
-                    )}
-                  </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {p.landscape_url && (
-                      <Button
-                        asChild
-                        className="rounded-organic-sm px-3 py-1 text-xs"
-                      >
-                        <a href={p.landscape_url} target="_blank" rel="noreferrer">
-                          Download wide
-                        </a>
-                      </Button>
-                    )}
-                    {p.portrait_url && (
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="rounded-organic-sm px-3 py-1 text-xs"
-                      >
-                        <a href={p.portrait_url} target="_blank" rel="noreferrer">
-                          Download tall
-                        </a>
-                      </Button>
-                    )}
+              {portraits.map((p, index) => {
+                const landscapeValid = isValidDownloadUrl(p.landscape_url)
+                const portraitValid = isValidDownloadUrl(p.portrait_url)
+                const previewUrl = landscapeValid ? p.landscape_url! : portraitValid ? p.portrait_url! : null
+                return (
+                  <div
+                    key={p.id}
+                    className="rounded-organic border border-border bg-card px-4 py-3 text-sm flex gap-4 items-start"
+                  >
+                    <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-organic-sm overflow-hidden bg-muted border border-border">
+                      {previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={previewUrl}
+                          alt={p.pet_name ? `${p.pet_name} portrait` : "Portrait preview"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground" aria-hidden>
+                          <span className="text-2xl">🐾</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground">
+                        ✅ Portrait {index + 1} —{" "}
+                        {p.pet_name || "Your pet"}
+                        {p.theme && (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            · {p.theme}
+                          </span>
+                        )}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {landscapeValid && (
+                          <Button
+                            asChild
+                            className="rounded-organic-sm px-3 py-1 text-xs"
+                          >
+                            <a href={p.landscape_url!} target="_blank" rel="noreferrer">
+                              Download wide
+                            </a>
+                          </Button>
+                        )}
+                        {portraitValid && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            className="rounded-organic-sm px-3 py-1 text-xs"
+                          >
+                            <a href={p.portrait_url!} target="_blank" rel="noreferrer">
+                              Download tall
+                            </a>
+                          </Button>
+                        )}
+                        {!landscapeValid && !portraitValid && (
+                          <span className="text-xs text-muted-foreground">Download links not available</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

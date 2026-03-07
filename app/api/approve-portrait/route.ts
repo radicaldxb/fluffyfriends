@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import Stripe from "stripe"
 import { supabase } from "@/lib/supabase"
-
-function getStripeClient(secret: string) {
-  return new Stripe(secret, {
-    apiVersion: "2023-10-16",
-  })
-}
+import { getStripeClient } from "@/lib/stripe"
+import { isValidDownloadUrl } from "@/lib/utils"
+import { isValidDownloadUrl } from "@/lib/utils"
 
 async function resolveSessionContext(sessionId: string) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY
@@ -277,8 +273,12 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (!error && data?.landscape_url && data?.portrait_url) {
-        updatedPortrait = data as { landscape_url: string; portrait_url: string }
-        break
+        const landscape = String(data.landscape_url).trim()
+        const portrait = String(data.portrait_url).trim()
+        if (isValidDownloadUrl(landscape) && isValidDownloadUrl(portrait)) {
+          updatedPortrait = { landscape_url: landscape, portrait_url: portrait }
+          break
+        }
       }
 
       lastError = error

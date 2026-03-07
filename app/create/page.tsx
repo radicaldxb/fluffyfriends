@@ -715,7 +715,17 @@ function CreatePortraitContent() {
                     if (!resultPortraitId) return
                     setCheckoutStatus("submitting")
                     setCheckoutError("")
+
                     try {
+                      // For returning customers with portraits remaining — skip Stripe entirely
+                      if (portraitsRemaining && portraitsRemaining > 0 && emailFromQuery) {
+                        router.push(
+                          `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(emailFromQuery)}`
+                        )
+                        return
+                      }
+
+                      // New customers — go through Stripe
                       const res = await fetch("/api/create-checkout", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -728,26 +738,13 @@ function CreatePortraitContent() {
                       const data = await res.json().catch(() => ({}))
                       if (!res.ok || !data.url) {
                         setCheckoutStatus("error")
-                        setCheckoutError(
-                          data.error || "We couldn&apos;t start checkout. Please try again in a moment.",
-                        )
+                        setCheckoutError(data.error || "We couldn't start checkout. Please try again in a moment.")
                         return
                       }
-                      const checkoutUrl = data.url as string
-                      if (portraitsRemaining && portraitsRemaining > 0 && emailFromQuery) {
-                        router.push(
-                          `/checkout/success?portrait=${encodeURIComponent(
-                            resultPortraitId,
-                          )}&email=${encodeURIComponent(emailFromQuery)}`,
-                        )
-                      } else {
-                        window.location.href = checkoutUrl
-                      }
+                      window.location.href = data.url as string
                     } catch (err) {
                       setCheckoutStatus("error")
-                      setCheckoutError(
-                        err instanceof Error ? err.message : "We couldn&apos;t start checkout. Please try again.",
-                      )
+                      setCheckoutError(err instanceof Error ? err.message : "We couldn't start checkout. Please try again.")
                     }
                   }}
                   disabled={checkoutStatus === "submitting"}

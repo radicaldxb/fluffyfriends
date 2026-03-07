@@ -25,12 +25,6 @@ export function Footer() {
           <p className="text-sm font-medium text-foreground/90">
             Portraits made with love, built to last. 🐾
           </p>
-          <p className="text-sm text-muted-foreground">
-            FluffyFriends — because every pet deserves to be immortalised.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            We never sell or share your photos. Secure checkout. Happiness guarantee.
-          </p>
           <p className="text-xs text-muted-foreground">
             {`\u00A9 ${new Date().getFullYear()} FluffyFriends.online`}
           </p>

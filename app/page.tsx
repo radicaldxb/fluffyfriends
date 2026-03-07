@@ -15,34 +15,36 @@ import { SketchDivider } from "@/components/sketch-divider"
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background">
-      <Navbar />
-      <HeroSection />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <p className="text-sm text-muted-foreground mt-3">
-          Already have a portrait pack?{" "}
-          <Link href="/my-portraits" className="underline hover:text-foreground">
-            Access my portraits →
-          </Link>
-        </p>
+    <main className="min-h-screen bg-background flex flex-col">
+      <div className="flex-1 flex flex-col">
+        <Navbar />
+        <HeroSection />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <p className="text-sm text-muted-foreground mt-3">
+            Already have a portrait pack?{" "}
+            <Link href="/my-portraits" className="underline hover:text-foreground">
+              Access my portraits →
+            </Link>
+          </p>
+        </div>
+        <HeroDifferentiatorStrip />
+        <SketchDivider />
+        <ImmortaliseSection />
+        <SketchDivider />
+        <ProcessSection />
+        <SketchDivider />
+        <WhyFluffyfriendsSection />
+        <SketchDivider />
+        <GallerySection />
+        <SketchDivider />
+        <AboutSection />
+        <SketchDivider />
+        <PricingSection />
+        <SketchDivider />
+        <ReviewsSection />
+        <SketchDivider />
+        <GiftSection />
       </div>
-      <HeroDifferentiatorStrip />
-      <SketchDivider />
-      <ImmortaliseSection />
-      <SketchDivider />
-      <ProcessSection />
-      <SketchDivider />
-      <WhyFluffyfriendsSection />
-      <SketchDivider />
-      <GallerySection />
-      <SketchDivider />
-      <AboutSection />
-      <SketchDivider />
-      <PricingSection />
-      <SketchDivider />
-      <ReviewsSection />
-      <SketchDivider />
-      <GiftSection />
       <Footer />
     </main>
   )
