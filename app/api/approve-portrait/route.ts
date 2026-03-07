@@ -329,6 +329,15 @@ export async function POST(request: NextRequest) {
       await new Promise((r) => setTimeout(r, pollIntervalMs))
     }
 
+    // Mark portrait completed so it appears in My Portraits (with preview and download links when URLs exist)
+    const { error: statusError } = await supabase
+      .from("pet_portraits")
+      .update({ status: "completed" })
+      .eq("id", ctx.portraitId)
+    if (statusError) {
+      console.error("[approve-portrait][POST] Failed to set portrait status to completed:", statusError)
+    }
+
     // Deduct portrait from balance after WF3 is triggered
     if (email) {
       try {
