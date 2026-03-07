@@ -204,6 +204,7 @@ function MyPortraitsContent() {
                     : p.package === "family_pack"
                       ? "Family Pack"
                       : "Starter"
+                const used = p.portraits_total - p.portraits_remaining
                 return (
                   <div
                     key={p.id}
@@ -211,19 +212,25 @@ function MyPortraitsContent() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-medium text-foreground">
-                        {label}
+                        {label} — {used}/{p.portraits_total} portraits used
                       </span>
                       <span className="text-xs text-muted-foreground">
                         purchased {displayDate}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {p.portraits_total - p.portraits_remaining} of{" "}
-                      {p.portraits_total} used ·{" "}
-                      <span className="font-medium text-foreground">
-                        {p.portraits_remaining} remaining
-                      </span>
-                    </p>
+                    {p.portraits_remaining > 0 && (
+                      <div className="mt-3">
+                        <Button
+                          className="rounded-organic-sm"
+                          size="sm"
+                          asChild
+                        >
+                          <a href={`/create?email=${encodeURIComponent(email)}`}>
+                            Create another portrait →
+                          </a>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -321,6 +328,15 @@ function MyPortraitsContent() {
                 )
               })}
             </div>
+          </div>
+        )}
+
+        {totalRemaining === 0 && hasResults && (
+          <div className="mt-8 text-center">
+            <p className="text-sm text-muted-foreground mb-3">Want another portrait?</p>
+            <Button asChild className="rounded-organic-sm">
+              <a href="/create">Create a new portrait →</a>
+            </Button>
           </div>
         )}
 

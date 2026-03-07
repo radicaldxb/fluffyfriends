@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { getStripeClient } from "@/lib/stripe"
-import { isValidDownloadUrl } from "@/lib/utils"
 
 async function resolveSessionContext(sessionId: string) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY
@@ -217,14 +216,20 @@ export async function POST(request: NextRequest) {
       if (!res.ok) {
         const text = await res.text().catch(() => "")
         console.error("[approve-portrait][POST] n8n responded with error:", res.status, text)
-        return NextResponse.json(
-          {
-            error: "Upscale + email workflow call failed",
-            status: res.status,
-            body: text.slice(0, 200),
-          },
-          { status: 502 },
-        )
+        // Gateway/timeout (502/503/504): workflow may still run; don't block the user.
+        if (res.status === 502 || res.status === 503 || res.status === 504) {
+          console.warn("[approve-portrait][POST] Treating gateway/timeout as success; user can check My Portraits")
+          // Fall through to return 200 with ok: true below (skip polling, no URLs).
+        } else {
+          return NextResponse.json(
+            {
+              error: "Upscale + email workflow call failed",
+              status: res.status,
+              body: text.slice(0, 200),
+            },
+            { status: 502 },
+          )
+        }
       }
     } catch (err) {
       console.error("[approve-portrait][POST] Failed to call n8n upscaler:", err)
@@ -257,49 +262,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // After WF3 completes, poll Supabase briefly for updated URLs so we can
-    // return download links directly on the success page.
-    const maxAttempts = 15
-    const delayMs = 2000
-    let updatedPortrait: { landscape_url: string | null; portrait_url: string | null } | null = null
-    let lastError: unknown = null
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const { data, error } = await supabase
-        .from("pet_portraits")
-        .select("landscape_url, portrait_url")
-        .eq("id", ctx.portraitId)
-        .single()
-
-      if (!error && data?.landscape_url && data?.portrait_url) {
-        const landscape = String(data.landscape_url).trim()
-        const portrait = String(data.portrait_url).trim()
-        if (isValidDownloadUrl(landscape) && isValidDownloadUrl(portrait)) {
-          updatedPortrait = { landscape_url: landscape, portrait_url: portrait }
-          break
-        }
-      }
-
-      lastError = error
-      // Small delay before trying again to give WF3 time to finish.
-      await new Promise((resolve) => setTimeout(resolve, delayMs))
-    }
-
-    // Success: user saved, portrait linked, n8n was called. Return ok even if URLs aren't ready yet
-    // so the user sees the success state and "download links will appear when ready" instead of an error.
-    if (!updatedPortrait) {
-      console.warn(
-        "[approve-portrait][POST] WF3 may still be running; no download URLs yet",
-        { portrait_id: ctx.portraitId, lastError },
-      )
-    }
     return NextResponse.json(
       {
         ok: true,
-        ...(updatedPortrait && {
-          landscape_url: updatedPortrait.landscape_url,
-          portrait_url: updatedPortrait.portrait_url,
-        }),
         portraits_remaining: deductResult?.portraits_remaining ?? null,
       },
       { status: 200 },

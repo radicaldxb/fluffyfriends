@@ -9,7 +9,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { AlertCircle, Check, Mail } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { isValidDownloadUrl } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -162,23 +161,17 @@ function SuccessContent() {
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.ok) {
         setApproveStatus("error")
-        setApproveError(
-          data.error || "We couldn't send your files yet. Please try again in a moment.",
-        )
+        const message =
+          (typeof data.error === "string" && data.error) ||
+          (data.details ? `${data.error || "Error"}: ${data.details}` : null) ||
+          "We couldn't send your files yet. Please try again in a moment."
+        setApproveError(message)
         return
       }
-      if (isValidDownloadUrl(data.landscape_url) && isValidDownloadUrl(data.portrait_url)) {
-        setDownloadLinks({
-          landscapeUrl: data.landscape_url as string,
-          portraitUrl: data.portrait_url as string,
-        })
+      if (data.ok) {
+        router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
+        return
       }
-      if (typeof data.portraits_remaining === "number") {
-        setPortraitsRemaining(data.portraits_remaining)
-      }
-      // Send user to My Portraits so they see all their portraits and download links in one place.
-      router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
-      return
     } catch (err) {
       setApproveStatus("error")
       setApproveError(
@@ -437,9 +430,21 @@ function SuccessContent() {
                 </div>
 
                 {approveError && (
-                  <div className="flex items-start gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
-                    <AlertCircle className="mt-[2px] h-4 w-4 shrink-0 text-destructive" />
-                    <p className="text-sm text-destructive">{approveError}</p>
+                  <div className="flex flex-col gap-2 rounded-organic-sm border border-destructive/40 bg-destructive/5 p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="mt-[2px] h-4 w-4 shrink-0 text-destructive" />
+                      <p className="text-sm text-destructive">{approveError}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground pl-6">
+                      You can still{" "}
+                      <Link
+                        href={`/my-portraits?email=${encodeURIComponent(email)}`}
+                        className="underline hover:text-foreground"
+                      >
+                        open My Portraits
+                      </Link>{" "}
+                      with your email to see if your files appear.
+                    </p>
                   </div>
                 )}
 
