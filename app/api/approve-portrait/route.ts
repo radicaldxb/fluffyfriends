@@ -55,13 +55,49 @@ async function resolveSessionContext(sessionId: string) {
 
 export async function GET(request: NextRequest) {
   const sessionId = request.nextUrl.searchParams.get("session_id")?.trim()
-  // Log every request so Netlify shows something when you search "approve-portrait"
+  const portraitIdParam = request.nextUrl.searchParams.get("portrait_id")?.trim()
+
   console.log(
     "[approve-portrait][GET] request",
-    sessionId ? `session_id=${sessionId.slice(0, 12)}…` : "missing session_id",
+    sessionId ? `session_id=${sessionId.slice(0, 12)}…` : portraitIdParam ? `portrait_id=${portraitIdParam.slice(0, 12)}…` : "missing both",
   )
 
   try {
+    // Returning bundle customer: no session_id, look up by portrait_id
+    if (portraitIdParam && !sessionId) {
+      const { data: portraitRow, error } = await supabase
+        .from("pet_portraits")
+        .select("id, pet_name, image_url")
+        .eq("id", portraitIdParam)
+        .single()
+
+      if (error || !portraitRow) {
+        return NextResponse.json({ error: "Portrait not found" }, { status: 404 })
+      }
+
+      const imageUrl = (portraitRow.image_url as string | null) || ""
+      if (!imageUrl) {
+        return NextResponse.json(
+          {
+            error: "Portrait is still generating. Please wait a bit longer.",
+            code: "PORTRAIT_NOT_READY",
+          },
+          { status: 202 },
+        )
+      }
+
+      const petName = ((portraitRow.pet_name as string) || "My Pet").trim() || "My Pet"
+      return NextResponse.json(
+        {
+          portrait_id: portraitRow.id,
+          pet_name: petName,
+          amount_cents: 0,
+          currency: "USD",
+        },
+        { status: 200 },
+      )
+    }
+
     if (!sessionId) {
       return NextResponse.json({ error: "Missing session_id" }, { status: 400 })
     }

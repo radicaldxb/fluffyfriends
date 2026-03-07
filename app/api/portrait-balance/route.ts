@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     .select(
       "id, package, portraits_total, portraits_used, portraits_remaining, created_at, expires_at",
     )
-    .eq("email", email)
+    .ilike("email", email)
     .gt("portraits_remaining", 0)
     .or(`expires_at.is.null,expires_at.gt."${now}"`)
     .order("created_at", { ascending: false })
@@ -26,11 +26,16 @@ export async function GET(request: NextRequest) {
   const totalRemaining =
     data?.reduce((sum, row) => sum + (row.portraits_remaining as number), 0) || 0
 
-  return NextResponse.json({
-    email,
-    portraits_remaining: totalRemaining,
-    purchases: data || [],
-    has_portraits: totalRemaining > 0,
-  })
+  return NextResponse.json(
+    {
+      email,
+      portraits_remaining: totalRemaining,
+      purchases: data || [],
+      has_portraits: totalRemaining > 0,
+    },
+    {
+      headers: { "Cache-Control": "no-store, max-age=0", "Pragma": "no-cache" },
+    },
+  )
 }
 

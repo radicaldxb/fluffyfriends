@@ -64,20 +64,13 @@ function SuccessContent() {
     const intervalMs = 3000
 
     async function loadPreview(attempt: number) {
-      if (!sessionId && portraitFromQuery) {
-        setPreview({
-          status: "ready",
-          portraitId: portraitFromQuery,
-          petName: "Your pet",
-          amountDisplay: "–",
-          currency: "",
-        })
-        return
-      }
+      const url = sessionId
+        ? `/api/approve-portrait?session_id=${encodeURIComponent(sessionId)}`
+        : `/api/approve-portrait?portrait_id=${encodeURIComponent(portraitFromQuery)}`
 
       setPreview({ status: "loading", attempt })
       try {
-        const res = await fetch(`/api/approve-portrait?session_id=${encodeURIComponent(sessionId)}`)
+        const res = await fetch(url)
         const data = await res.json().catch(() => ({}))
         if (!res.ok) {
           const msg =
@@ -85,7 +78,10 @@ function SuccessContent() {
             (data.details ? `${data.error || "Error"}: ${data.details}` : null) ||
             "We couldn't load your portrait preview yet. Please refresh in a moment."
           if (!cancelled) {
-            if (attempt < maxAttempts - 1) {
+            const isStillGenerating = res.status === 202
+            const isNotFound = res.status === 404
+            const shouldRetry = isStillGenerating && attempt < maxAttempts - 1
+            if (!isNotFound && (shouldRetry || attempt < maxAttempts - 1)) {
               setTimeout(() => loadPreview(attempt + 1), intervalMs)
             } else {
               setPreview({ status: "error", message: msg })
@@ -108,8 +104,8 @@ function SuccessContent() {
         }
 
         const cents = typeof data.amount_cents === "number" ? data.amount_cents : 0
-        const amountDisplay = `$${(cents / 100).toFixed(2)}`
-        const currency = typeof data.currency === "string" ? data.currency.toUpperCase() : "USD"
+        const amountDisplay = cents > 0 ? `$${(cents / 100).toFixed(2)}` : "–"
+        const currency = typeof data.currency === "string" ? data.currency.toUpperCase() : (sessionId ? "USD" : "")
 
         if (!cancelled) {
           setPreview({

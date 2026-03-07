@@ -84,7 +84,8 @@ function MyPortraitsContent() {
 
     try {
       const res = await fetch(
-        `/api/my-portraits?email=${encodeURIComponent(targetEmail)}`,
+        `/api/my-portraits?email=${encodeURIComponent(targetEmail)}&t=${options?.silent ? 0 : Date.now()}`,
+        { cache: "no-store" },
       )
       const data = await res.json().catch(() => ({}))
 
@@ -316,6 +317,14 @@ function MyPortraitsContent() {
                         {!landscapeValid && !portraitValid && (
                           <span className="text-xs text-muted-foreground">
                             Download links will appear here when ready. If they don&apos;t show after a few minutes,{" "}
+                            <button
+                              type="button"
+                              onClick={() => void handleLookup(currentLookupEmail)}
+                              className="underline hover:text-foreground font-medium"
+                            >
+                              check again
+                            </button>
+                            {" "}or{" "}
                             <a href="mailto:support@fluffyfriends.online" className="underline hover:text-foreground">
                               contact us
                             </a>

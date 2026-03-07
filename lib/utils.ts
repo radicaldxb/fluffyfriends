@@ -38,5 +38,12 @@ export function getDisplayUrl(url: string | null | undefined): string | null {
 
 function normalizeUrlString(url: string | null | undefined): string {
   if (url == null) return ""
-  return String(url).replace(/\s+/g, " ").trim()
+  let s = String(url).replace(/\s+/g, " ").trim()
+  // Strip surrounding quotes (DB or JSON might store "https://..." or 'https://...')
+  const first = s[0]
+  const last = s[s.length - 1]
+  if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+    s = s.slice(1, -1).trim()
+  }
+  return s
 }

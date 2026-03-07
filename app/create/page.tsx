@@ -81,6 +81,9 @@ function CreatePortraitContent() {
   const [checkoutError, setCheckoutError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
+  const [packEmail, setPackEmail] = useState<string>("")
+
+  const PACK_EMAIL_KEY = "fluffyfriends_pack_email"
 
   useEffect(() => {
     return () => {
@@ -90,14 +93,45 @@ function CreatePortraitContent() {
 
   useEffect(() => {
     if (!emailFromQuery) return
-    fetch(`/api/portrait-balance?email=${encodeURIComponent(emailFromQuery)}`)
-      .then((r) => r.json())
+    let cancelled = false
+    function fetchBalance() {
+      fetch(`/api/portrait-balance?email=${encodeURIComponent(emailFromQuery)}`, { cache: "no-store" })
+        .then((r) => r.json().catch(() => ({})))
+        .then((data) => {
+          if (cancelled) return
+          const remaining = typeof data?.portraits_remaining === "number" ? data.portraits_remaining : 0
+          setPortraitsRemaining(remaining)
+          if (remaining > 0 && typeof window !== "undefined") {
+            window.sessionStorage.setItem(PACK_EMAIL_KEY, emailFromQuery)
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setPortraitsRemaining(null)
+        })
+    }
+    fetchBalance()
+    return () => { cancelled = true }
+  }, [emailFromQuery])
+
+  // When no email in URL, try stored pack email (e.g. user clicked "Make My Portrait" from nav after using pack)
+  useEffect(() => {
+    if (emailFromQuery) return
+    if (typeof window === "undefined") return
+    const stored = window.sessionStorage.getItem(PACK_EMAIL_KEY)
+    if (!stored) return
+    let cancelled = false
+    fetch(`/api/portrait-balance?email=${encodeURIComponent(stored)}`, { cache: "no-store" })
+      .then((r) => r.json().catch(() => ({})))
       .then((data) => {
-        if (data?.has_portraits) {
-          setPortraitsRemaining(data.portraits_remaining)
+        if (cancelled) return
+        const remaining = typeof data?.portraits_remaining === "number" ? data.portraits_remaining : 0
+        if (remaining > 0) {
+          setPackEmail(stored)
+          setPortraitsRemaining(remaining)
         }
       })
       .catch(() => {})
+    return () => { cancelled = true }
   }, [emailFromQuery])
 
   function applyFile(selected: File | null) {
@@ -263,6 +297,9 @@ function CreatePortraitContent() {
 
   const selectedTheme = themes.find((t) => t.id === theme)
   const selectedProduct = PRODUCTS.find((p) => p.id === selectedProductId)
+
+  const effectivePackEmail = emailFromQuery || packEmail
+  const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
 
   // [Pet Name] for copy — "their" when no name
   const petNameDisplay = petName.trim()
@@ -644,7 +681,7 @@ function CreatePortraitContent() {
                 {petNameDisplay ? `${petNameDisplay} is looking great` : "This photo is looking great"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground max-w-md">
-                {portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery
+                {showPackFlow
                   ? "Use one portrait from your pack — no payment needed."
                   : "We're confident this will make a stunning portrait. Choose your package and continue to payment."}
               </p>
@@ -676,7 +713,7 @@ function CreatePortraitContent() {
               )}
 
               {/* When user has remaining portraits + email: single CTA, no package selection */}
-              {portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery ? (
+              {showPackFlow ? (
                 <div className="mt-8 flex flex-col items-center gap-3">
                   <Button
                     onClick={async () => {
@@ -689,12 +726,12 @@ function CreatePortraitContent() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                           portrait_id: resultPortraitId,
-                          email: emailFromQuery,
+                          email: effectivePackEmail,
                         }),
                       })
                       // Redirect to success page to wait for portrait preview
                       router.push(
-                        `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(emailFromQuery)}`,
+                        `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(effectivePackEmail)}`,
                       )
                     }}
                     disabled={checkoutStatus === "submitting"}
