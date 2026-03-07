@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase"
 import { isValidDownloadUrl, getDisplayUrl } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
@@ -84,64 +83,19 @@ function MyPortraitsContent() {
     setCurrentLookupEmail(targetEmail)
 
     try {
-      // Fetch purchases
-      const { data: purchaseRows, error: purchaseError } = await supabase
-        .from("portrait_purchases")
-        .select("id, package, portraits_total, portraits_used, portraits_remaining, created_at")
-        .eq("email", targetEmail)
-        .order("created_at", { ascending: false })
+      const res = await fetch(
+        `/api/my-portraits?email=${encodeURIComponent(targetEmail)}`,
+      )
+      const data = await res.json().catch(() => ({}))
 
-      if (purchaseError) {
-        if (!options?.silent) setError(purchaseError.message)
-      } else {
-        setPurchases(purchaseRows || [])
-        const remaining =
-          purchaseRows?.reduce(
-            (sum, row) => sum + (row.portraits_remaining as number),
-            0,
-          ) || 0
-        setTotalRemaining(remaining)
+      if (!res.ok) {
+        if (!options?.silent) setError(data.error || "Failed to load portraits.")
+        return
       }
 
-      // Fetch completed portraits for this email (via users table link)
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("id")
-        .eq("email", targetEmail)
-        .maybeSingle()
-
-      if (userRow?.id) {
-        const { data: portraitRows, error: portraitError } = await supabase
-          .from("pet_portraits")
-          .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
-          .eq("user_id", userRow.id)
-          .eq("status", "completed")
-          .order("created_at", { ascending: true })
-
-        if (portraitError) {
-          // Do not override purchase error if already set; just log silently
-          console.error("[my-portraits] Failed to load portraits:", portraitError)
-        } else {
-          setPortraits(
-            (portraitRows || []).map((p) => {
-              const rawLandscape = p.landscape_url != null ? String(p.landscape_url).trim() : ""
-              const rawPortrait = p.portrait_url != null ? String(p.portrait_url).trim() : ""
-              return {
-                id: p.id as string,
-                pet_name: (p.pet_name as string) || null,
-                theme: (p.theme as string) || null,
-                image_url: (p.image_url as string | null) ?? null,
-                original_image_url: (p.original_image_url as string | null) ?? null,
-                landscape_url: rawLandscape || null,
-                portrait_url: rawPortrait || null,
-                created_at: p.created_at as string,
-              }
-            }),
-          )
-        }
-      } else {
-        setPortraits([])
-      }
+      setPurchases(data.purchases || [])
+      setTotalRemaining(typeof data.totalRemaining === "number" ? data.totalRemaining : 0)
+      setPortraits(data.portraits || [])
     } catch (err) {
       if (!options?.silent) {
         setError(
