@@ -285,25 +285,21 @@ export async function POST(request: NextRequest) {
       await new Promise((resolve) => setTimeout(resolve, delayMs))
     }
 
-    if (!updatedPortrait?.landscape_url || !updatedPortrait?.portrait_url) {
-      console.error(
-        "[approve-portrait][POST] Timed out waiting for upscaled URLs",
-        lastError,
-      )
-      return NextResponse.json(
-        {
-          error:
-            "Upscale completed, but we could not load your download links yet. Please refresh this page in a moment.",
-        },
-        { status: 500 },
+    // Success: user saved, portrait linked, n8n was called. Return ok even if URLs aren't ready yet
+    // so the user sees the success state and "download links will appear when ready" instead of an error.
+    if (!updatedPortrait) {
+      console.warn(
+        "[approve-portrait][POST] WF3 may still be running; no download URLs yet",
+        { portrait_id: ctx.portraitId, lastError },
       )
     }
-
     return NextResponse.json(
       {
         ok: true,
-        landscape_url: updatedPortrait.landscape_url,
-        portrait_url: updatedPortrait.portrait_url,
+        ...(updatedPortrait && {
+          landscape_url: updatedPortrait.landscape_url,
+          portrait_url: updatedPortrait.portrait_url,
+        }),
         portraits_remaining: deductResult?.portraits_remaining ?? null,
       },
       { status: 200 },

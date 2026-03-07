@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
 import { AlertCircle, Check, Mail } from "lucide-react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { isValidDownloadUrl } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
@@ -29,6 +29,7 @@ type ApproveStatus = "idle" | "submitting" | "success" | "error"
 
 function SuccessContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const sessionId = searchParams.get("session_id")?.trim() || ""
   const portraitFromQuery = searchParams.get("portrait")?.trim() || ""
   const emailFromQuery = searchParams.get("email")?.trim() || ""
@@ -175,7 +176,10 @@ function SuccessContent() {
       if (typeof data.portraits_remaining === "number") {
         setPortraitsRemaining(data.portraits_remaining)
       }
-      setApproveStatus("success")
+      // Send user to My Portraits so they see all their portraits and download links in one place.
+      router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
+      return
+    }
     } catch (err) {
       setApproveStatus("error")
       setApproveError(
@@ -231,7 +235,7 @@ function SuccessContent() {
             )}
             {!downloadLinks && (
               <p className="mt-6 text-sm text-muted-foreground max-w-md mx-auto">
-                Your download links are in the email we sent you. If you don’t see it, check your spam folder.
+                Download links will appear here when ready. If they don't show after a few minutes, contact us and we'll send you the files.
               </p>
             )}
             {typeof portraitsRemaining === "number" && portraitsRemaining > 0 && (

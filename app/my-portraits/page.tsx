@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
-import { isValidDownloadUrl } from "@/lib/utils"
+import { isValidDownloadUrl, getDisplayUrl } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -60,6 +60,7 @@ function MyPortraitsContent() {
   const [portraits, setPortraits] = useState<Portrait[]>([])
   const [totalRemaining, setTotalRemaining] = useState<number>(0)
   const [hasSearched, setHasSearched] = useState(false)
+  const [currentLookupEmail, setCurrentLookupEmail] = useState<string>("")
 
   useEffect(() => {
     if (!emailFromQuery) return
@@ -68,16 +69,19 @@ function MyPortraitsContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emailFromQuery])
 
-  async function handleLookup(submittedEmail?: string) {
+  async function handleLookup(submittedEmail?: string, options?: { silent?: boolean }) {
     const targetEmail = (submittedEmail ?? email).trim().toLowerCase()
     if (!targetEmail) {
-      setError("Please enter the email you used when you ordered.")
+      if (!options?.silent) setError("Please enter the email you used when you ordered.")
       return
     }
 
-    setLoading(true)
-    setError("")
+    if (!options?.silent) {
+      setLoading(true)
+      setError("")
+    }
     setHasSearched(true)
+    setCurrentLookupEmail(targetEmail)
 
     try {
       // Fetch purchases
@@ -88,7 +92,7 @@ function MyPortraitsContent() {
         .order("created_at", { ascending: false })
 
       if (purchaseError) {
-        setError(purchaseError.message)
+        if (!options?.silent) setError(purchaseError.message)
       } else {
         setPurchases(purchaseRows || [])
         const remaining =
@@ -119,31 +123,57 @@ function MyPortraitsContent() {
           console.error("[my-portraits] Failed to load portraits:", portraitError)
         } else {
           setPortraits(
-            (portraitRows || []).map((p) => ({
-              id: p.id as string,
-              pet_name: (p.pet_name as string) || null,
-              theme: (p.theme as string) || null,
-              image_url: (p.image_url as string | null) ?? null,
-              original_image_url: (p.original_image_url as string | null) ?? null,
-              landscape_url: (p.landscape_url as string | null) ?? null,
-              portrait_url: (p.portrait_url as string | null) ?? null,
-              created_at: p.created_at as string,
-            })),
+            (portraitRows || []).map((p) => {
+              const rawLandscape = p.landscape_url != null ? String(p.landscape_url).trim() : ""
+              const rawPortrait = p.portrait_url != null ? String(p.portrait_url).trim() : ""
+              return {
+                id: p.id as string,
+                pet_name: (p.pet_name as string) || null,
+                theme: (p.theme as string) || null,
+                image_url: (p.image_url as string | null) ?? null,
+                original_image_url: (p.original_image_url as string | null) ?? null,
+                landscape_url: rawLandscape || null,
+                portrait_url: rawPortrait || null,
+                created_at: p.created_at as string,
+              }
+            }),
           )
         }
       } else {
         setPortraits([])
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong while looking up your portraits.",
-      )
+      if (!options?.silent) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong while looking up your portraits.",
+        )
+      }
     } finally {
-      setLoading(false)
+      if (!options?.silent) setLoading(false)
     }
   }
+
+  // When any portrait has no download URLs yet, poll so we pick up the DB row update (same trigger as email).
+  useEffect(() => {
+    const hasPortraitsWithoutUrls =
+      portraits.length > 0 &&
+      portraits.some(
+        (p) => !getDisplayUrl(p.landscape_url) || !getDisplayUrl(p.portrait_url),
+      )
+    if (!hasPortraitsWithoutUrls || !currentLookupEmail) return
+
+    const intervalMs = 4000
+    const maxAttempts = 45 // ~3 minutes
+    let attempts = 0
+    const interval = setInterval(() => {
+      attempts++
+      void handleLookup(currentLookupEmail, { silent: true })
+      if (attempts >= maxAttempts) clearInterval(interval)
+    }, intervalMs)
+    return () => clearInterval(interval)
+  }, [portraits, currentLookupEmail])
 
   const hasResults =
     purchases.length > 0 || portraits.length > 0 || totalRemaining > 0
@@ -254,15 +284,17 @@ function MyPortraitsContent() {
             </h2>
             <div className="space-y-3">
               {portraits.map((p, index) => {
-                const landscapeValid = isValidDownloadUrl(p.landscape_url)
-                const portraitValid = isValidDownloadUrl(p.portrait_url)
+                const landscapeUrl = getDisplayUrl(p.landscape_url)
+                const portraitUrl = getDisplayUrl(p.portrait_url)
+                const landscapeValid = !!landscapeUrl
+                const portraitValid = !!portraitUrl
                 const imageValid = isValidDownloadUrl(p.image_url)
                 const originalValid = isValidDownloadUrl(p.original_image_url)
                 const previewUrl =
-                  landscapeValid
-                    ? p.landscape_url!
-                    : portraitValid
-                      ? p.portrait_url!
+                  landscapeUrl
+                    ? landscapeUrl
+                    : portraitUrl
+                      ? portraitUrl
                       : imageValid
                         ? p.image_url!
                         : originalValid
@@ -299,30 +331,34 @@ function MyPortraitsContent() {
                         )}
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        {landscapeValid && (
+                        {landscapeValid && landscapeUrl && (
                           <Button
                             asChild
                             className="rounded-organic-sm px-3 py-1 text-xs"
                           >
-                            <a href={p.landscape_url!} target="_blank" rel="noreferrer">
+                            <a href={landscapeUrl} target="_blank" rel="noreferrer">
                               Download wide
                             </a>
                           </Button>
                         )}
-                        {portraitValid && (
+                        {portraitValid && portraitUrl && (
                           <Button
                             asChild
                             variant="outline"
                             className="rounded-organic-sm px-3 py-1 text-xs"
                           >
-                            <a href={p.portrait_url!} target="_blank" rel="noreferrer">
+                            <a href={portraitUrl} target="_blank" rel="noreferrer">
                               Download tall
                             </a>
                           </Button>
                         )}
                         {!landscapeValid && !portraitValid && (
                           <span className="text-xs text-muted-foreground">
-                            Download links not available yet. Check your email for the links, or they may still be generating.
+                            Download links will appear here when ready. If they don&apos;t show after a few minutes,{" "}
+                            <a href="mailto:support@fluffyfriends.online" className="underline hover:text-foreground">
+                              contact us
+                            </a>
+                            {" "}with the email you used and we&apos;ll send you the files.
                           </span>
                         )}
                       </div>
