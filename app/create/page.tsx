@@ -202,7 +202,8 @@ function CreatePortraitContent() {
         return
       }
 
-      setResultPortraitId(data.portrait_id)
+      const rawId = typeof data.portrait_id === "string" ? data.portrait_id.trim() : ""
+      setResultPortraitId(rawId.startsWith("=") ? rawId.slice(1) : rawId)
       setResultPetName(resolvedPetName)
       setStatus("success")
     } catch (err) {

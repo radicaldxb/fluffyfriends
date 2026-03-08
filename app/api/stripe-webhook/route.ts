@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         } else {
           const { data: portraitRow, error: portraitError } = await supabase
             .from("pet_portraits")
-            .select("id, pet_name, theme, original_image_url, showcase_consent")
+            .select("id, pet_name, theme, original_image_url, showcase_consent, user_email")
             .eq("id", portraitId)
             .single()
 
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
               const { error: purchaseError } = await supabase
                 .from("portrait_purchases")
                 .insert({
-                  email: customerEmail,
+                  email: (portraitRow.user_email as string) || customerEmail,
                   stripe_session_id: session.id,
                   package: packageName,
                   portraits_total: portraitsTotal,
