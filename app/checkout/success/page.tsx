@@ -622,10 +622,12 @@ function SuccessContent() {
             <Check className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-            Payment received
+            {sessionId ? "Payment received" : "Portrait started! 🎨"}
           </h1>
           <p className="mt-2 text-muted-foreground text-pretty">
-            Thank you for your order. We’re preparing your portrait preview.
+            {sessionId
+              ? "Thank you for your order. We're preparing your portrait preview."
+              : "We're using 1 portrait from your pack. Our studio is rendering your artwork — this usually takes a minute or two."}
           </p>
 
           {isStep2Loading && (
