@@ -80,10 +80,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to trigger generation" }, { status: 502 })
   }
 
-  // Mark portrait as generating
+  // Mark portrait as generating and link to email so My Portraits can find it
+  const portraitEmailNorm = (email || "").trim().toLowerCase()
   await supabase
     .from("pet_portraits")
-    .update({ status: "generating" })
+    .update({
+      status: "generating",
+      ...(portraitEmailNorm ? { user_email: portraitEmailNorm } : {}),
+    })
     .eq("id", portraitId)
 
   return NextResponse.json({ ok: true })

@@ -190,9 +190,14 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Mark portrait as generating once we've handed it off to n8n
+                // Also set user_email so My Portraits can find this portrait by email (case-insensitive)
+                const portraitEmail = (customerEmail || "").trim().toLowerCase()
                 const { error: portraitStatusError } = await supabase
                   .from("pet_portraits")
-                  .update({ status: "generating" })
+                  .update({
+                    status: "generating",
+                    ...(portraitEmail ? { user_email: portraitEmail } : {}),
+                  })
                   .eq("id", portraitRow.id)
 
                 if (portraitStatusError) {

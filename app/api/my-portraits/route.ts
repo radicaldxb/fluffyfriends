@@ -10,11 +10,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing email" }, { status: 400 })
   }
 
-  // Purchases: all for this email
+  // Purchases: all for this email (case-insensitive like portrait-balance)
   const { data: purchaseRows, error: purchaseError } = await supabase
     .from("portrait_purchases")
     .select("id, package, portraits_total, portraits_used, portraits_remaining, created_at")
-    .eq("email", email)
+    .ilike("email", email)
     .order("created_at", { ascending: false })
 
   if (purchaseError) {
@@ -38,35 +38,85 @@ export async function GET(request: NextRequest) {
       0,
     ) || 0
 
-  // User by email
+  // User by email (case-insensitive so URL ?email= matches stored casing)
   const { data: userRow } = await supabase
     .from("users")
     .select("id")
-    .eq("email", email)
+    .ilike("email", email)
     .maybeSingle()
 
-  if (!userRow?.id) {
-    return NextResponse.json({
-      purchases,
-      portraits: [],
-      totalRemaining,
+  const seenIds = new Set<string>()
+
+  // Portraits by user_id (when they submitted approve form)
+  let portraitRows: Array<{
+    id: string
+    pet_name: string | null
+    theme: string | null
+    image_url: string | null
+    original_image_url: string | null
+    landscape_url: string | null
+    portrait_url: string | null
+    created_at: string
+  }> = []
+
+  if (userRow?.id) {
+    const { data: byUserId, error: portraitError } = await supabase
+      .from("pet_portraits")
+      .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
+      .eq("user_id", userRow.id)
+      .eq("status", "completed")
+      .order("created_at", { ascending: true })
+
+    if (portraitError) {
+      return NextResponse.json(
+        { error: portraitError.message, purchases, portraits: [], totalRemaining },
+        { status: 500 },
+      )
+    }
+    portraitRows = (byUserId || []).map((p) => ({
+      id: p.id as string,
+      pet_name: p.pet_name ?? null,
+      theme: p.theme ?? null,
+      image_url: p.image_url ?? null,
+      original_image_url: p.original_image_url ?? null,
+      landscape_url: p.landscape_url != null ? String(p.landscape_url).trim() : null,
+      portrait_url: p.portrait_url != null ? String(p.portrait_url).trim() : null,
+      created_at: p.created_at,
+    })).filter((p) => {
+      if (seenIds.has(p.id)) return false
+      seenIds.add(p.id)
+      return true
     })
   }
 
-  // Portraits for this user including download URLs (server-side = same data as backend)
-  const { data: portraitRows, error: portraitError } = await supabase
+  // Fallback: portraits by user_email (e.g. set by Stripe/n8n before user_id) so we don't miss any
+  const { data: byEmailRows } = await supabase
     .from("pet_portraits")
     .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
-    .eq("user_id", userRow.id)
+    .ilike("user_email", email)
     .eq("status", "completed")
     .order("created_at", { ascending: true })
 
-  if (portraitError) {
-    return NextResponse.json(
-      { error: portraitError.message, purchases, portraits: [], totalRemaining },
-      { status: 500 },
-    )
+  for (const p of byEmailRows || []) {
+    const id = p.id as string
+    if (seenIds.has(id)) continue
+    seenIds.add(id)
+    portraitRows.push({
+      id: p.id as string,
+      pet_name: p.pet_name ?? null,
+      theme: p.theme ?? null,
+      image_url: p.image_url ?? null,
+      original_image_url: p.original_image_url ?? null,
+      landscape_url: p.landscape_url != null ? String(p.landscape_url).trim() : null,
+      portrait_url: p.portrait_url != null ? String(p.portrait_url).trim() : null,
+      created_at: p.created_at,
+    })
   }
+
+  // Sort merged list by created_at
+  portraitRows.sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  )
 
   const portraits = (portraitRows || []).map((p) => {
     const rawLandscape = p.landscape_url != null ? String(p.landscape_url).trim() : ""

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   const { data: purchase, error: fetchError } = await supabase
     .from("portrait_purchases")
     .select("id, portraits_used, portraits_remaining")
-    .eq("email", email)
+    .ilike("email", email)
     .gt("portraits_remaining", 0)
     .or(`expires_at.is.null,expires_at.gt."${now}"`)
     .order("created_at", { ascending: true })

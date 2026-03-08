@@ -61,6 +61,13 @@ function MyPortraitsContent() {
   const [totalRemaining, setTotalRemaining] = useState<number>(0)
   const [hasSearched, setHasSearched] = useState(false)
   const [currentLookupEmail, setCurrentLookupEmail] = useState<string>("")
+  const [isPollingForLinks, setIsPollingForLinks] = useState(false)
+
+  const hasPendingLinks = (list: Portrait[]) =>
+    list.some(
+      (p) =>
+        !getDisplayUrl(p.landscape_url) || !getDisplayUrl(p.portrait_url),
+    )
 
   useEffect(() => {
     if (!emailFromQuery) return
@@ -111,23 +118,28 @@ function MyPortraitsContent() {
     }
   }
 
-  // When any portrait has no download URLs yet, poll so we pick up the DB row update (same trigger as email).
+  // When any portrait is missing download URLs, poll every 5s until they appear (WF3 writes them asynchronously).
   useEffect(() => {
-    const hasPortraitsWithoutUrls =
-      portraits.length > 0 &&
-      portraits.some(
-        (p) => !getDisplayUrl(p.landscape_url) || !getDisplayUrl(p.portrait_url),
+    if (!portraits.length || !hasPendingLinks(portraits) || !currentLookupEmail) {
+      setIsPollingForLinks(false)
+      return
+    }
+    setIsPollingForLinks(true)
+    const interval = setInterval(async () => {
+      const res = await fetch(
+        `/api/my-portraits?email=${encodeURIComponent(currentLookupEmail)}&t=${Date.now()}`,
+        { cache: "no-store" },
       )
-    if (!hasPortraitsWithoutUrls || !currentLookupEmail) return
-
-    const intervalMs = 4000
-    const maxAttempts = 45 // ~3 minutes
-    let attempts = 0
-    const interval = setInterval(() => {
-      attempts++
-      void handleLookup(currentLookupEmail, { silent: true })
-      if (attempts >= maxAttempts) clearInterval(interval)
-    }, intervalMs)
+      const data = await res.json().catch(() => null)
+      if (!data) return
+      setPortraits(data.portraits ?? [])
+      setPurchases(data.purchases ?? [])
+      setTotalRemaining(typeof data.totalRemaining === "number" ? data.totalRemaining : 0)
+      if (!hasPendingLinks(data.portraits ?? [])) {
+        setIsPollingForLinks(false)
+        clearInterval(interval)
+      }
+    }, 5000)
     return () => clearInterval(interval)
   }, [portraits, currentLookupEmail])
 
@@ -144,6 +156,13 @@ function MyPortraitsContent() {
         <p className="mt-2 text-muted-foreground">
           Enter the email address you used when you ordered.
         </p>
+
+        {isPollingForLinks && (
+          <div className="mb-6 rounded-organic bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground flex items-center gap-2">
+            <span className="text-primary">⏳</span>
+            Your high-res files are being prepared — this page will update automatically.
+          </div>
+        )}
 
         <form
           className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -254,26 +273,27 @@ function MyPortraitsContent() {
                 const portraitValid = !!portraitUrl
                 const imageValid = isValidDownloadUrl(p.image_url)
                 const originalValid = isValidDownloadUrl(p.original_image_url)
-                const previewUrl =
-                  landscapeUrl
+                // Prefer download URLs for thumbnail if they're valid; otherwise use our proxy so Supabase/internal URLs always work
+                const previewImgSrc =
+                  landscapeValid && landscapeUrl
                     ? landscapeUrl
-                    : portraitUrl
+                    : portraitValid && portraitUrl
                       ? portraitUrl
                       : imageValid
                         ? p.image_url!
                         : originalValid
                           ? p.original_image_url!
-                          : null
+                          : `/api/portrait-preview?id=${encodeURIComponent(p.id)}`
                 return (
                   <div
                     key={p.id}
                     className="rounded-organic border border-border bg-card px-4 py-3 text-sm flex gap-4 items-start"
                   >
                     <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-organic-sm overflow-hidden bg-muted border border-border">
-                      {previewUrl ? (
+                      {previewImgSrc ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={previewUrl}
+                          src={previewImgSrc}
                           alt={p.pet_name ? `${p.pet_name} portrait` : "Portrait preview"}
                           className="w-full h-full object-cover"
                         />
@@ -317,21 +337,22 @@ function MyPortraitsContent() {
                           </Button>
                         )}
                         {!landscapeValid && !portraitValid && (
-                          <span className="text-xs text-muted-foreground">
-                            Download links will appear here when ready. If they don&apos;t show after a few minutes,{" "}
-                            <button
-                              type="button"
-                              onClick={() => void handleLookup(currentLookupEmail)}
-                              className="underline hover:text-foreground font-medium"
-                            >
-                              check again
-                            </button>
-                            {" "}or{" "}
-                            <a href="mailto:support@fluffyfriends.online" className="underline hover:text-foreground">
-                              contact us
-                            </a>
-                            {" "}with the email you used and we&apos;ll send you the files.
-                          </span>
+                          <div className="mt-3 rounded-organic bg-muted/40 border border-border p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex gap-1">
+                                {[0, 1, 2].map((i) => (
+                                  <div
+                                    key={i}
+                                    className="h-2 w-2 rounded-full bg-primary animate-bounce"
+                                    style={{ animationDelay: `${i * 150}ms` }}
+                                  />
+                                ))}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Preparing your print-ready files… check your email shortly.
+                              </p>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

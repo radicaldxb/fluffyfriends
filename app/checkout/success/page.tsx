@@ -212,7 +212,8 @@ function SuccessContent() {
             return
           }
           if (data.ok) {
-            router.push(`/my-portraits?email=${encodeURIComponent(email.trim())}`)
+            const emailNorm = email.trim().toLowerCase()
+            router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
             return
           }
         } catch (err) {

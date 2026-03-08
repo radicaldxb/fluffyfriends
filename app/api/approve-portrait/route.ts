@@ -246,10 +246,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Attach user to portrait
+    // Attach user to portrait (user_id for joins; user_email for My Portraits lookup by email)
+    const portraitEmailNorm = (email || "").trim().toLowerCase()
     const { error: portraitUpdateError } = await supabase
       .from("pet_portraits")
-      .update({ user_id: userRow.id })
+      .update({
+        user_id: userRow.id,
+        ...(portraitEmailNorm ? { user_email: portraitEmailNorm } : {}),
+      })
       .eq("id", ctx.portraitId)
 
     if (portraitUpdateError) {
@@ -310,26 +314,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Poll for landscape_url and portrait_url so My Portraits has download links when we redirect (up to 90s)
-    const pollStart = Date.now()
-    const pollIntervalMs = 4000
-    const isUrlReady = (s: unknown) =>
-      typeof s === "string" && s.trim().startsWith("https://")
-
-    while (Date.now() - pollStart < 90_000) {
-      const { data: check } = await supabase
-        .from("pet_portraits")
-        .select("landscape_url, portrait_url")
-        .eq("id", ctx.portraitId)
-        .single()
-
-      if (check && isUrlReady(check.landscape_url) && isUrlReady(check.portrait_url)) {
-        break
-      }
-      await new Promise((r) => setTimeout(r, pollIntervalMs))
-    }
-
-    // Mark portrait completed so it appears in My Portraits (with preview and download links when URLs exist)
+    // Mark portrait completed so it appears in My Portraits (download links will appear when WF3 writes them)
     const { error: statusError } = await supabase
       .from("pet_portraits")
       .update({ status: "completed" })
