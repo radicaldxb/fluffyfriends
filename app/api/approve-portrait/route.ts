@@ -42,6 +42,7 @@ async function resolveSessionContext(sessionId: string) {
 
   const totalCents = typeof session.amount_total === "number" ? session.amount_total : 0
   const currency = session.currency || "usd"
+  const customerEmail = session.customer_details?.email || session.customer_email || ""
 
   return {
     portraitId: effectivePortraitId,
@@ -50,6 +51,7 @@ async function resolveSessionContext(sessionId: string) {
     originalImageUrl: (portraitRow.original_image_url as string | null) || null,
     totalCents,
     currency,
+    customerEmail,
   }
 }
 
@@ -132,6 +134,7 @@ export async function GET(request: NextRequest) {
         pet_name: ctx.petName,
         amount_cents: ctx.totalCents,
         currency: ctx.currency,
+        customer_email: ctx.customerEmail ?? "",
       },
       { status: 200 },
     )

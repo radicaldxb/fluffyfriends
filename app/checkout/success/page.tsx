@@ -127,6 +127,9 @@ function SuccessContent() {
             amountDisplay,
             currency,
           })
+          if (data.customer_email && !email) {
+            setEmail(data.customer_email)
+          }
         }
       } catch (err) {
         if (!cancelled) {
