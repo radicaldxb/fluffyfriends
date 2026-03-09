@@ -58,6 +58,7 @@ function CreatePortraitContent() {
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+    { id: "royal-king", name: "Royal King", previewUrl: "/images/themes/royal-king-preview.webp" },
   ])
   const [theme, setTheme] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
