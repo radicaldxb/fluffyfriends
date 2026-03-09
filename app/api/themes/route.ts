@@ -9,7 +9,7 @@ export async function GET() {
   const themes = [
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
-    { id: "royal-king", name: "Royal King", previewUrl: "/images/themes/royal-king-preview.webp" },
+    { id: "king", name: "King", previewUrl: "/images/themes/king-preview.webp" },
   ]
 
   return NextResponse.json({ themes })
