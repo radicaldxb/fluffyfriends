@@ -50,6 +50,7 @@ function SuccessContent() {
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
   const [userDetailsKnown, setUserDetailsKnown] = useState(false)
   const [loaderStep, setLoaderStep] = useState(0)
+  const [wf3Status, setWf3Status] = useState<"idle" | "waiting" | "ready">("idle")
 
   const LOADER_STEPS = [
     { icon: Palette, text: "Preparing your portrait files…" },
@@ -215,8 +216,32 @@ function SuccessContent() {
             return
           }
           if (data.ok) {
+            setWf3Status("waiting")
             const emailNorm = email.trim().toLowerCase()
-            router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
+            const portraitId = preview.status === "ready" ? preview.portraitId : portraitFromQuery
+            const pollStart = Date.now()
+            const poll = async () => {
+              if (Date.now() - pollStart > 90_000) {
+                router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
+                return
+              }
+              const { data: row } = await supabase
+                .from("pet_portraits")
+                .select("landscape_url")
+                .eq("id", portraitId)
+                .single()
+              if (
+                row?.landscape_url &&
+                typeof row.landscape_url === "string" &&
+                row.landscape_url.startsWith("https://")
+              ) {
+                setWf3Status("ready")
+                router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
+              } else {
+                setTimeout(poll, 4000)
+              }
+            }
+            setTimeout(poll, 4000)
             return
           }
         } catch (err) {
@@ -356,13 +381,17 @@ function SuccessContent() {
                   unoptimized
                 />
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Order total:{" "}
-                <span className="font-medium text-foreground">
-                  {preview.amountDisplay} {preview.currency}
-                </span>
-                . You’ll receive wide and tall print‑ready files plus a print guide.
-              </p>
+              {sessionId ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Order total:{" "}
+                  <strong>{preview.amountDisplay} {preview.currency}</strong>
+                  . You’ll receive wide and tall print‑ready files plus a print guide.
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Using 1 of your portrait pack credits. You’ll receive wide and tall print‑ready files plus a print guide.
+                </p>
+              )}
 
               {!sessionId && userDetailsKnown ? (
                 <div className="mt-8 flex flex-col items-center gap-4">
@@ -372,7 +401,7 @@ function SuccessContent() {
                   {approveError && (
                     <p className="text-sm text-destructive">{approveError}</p>
                   )}
-                  {approveStatus === "submitting" ? (
+                  {approveStatus === "submitting" || wf3Status === "waiting" ? (
                     <div className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
                       <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
                         <div className="flex justify-center mb-3 text-primary transition-all duration-500">
@@ -404,7 +433,7 @@ function SuccessContent() {
                   ) : (
                     <Button
                       onClick={(e) => handleSubmitDetails(e as React.FormEvent)}
-                      disabled={approveStatus === "submitting"}
+                      disabled={approveStatus === "submitting" || wf3Status === "waiting"}
                       className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 h-auto"
                     >
                       Email my portraits →
@@ -546,7 +575,7 @@ function SuccessContent() {
                 )}
 
                 <div className="space-y-2">
-                  {approveStatus === "submitting" ? (
+                  {approveStatus === "submitting" || wf3Status === "waiting" ? (
                     <div className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
                       <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
                         <div className="flex justify-center mb-3 text-primary transition-all duration-500">
@@ -579,7 +608,7 @@ function SuccessContent() {
                     <>
                       <Button
                         type="submit"
-                        disabled={approveStatus === "submitting"}
+                        disabled={approveStatus === "submitting" || wf3Status === "waiting"}
                         className="w-full rounded-organic-sm"
                       >
                         Email my portraits →
