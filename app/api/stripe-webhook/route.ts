@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { getPromptAndNameTagConfig } from "@/lib/theme-prompts"
-import { DEFAULT_NAMETAG_INSTRUCTION } from "@/lib/themes"
 import { getStripeClient } from "@/lib/stripe"
 
 export async function POST(request: NextRequest) {
@@ -66,29 +64,6 @@ export async function POST(request: NextRequest) {
               ""
             ).toLowerCase()
 
-            let prompt = ""
-            try {
-              if (!theme) {
-                console.error("[stripe-webhook] Missing theme on pet_portraits row")
-              } else {
-                const { prompt: basePrompt, hasNameTag, nameTagInstruction } =
-                  await getPromptAndNameTagConfig(theme)
-
-                prompt = basePrompt
-                // Append name-tag instruction if needed
-                if (hasNameTag && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
-                  const appendix = nameTagInstruction ?? DEFAULT_NAMETAG_INSTRUCTION
-                  prompt = `${prompt}\n\n9. NAME PATCH: ${appendix}`
-                }
-
-                // Replace {{PET_NAME}} placeholders
-                const placeholderRegex = /\{\{\s*PET_NAME\s*\}\}/gi
-                prompt = prompt.replace(placeholderRegex, resolvedPetName)
-              }
-            } catch (err) {
-              console.error("[stripe-webhook] Failed to build prompt for order-paid payload:", err)
-            }
-
             const customerEmail =
               session.customer_details?.email ||
               (session.customer_email as string | null) ||
@@ -104,7 +79,6 @@ export async function POST(request: NextRequest) {
               pet_image_url: (portraitRow.original_image_url as string | null) || "",
               pet_name: resolvedPetName,
               theme,
-              prompt,
               order_id: session.id,
               user_email: customerEmail,
               user_first_name: firstName,

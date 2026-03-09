@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
-import { getPromptAndNameTagConfig } from "@/lib/theme-prompts"
-import { DEFAULT_NAMETAG_INSTRUCTION } from "@/lib/themes"
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
@@ -31,20 +29,6 @@ export async function POST(request: NextRequest) {
   const petName = (portrait.pet_name as string) || "My Pet"
   const theme = ((portrait.theme as string) || "").toLowerCase()
 
-  // Build prompt — same logic as stripe-webhook
-  let prompt = ""
-  try {
-    const { prompt: basePrompt, hasNameTag, nameTagInstruction } =
-      await getPromptAndNameTagConfig(theme)
-    prompt = basePrompt
-    if (hasNameTag && !/\{\{\s*PET_NAME\s*\}\}/i.test(prompt)) {
-      prompt = `${prompt}\n\n9. NAME PATCH: ${nameTagInstruction ?? DEFAULT_NAMETAG_INSTRUCTION}`
-    }
-    prompt = prompt.replace(/\{\{\s*PET_NAME\s*\}\}/gi, petName)
-  } catch (err) {
-    console.error("[trigger-generation] Failed to build prompt:", err)
-  }
-
   const orderPaidUrl = process.env.N8N_ORDER_PAID_WEBHOOK_URL || ""
   if (!orderPaidUrl) {
     return NextResponse.json(
@@ -58,7 +42,6 @@ export async function POST(request: NextRequest) {
     pet_image_url: (portrait.original_image_url as string) || "",
     pet_name: petName,
     theme,
-    prompt,
     order_id: `bundle_${portraitId}`,
     user_email: email,
     user_first_name: "",
