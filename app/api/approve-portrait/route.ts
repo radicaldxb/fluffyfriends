@@ -274,10 +274,9 @@ export async function POST(request: NextRequest) {
 
     // Force JPG format so Imagen doesn't receive an .avif file
     const imageUrlForUpscale = ctx.imageUrl
-      ? ctx.imageUrl.replace(
-          /\/upload\//,
-          "/upload/f_jpg/"
-        )
+      ? ctx.imageUrl
+          .replace(/\/upload\/[^/]*\/v/, "/upload/f_jpg,q_100/v")
+          .replace(/\.[^.]+$/, ".jpg")
       : ctx.imageUrl
 
     try {
