@@ -622,7 +622,7 @@ function SuccessContent() {
             <Check className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-            {sessionId ? "Payment received" : "Portrait started! 🎨"}
+            {sessionId ? "Payment received" : "Portrait started!"}
           </h1>
           <p className="mt-2 text-muted-foreground text-pretty">
             {sessionId

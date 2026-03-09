@@ -272,6 +272,14 @@ export async function POST(request: NextRequest) {
       throw new Error("N8N_UPSCALE_AND_EMAIL_WEBHOOK_URL is not configured")
     }
 
+    // Force JPG format so Imagen doesn't receive an .avif file
+    const imageUrlForUpscale = ctx.imageUrl
+      ? ctx.imageUrl.replace(
+          /\/upload\//,
+          "/upload/f_jpg/"
+        )
+      : ctx.imageUrl
+
     try {
       const res = await fetch(upscalerUrl, {
         method: "POST",
@@ -280,7 +288,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           portrait_id: ctx.portraitId,
-          original_image_url: originalImageUrl,
+          original_image_url: imageUrlForUpscale || originalImageUrl,
           avif_url: ctx.imageUrl || null,
           user_email: email,
           user_first_name: fullName.split(" ")[0] || fullName,
