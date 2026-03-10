@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
       .eq("user_id", userRow.id)
       .eq("status", "completed")
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
 
     if (portraitError) {
       return NextResponse.json(
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
     .ilike("user_email", email)
     .eq("status", "completed")
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
 
   for (const p of byEmailRows || []) {
     const id = p.id as string
@@ -113,9 +113,9 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  // Sort merged list by created_at
+  // Sort merged list by created_at (latest first)
   portraitRows.sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   )
 
   const portraits = (portraitRows || []).map((p) => {

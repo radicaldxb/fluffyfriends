@@ -55,7 +55,7 @@ function SuccessContent() {
   const LOADER_STEPS = [
     { icon: Palette, text: "Preparing your portrait files…" },
     { icon: Ruler, text: "Sizing up your wide format print…" },
-    { icon: Frame, text: "Sizing up your tall format print…" },
+    { icon: Frame, text: "Sizing up your portrait format print…" },
     { icon: Mail, text: "Addressing your email…" },
     { icon: Paperclip, text: "Attaching both print files…" },
     { icon: Send, text: "Sending your email now…" },
@@ -357,8 +357,7 @@ function SuccessContent() {
     return (
       <main className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <SketchDivider />
-        <section className="mx-auto w-full max-w-7xl px-4 py-14 md:py-20 sm:px-6">
+        <section className="mx-auto w-full max-w-7xl px-4 py-10 md:py-16 sm:px-6">
           <div className="mx-auto max-w-xl">
             <p className="text-sm font-medium uppercase tracking-widest text-primary mb-1">
               Step 3 · Preview & details
@@ -366,12 +365,8 @@ function SuccessContent() {
             <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               Does this look like {preview.petName}?
             </h2>
-            <p className="mt-2 text-muted-foreground text-pretty">
-              Take a close look. When you’re happy, fill in your details below and we’ll send your
-              print‑ready files straight to your inbox.
-            </p>
 
-            <div className="mt-6 rounded-organic border border-border bg-card p-5">
+            <div className="mt-4 rounded-organic border border-border bg-card p-5">
               <div className="relative aspect-video w-full overflow-hidden rounded-organic-sm bg-muted">
                 <Image
                   src={`/api/portrait-preview?id=${encodeURIComponent(preview.portraitId)}`}
@@ -385,11 +380,11 @@ function SuccessContent() {
                 <p className="mt-3 text-sm text-muted-foreground">
                   Order total:{" "}
                   <strong>{preview.amountDisplay} {preview.currency}</strong>
-                  . You’ll receive wide and tall print‑ready files plus a print guide.
+                  . You’ll receive wide and portrait print‑ready files plus a print guide.
                 </p>
               ) : (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Using 1 of your portrait pack credits. You’ll receive wide and tall print‑ready files plus a print guide.
+                  Using 1 of your portrait pack credits. You’ll receive wide and portrait print‑ready files plus a print guide.
                 </p>
               )}
 

@@ -273,6 +273,12 @@ function MyPortraitsContent() {
                 const portraitValid = !!portraitUrl
                 const imageValid = isValidDownloadUrl(p.image_url)
                 const originalValid = isValidDownloadUrl(p.original_image_url)
+                const createdAt = new Date(p.created_at)
+                const createdLabel = createdAt.toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
                 // Prefer download URLs for thumbnail if they're valid; otherwise use our proxy so Supabase/internal URLs always work
                 const previewImgSrc =
                   landscapeValid && landscapeUrl
@@ -314,6 +320,9 @@ function MyPortraitsContent() {
                           </span>
                         )}
                       </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Created {createdLabel}
+                      </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         {landscapeValid && landscapeUrl && (
                           <Button
@@ -332,7 +341,7 @@ function MyPortraitsContent() {
                             className="rounded-organic-sm px-3 py-1 text-xs"
                           >
                             <a href={portraitUrl} target="_blank" rel="noreferrer">
-                              Download tall
+                              Download portrait
                             </a>
                           </Button>
                         )}
