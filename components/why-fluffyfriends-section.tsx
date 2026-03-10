@@ -11,7 +11,7 @@ const features = [
   {
     icon: LayoutGrid,
     title: "Two formats, always included",
-    copy: "Wide format for a mantle, console table, or wide frame. Tall format for a staircase, hallway, or narrow wall. Both included in every order, at every price. Most services charge extra. We don't.",
+    copy: "Wide format for a mantle, console table, or wide frame. Portrait format for a staircase, hallway, or narrow wall. Both included in every order, at every price. Most services charge extra. We don't.",
   },
   {
     icon: BookOpen,
@@ -26,7 +26,7 @@ const features = [
   {
     icon: Ticket,
     title: "Credits that work your way",
-    copy: "One credit, one portrait. Use them however you like — four themes for one pet, or one portrait each for all four of your pets. Credits never expire and never go to waste.",
+    copy: "One credit, one portrait. Use them however you like — four themes for one pet, or one portrait each for all four of your pets.",
   },
 ]
 

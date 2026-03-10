@@ -36,7 +36,6 @@ const plans = [
       "A1 print quality",
       "Free print guide",
       "Personal print rights",
-      "Credits never expire",
     ],
     cta: "Get the Portrait Pack",
     featured: true,
@@ -57,7 +56,6 @@ const plans = [
       "A1 print quality",
       "Free print guide",
       "Personal print rights",
-      "Credits never expire",
       "Beautiful as a gift set",
     ],
     cta: "Get the Family Pack",
@@ -78,7 +76,7 @@ export function PricingSection() {
             Transparent pricing. No surprises. Ever.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            One credit, one portrait. Use them however you like — one pet, many themes, or one theme for all your pets. Credits never expire.
+            One credit, one portrait. Use them however you like — one pet, many themes, or one theme for all your pets.
           </p>
           <p className="mt-2 text-sm font-medium text-foreground">
             Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
@@ -90,7 +88,7 @@ export function PricingSection() {
 
         {/* Credit explainer — above cards */}
         <p className="mt-10 text-center text-sm text-muted-foreground">
-          🎟️ 1 credit = 1 portrait · Mix and match any way you like · Credits never expire
+          1 credit = 1 portrait · Mix and match any way you like
         </p>
 
         {/* Cards */}

@@ -30,7 +30,7 @@ export function GiftWaitlist() {
   return (
     <div className="flex flex-col items-center gap-3 mt-2">
       <p className="text-sm text-muted-foreground">
-        🎁 Gift portraits are coming soon — be the first to know.
+        Gift portraits are coming soon — be the first to know.
       </p>
       <div className="flex gap-2 w-full max-w-sm">
         <input

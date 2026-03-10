@@ -294,7 +294,7 @@ function SuccessContent() {
                   className="w-full rounded-organic-sm sm:w-auto"
                 >
                   <a href={downloadLinks.portraitUrl} target="_blank" rel="noreferrer">
-                    Download Tall Format →
+                    Download Portrait Format →
                   </a>
                 </Button>
               </div>

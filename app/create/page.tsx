@@ -57,7 +57,7 @@ function CreatePortraitContent() {
   const emailFromQuery = searchParams.get("email")?.trim() || ""
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
-    { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+    { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
     { id: "king", name: "King", previewUrl: "/images/themes/king-preview.webp" },
   ])
   const [theme, setTheme] = useState<string | null>(null)

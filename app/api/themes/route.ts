@@ -8,7 +8,7 @@ import { NextResponse } from "next/server"
 export async function GET() {
   const themes = [
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
-    { id: "spaceman", name: "Spaceman", previewUrl: "/images/themes/spaceman-preview.webp" },
+    { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
     { id: "king", name: "King", previewUrl: "/images/themes/king-preview.webp" },
   ]
 
