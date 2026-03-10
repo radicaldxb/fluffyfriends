@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono, Nunito } from "next/font/google"
 import "./globals.css"
+import { ScrollToTop } from "@/components/scroll-to-top"
+import EnvBanner from "@/components/env-banner"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -45,7 +47,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
+        <ScrollToTop />
         {children}
+        <EnvBanner />
       </body>
     </html>
   )

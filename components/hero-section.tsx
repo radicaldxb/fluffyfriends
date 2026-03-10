@@ -58,19 +58,22 @@ export function HeroSection() {
               </Button>
             </div>
             {/* Trust strip – from copy doc */}
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            <div className="mt-6 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-3 max-w-xl">
               {["From $17, one-time", "No subscription", "Two formats included", "Happiness guarantee"].map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1.5"
-                >
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
+                <div key={t} className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
                     ✓
                   </span>
                   <span className="font-semibold text-foreground">{t}</span>
-                </span>
+                </div>
               ))}
             </div>
+            <p className="mt-6 text-sm text-muted-foreground text-center lg:text-left">
+              Already have a portrait pack?{" "}
+              <Link href="/my-portraits" className="underline hover:text-foreground">
+                Access my portraits →
+              </Link>
+            </p>
           </div>
 
           {/* Right – Before / After card, styled like redesign */}

@@ -21,3 +21,17 @@
 # IMPORTANT: Also add these in Netlify UI for reliability:
 # Site settings → Build & deploy → Environment variables
 # UI vars override netlify.toml and are more reliable
+
+# Production context — branch: dev
+[context.production]
+  command = "npm run build"
+
+# Staging context — branch deploys (e.g. staging)
+[context.branch-deploy]
+  command = "npm run build"
+
+# Block staging from search engines
+[[context.branch-deploy.headers]]
+  for = "/*"
+  [context.branch-deploy.headers.values]
+    X-Robots-Tag = "noindex, nofollow"

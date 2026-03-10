@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { SketchDivider } from "@/components/sketch-divider"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
@@ -668,9 +667,6 @@ function SuccessContent() {
                   />
                 </div>
               </div>
-              <p className="mt-6 text-sm text-muted-foreground max-w-md mx-auto">
-                Our studio is rendering your artwork. This usually takes a minute or two.
-              </p>
               {preview.status === "loading" &&
                 typeof (preview as { attempt?: number }).attempt === "number" &&
                 (preview as { attempt: number }).attempt >= 10 && (

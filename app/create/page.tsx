@@ -7,7 +7,6 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
@@ -45,7 +44,6 @@ function CreatePageFallback() {
           </div>
         </div>
       </section>
-      <SketchDivider />
       <Footer />
     </main>
   )
@@ -817,8 +815,6 @@ function CreatePortraitContent() {
           )}
         </div>
       </section>
-
-      <SketchDivider />
       <Footer />
     </main>
   )
