@@ -35,7 +35,7 @@ Webhook receives the payload above; **body.prompt** is the final prompt for Gemi
 
 ## Testing: use the deployed Netlify site
 
-To test the full flow without confusion, **use your live site** (e.g. `https://fluffyfriends-dev.netlify.app`):
+To test the full flow without confusion, **use your live site** (e.g. `https://fluffyfriends.online`):
 
 1. **Create a portrait:** open `https://your-site.netlify.app/create`, upload a photo, submit. The request goes from Netlify → n8n webhook.
 2. **Test n8n / quick checks:** open `https://your-site.netlify.app/test-n8n` (Upload and run n8n, or Full flow with URL). Same: trigger runs from Netlify.

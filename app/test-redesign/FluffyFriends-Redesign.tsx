@@ -97,7 +97,7 @@ function Hero() {
           <div className="relative w-full max-w-md">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-[#1A120830] aspect-[4/5] bg-[#2A1F0E]">
               <img
-                src="https://fluffyfriends-dev.netlify.app/gallery/jimmy-fireman.jpg"
+                src={`${process.env.NEXT_PUBLIC_SITE_URL || ""}/gallery/jimmy-fireman.jpg`}
                 alt="Jimmy the fireman portrait"
                 className="w-full h-full object-cover"
               />

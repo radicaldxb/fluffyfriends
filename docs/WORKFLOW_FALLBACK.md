@@ -38,7 +38,7 @@ If the workflow in n8n is broken or lost:
 ## What this workflow expects
 
 - **App:** POST to `N8N_WEBHOOK_URL` with JSON `{ test_image, pet_name, name }`. The app uses `N8N_WEBHOOK_URL` for `/create` and the full flow.
-- **n8n:** Fetches image from `test_image`, runs style branch (Edit Fields → Download file → Master_Fireman) and pet branch (HTTP Request → Extract from File), merges, calls GEMINI, then POSTs to `https://fluffyfriends-dev.netlify.app/api/receive-n8n-image` with `image_base64`, `pet_name`, `original_image_url` (use `test_image`), `status`.
+- **n8n:** Fetches image from `test_image`, runs style branch (Edit Fields → Download file → Master_Fireman) and pet branch (HTTP Request → Extract from File), merges, calls GEMINI, then POSTs to `https://fluffyfriends.online/api/receive-n8n-image` with `image_base64`, `pet_name`, `original_image_url` (use `test_image`), `status`.
 - **Supabase:** Table `pet_portraits` with `original_image_url` column; storage bucket `images` with `generated/` (and `uploads/` for app uploads). See `supabase/run-*.sql` and `docs/CREATE_PORTRAIT_FLOW.md`.
 
 ---

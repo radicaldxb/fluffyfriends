@@ -388,7 +388,7 @@ These updates sit on top of the Feb 24 baseline and are now the **current produc
        - `email`, `firstName`, `country`, `state`, `city`,
        - `portraits` array,
        - simple HTML `portraitsHtml` list,
-       - `orderUrl = https://fluffyfriends-dev.netlify.app/my-portraits?order={orderId}`.
+       - `orderUrl = https://fluffyfriends.online/my-portraits?order={orderId}`.
   3. **Email** (`Send order email`):
      - **To:** `{{$json.email}}`.
      - Subject/body use `firstName`, `amountDisplay`, `portraitsHtml`, and `orderUrl`.

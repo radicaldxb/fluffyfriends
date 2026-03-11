@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
       },
       success_url: successUrl,
       cancel_url: `${siteUrl}/create`,
+      allow_promotion_codes: true,
     })
 
     if (!session.url) {
