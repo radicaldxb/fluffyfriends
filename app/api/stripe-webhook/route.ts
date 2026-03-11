@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
               pet_image_url: (portraitRow.original_image_url as string | null) || "",
               pet_name: resolvedPetName,
               theme,
-              order_id: paymentIntentId || session.id,
+              order_id: paymentIntentId,
               payment_intent_id: paymentIntentId,
               user_email: customerEmail,
               user_first_name: firstName,
