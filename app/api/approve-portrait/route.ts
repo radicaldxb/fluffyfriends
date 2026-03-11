@@ -154,6 +154,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sessionId =
       typeof body.session_id === "string" ? body.session_id.trim() : ""
+    const paymentIntentId =
+      typeof body.payment_intent_id === "string" ? body.payment_intent_id.trim() : ""
     const email = typeof body.email === "string" ? body.email.trim() : ""
     const fullName = typeof body.full_name === "string" ? body.full_name.trim() : ""
     const city = typeof body.city === "string" ? body.city.trim() : ""
@@ -293,6 +295,7 @@ export async function POST(request: NextRequest) {
           user_first_name: fullName.split(" ")[0] || fullName,
           total_cents: ctx.totalCents,
           currency: ctx.currency,
+          payment_intent_id: paymentIntentId || null,
         }),
       })
 
