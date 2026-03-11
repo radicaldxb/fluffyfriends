@@ -43,6 +43,8 @@ export async function POST(request: NextRequest) {
       : portraitIdRaw
     const themeFromBody =
       typeof body.theme === "string" ? body.theme.trim().toLowerCase() : ""
+    const promotionCodeId =
+      typeof body.promotionCodeId === "string" ? body.promotionCodeId.trim() : ""
 
     if (!productId || !portraitId) {
       return NextResponse.json(
@@ -65,6 +67,17 @@ export async function POST(request: NextRequest) {
     // Create Stripe Checkout Session only – orders are created in the Stripe webhook
     const stripe = getStripeClient(stripeSecret)
     const siteUrl = getSiteUrl(rawSiteUrl)
+
+    if (!/^https?:\/\//.test(siteUrl)) {
+      console.error("[create-checkout] Invalid SITE URL configuration:", { rawSiteUrl, siteUrl })
+      return NextResponse.json(
+        {
+          error:
+            "Server configuration error: NEXT_PUBLIC_SITE_URL (or SITE_URL) must include http(s):// and a domain.",
+        },
+        { status: 500 },
+      )
+    }
 
     const successUrl = `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&portrait=${encodeURIComponent(
       portraitId,
@@ -93,7 +106,12 @@ export async function POST(request: NextRequest) {
       },
       success_url: successUrl,
       cancel_url: `${siteUrl}/create`,
-      allow_promotion_codes: true,
+      // If a validated promotion code is provided from our own UI, attach it as an explicit discount
+      // and disable arbitrary codes inside Stripe Checkout. Otherwise, allow promotion codes there.
+      allow_promotion_codes: !promotionCodeId,
+      ...(promotionCodeId && {
+        discounts: [{ promotion_code: promotionCodeId }],
+      }),
     })
 
     if (!session.url) {

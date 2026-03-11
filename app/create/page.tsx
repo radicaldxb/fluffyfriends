@@ -78,6 +78,10 @@ function CreatePortraitContent() {
   const [selectedProductId, setSelectedProductId] = useState<ProductId>("portrait_pack")
   const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
   const [checkoutError, setCheckoutError] = useState("")
+  const [voucherCode, setVoucherCode] = useState("")
+  const [voucherStatus, setVoucherStatus] = useState<"idle" | "valid" | "invalid" | "loading">("idle")
+  const [voucherMessage, setVoucherMessage] = useState("")
+  const [promotionCodeId, setPromotionCodeId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
 
@@ -279,6 +283,47 @@ function CreatePortraitContent() {
   const theirOrName = petNameDisplay ? `${petNameDisplay}'s` : "their"
   const pageTitle = petNameDisplay ? `Create ${petNameDisplay}'s portrait` : "Create your portrait"
   const cleanedRejectionMessage = cleanValidatorMessage(message)
+
+  async function handleApplyVoucher() {
+    const code = voucherCode.trim()
+    if (!code) {
+      setVoucherStatus("invalid")
+      setVoucherMessage("Please enter a code.")
+      setPromotionCodeId(null)
+      return
+    }
+    setVoucherStatus("loading")
+    setVoucherMessage("")
+    setPromotionCodeId(null)
+    try {
+      const res = await fetch("/api/validate-voucher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.valid) {
+        setVoucherStatus("invalid")
+        setVoucherMessage(
+          typeof data.error === "string" && data.error ? data.error : "This code is not valid",
+        )
+        setPromotionCodeId(null)
+        return
+      }
+      setVoucherStatus("valid")
+      setPromotionCodeId(typeof data.promotionCodeId === "string" ? data.promotionCodeId : null)
+      const appliedCode = (data.code as string | undefined) ?? code.toUpperCase()
+      const discountText =
+        typeof data.discountText === "string" && data.discountText
+          ? data.discountText
+          : "discount applied"
+      setVoucherMessage(`✓ ${appliedCode} applied — ${discountText}`)
+    } catch {
+      setVoucherStatus("invalid")
+      setVoucherMessage("We couldn't validate this code. Please try again.")
+      setPromotionCodeId(null)
+    }
+  }
 
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
@@ -764,6 +809,55 @@ function CreatePortraitContent() {
                     <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
                   )}
 
+                  {/* Voucher code input */}
+                  <div className="mt-6 w-full max-w-xl text-left">
+                    <div className="rounded-organic-sm border border-border bg-muted/30 px-4 py-3">
+                      <p className="text-sm font-medium text-foreground">Have a discount code?</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Enter it here before continuing to payment.
+                      </p>
+                      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <input
+                          type="text"
+                          value={voucherCode}
+                          onChange={(e) => {
+                            setVoucherCode(e.target.value)
+                            if (voucherStatus !== "idle") {
+                              setVoucherStatus("idle")
+                              setVoucherMessage("")
+                              setPromotionCodeId(null)
+                            }
+                          }}
+                          placeholder="Enter discount code"
+                          className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={voucherStatus === "loading"}
+                          onClick={handleApplyVoucher}
+                          className="mt-1 inline-flex items-center justify-center rounded-organic-sm px-4 py-2 text-sm font-semibold sm:mt-0"
+                        >
+                          {voucherStatus === "loading" ? "Checking…" : "Apply"}
+                        </Button>
+                      </div>
+                      {voucherMessage && (
+                        <p
+                          className={cn(
+                            "mt-2 text-xs",
+                            voucherStatus === "valid"
+                              ? "text-emerald-600"
+                              : voucherStatus === "invalid"
+                                ? "text-destructive"
+                                : "text-muted-foreground",
+                          )}
+                        >
+                          {voucherMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="mt-6 flex flex-col items-center gap-3">
                     <Button
                       onClick={async () => {
@@ -779,6 +873,7 @@ function CreatePortraitContent() {
                               product_id: selectedProductId,
                               portrait_id: resultPortraitId,
                               ...(theme && { theme }),
+                              ...(promotionCodeId && { promotionCodeId }),
                             }),
                           })
                           const data = await res.json().catch(() => ({}))

@@ -303,6 +303,21 @@ function SuccessContent() {
                 Download links will appear here when ready. If they don't show after a few minutes, contact us and we'll send you the files.
               </p>
             )}
+            {/* Loyalty reward section */}
+            <div className="mt-10 rounded-organic border border-primary/30 bg-primary/5 px-5 py-6 text-left">
+              <h3 className="text-base font-bold text-foreground">
+                🎁 Your loyalty reward
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Use this code on your next order for 15% off:
+              </p>
+              <div className="mt-3 inline-flex items-center justify-center rounded-organic-sm bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold tracking-wide">
+                WELCOME15
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Share it with a friend too — valid on any FluffyFriends portrait package.
+              </p>
+            </div>
             {typeof portraitsRemaining === "number" && portraitsRemaining > 0 && (
               <div className="mt-8 rounded-organic border border-primary/30 bg-primary/5 p-5 text-center">
                 <p className="text-sm font-medium text-foreground">
