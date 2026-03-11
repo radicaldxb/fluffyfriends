@@ -74,12 +74,20 @@ export async function POST(request: NextRequest) {
             const totalCents =
               typeof session.amount_total === "number" ? session.amount_total : null
 
+            const paymentIntentId =
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : session.payment_intent && typeof session.payment_intent === "object"
+                  ? session.payment_intent.id
+                  : null
+
             const payload = {
               portrait_id: portraitRow.id,
               pet_image_url: (portraitRow.original_image_url as string | null) || "",
               pet_name: resolvedPetName,
               theme,
-              order_id: session.id,
+              order_id: paymentIntentId || session.id,
+              payment_intent_id: paymentIntentId,
               user_email: customerEmail,
               user_first_name: firstName,
               total_cents: totalCents,

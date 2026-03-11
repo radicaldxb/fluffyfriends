@@ -12,6 +12,7 @@ const navLinks = [
   { label: "Reviews", href: "/#reviews" },
   { label: "Gift", href: "/#gifts" },
   { label: "My Portraits", href: "/my-portraits" },
+  { label: "Support", href: "/support" },
 ]
 
 export function Navbar() {

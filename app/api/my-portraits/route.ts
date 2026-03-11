@@ -57,12 +57,13 @@ export async function GET(request: NextRequest) {
     landscape_url: string | null
     portrait_url: string | null
     created_at: string
+    payment_intent_id?: string | null
   }> = []
 
   if (userRow?.id) {
     const { data: byUserId, error: portraitError } = await supabase
       .from("pet_portraits")
-      .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
+      .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status, payment_intent_id")
       .eq("user_id", userRow.id)
       .eq("status", "completed")
       .order("created_at", { ascending: false })
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
       landscape_url: p.landscape_url != null ? String(p.landscape_url).trim() : null,
       portrait_url: p.portrait_url != null ? String(p.portrait_url).trim() : null,
       created_at: p.created_at,
+      payment_intent_id: (p as any).payment_intent_id ?? null,
     })).filter((p) => {
       if (seenIds.has(p.id)) return false
       seenIds.add(p.id)
@@ -92,7 +94,7 @@ export async function GET(request: NextRequest) {
   // Fallback: portraits by user_email (e.g. set by Stripe/n8n before user_id) so we don't miss any
   const { data: byEmailRows } = await supabase
     .from("pet_portraits")
-    .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status")
+    .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status, payment_intent_id")
     .ilike("user_email", email)
     .eq("status", "completed")
     .order("created_at", { ascending: false })
@@ -110,6 +112,7 @@ export async function GET(request: NextRequest) {
       landscape_url: p.landscape_url != null ? String(p.landscape_url).trim() : null,
       portrait_url: p.portrait_url != null ? String(p.portrait_url).trim() : null,
       created_at: p.created_at,
+      payment_intent_id: (p as any).payment_intent_id ?? null,
     })
   }
 
@@ -130,6 +133,7 @@ export async function GET(request: NextRequest) {
       landscape_url: rawLandscape || null,
       portrait_url: rawPortrait || null,
       created_at: p.created_at,
+      order_reference: p.payment_intent_id ?? null,
     }
   })
 

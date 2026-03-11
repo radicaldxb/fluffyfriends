@@ -28,6 +28,7 @@ type Portrait = {
   landscape_url: string | null
   portrait_url: string | null
   created_at: string
+  order_reference?: string | null
 }
 
 function MyPortraitsFallback() {
@@ -323,6 +324,14 @@ function MyPortraitsContent() {
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         Created {createdLabel}
                       </p>
+                      {p.order_reference && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          Order reference:{" "}
+                          <span className="font-mono">
+                            {p.order_reference}
+                          </span>
+                        </p>
+                      )}
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         {landscapeValid && landscapeUrl && (
                           <Button

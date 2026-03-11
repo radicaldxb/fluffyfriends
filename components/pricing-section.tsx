@@ -5,7 +5,7 @@ const plans = [
     name: "Starter",
     price: "$17",
     priceNote: "one-time",
-    credits: "1 credit",
+    credits: "1 portrait",
     tagline: "Try it once. We think you'll come back.",
     badge: null as string | null,
     saving: null as string | null,
@@ -24,7 +24,7 @@ const plans = [
     name: "Portrait Pack",
     price: "$49",
     priceNote: "one-time",
-    credits: "4 credits",
+    credits: "4 portraits",
     tagline: "Four portraits. Your choice of pets, your choice of themes.",
     badge: "Most Popular",
     saving: "Worth $68 — you save $19",
@@ -44,7 +44,7 @@ const plans = [
     name: "Family Pack",
     price: "$79",
     priceNote: "one-time",
-    credits: "8 credits",
+    credits: "8 portraits",
     tagline: "Eight portraits for the whole family. Every pet. Every theme.",
     badge: "Best Value",
     saving: "Worth $136 — you save $57",
@@ -87,8 +87,8 @@ export function PricingSection() {
         </div>
 
         {/* Credit explainer — above cards */}
-        <p className="mt-10 text-center text-sm text-muted-foreground">
-          1 credit = 1 portrait · Mix and match any way you like
+          <p className="mt-10 text-center text-sm text-muted-foreground">
+          1 portrait = 1 artwork · Mix and match any way you like
         </p>
 
         {/* Cards */}

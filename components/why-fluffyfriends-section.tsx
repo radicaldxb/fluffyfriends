@@ -25,8 +25,8 @@ const features = [
   },
   {
     icon: Ticket,
-    title: "Credits that work your way",
-    copy: "One credit, one portrait. Use them however you like — four themes for one pet, or one portrait each for all four of your pets.",
+    title: "Portraits that work your way",
+    copy: "One portrait, one artwork. Use them however you like — four themes for one pet, or one portrait each for all four of your pets.",
   },
 ]
 
@@ -37,7 +37,7 @@ const comparisonRows = [
   { feature: "A1 print quality", fluffy: true, others: "Rarely" },
   { feature: "One photo needed", fluffy: true, others: "Up to 15" },
   { feature: "Ready in minutes", fluffy: true, others: "Up to 1 hour" },
-  { feature: "Flexible credits", fluffy: true, others: false },
+  { feature: "Flexible portraits", fluffy: true, others: false },
   { feature: "No subscription", fluffy: true, others: "Often required" },
 ]
 

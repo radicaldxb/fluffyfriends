@@ -57,8 +57,8 @@ export function HeroSection() {
                 <Link href="#gallery">See real portraits</Link>
               </Button>
             </div>
-            {/* Trust strip – from copy doc */}
-            <div className="mt-6 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-3 max-w-xl">
+            {/* Trust strip – arranged in two neat columns on desktop */}
+            <div className="mt-6 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 max-w-xl">
               {["From $17, one-time", "No subscription", "Two formats included", "Happiness guarantee"].map((t) => (
                 <div key={t} className="inline-flex items-center gap-1.5">
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
