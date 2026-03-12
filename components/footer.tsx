@@ -15,8 +15,9 @@ export function Footer() {
         </a>
 
         <nav className="flex flex-wrap justify-center gap-x-6 gap-y-1">
-          <a href="/privacy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</a>
+          <a href="/faq" className="text-sm text-muted-foreground transition-colors hover:text-foreground">FAQ</a>
           <a href="/terms" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Terms of Service</a>
+          <a href="/privacy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</a>
           <a href="/support" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Support</a>
           <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Instagram</a>
         </nav>
