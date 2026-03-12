@@ -10,3 +10,17 @@ FluffyFriends Design System (Cursor Guidance)
   - `Navbar` at the top, `<main className="min-h-screen bg-background">` in the middle, `Footer` at the bottom.
   - Section padding: `py-14 md:py-20`, container: `max-w-7xl mx-auto px-4 sm:px-6`.
   - Use `<SketchDivider />` between major sections instead of plain rules.
+
+Database Safety Rules
+
+- NEVER modify the database directly. Do not write or run any SQL migrations, seed scripts, or database queries that INSERT, UPDATE, DELETE, or DROP data in any table.
+- Specifically, NEVER touch these tables under any circumstances:
+  - theme_prompts
+  - portrait_purchases
+  - pet_portraits
+  - support_tickets
+  - orders
+  - order_items
+  - users
+- If a task requires database changes, output the SQL as a code block in a markdown file for manual review. Do not execute it.
+- All database schema changes must go through Supabase SQL Editor manually by the developer.
