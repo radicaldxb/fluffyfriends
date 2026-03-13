@@ -338,7 +338,7 @@ function MyPortraitsContent() {
                         <p className="mt-0.5 text-[11px] text-muted-foreground">
                           Order reference:{" "}
                           <span className="font-mono">
-                            {p.order_reference}
+                            {p.order_reference.slice(-7).toUpperCase()}
                           </span>
                         </p>
                       )}

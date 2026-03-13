@@ -46,6 +46,11 @@ export default function RootLayout({
       className={`${geist.variable} ${geistMono.variable} ${nunito.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {process.env.NEXT_PUBLIC_ENV === "staging" && (
+          <meta name="robots" content="noindex, nofollow" />
+        )}
+      </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         <ScrollToTop />
         {children}

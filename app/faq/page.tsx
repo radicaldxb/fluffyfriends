@@ -30,14 +30,6 @@ const faqs = [
     ],
   },
   {
-    id: "about-4",
-    category: "About FluffyFriends",
-    question: "Who makes FluffyFriends?",
-    answer: [
-      "FluffyFriends is built and operated by Radical Thinking, an AI-native creative agency based in Dubai, UAE. We've been building digital products since 2014.",
-    ],
-  },
-  {
     id: "portrait-1",
     category: "The Portrait",
     question: "What themes are available?",
