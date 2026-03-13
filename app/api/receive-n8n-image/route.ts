@@ -43,18 +43,6 @@ export async function POST(request: NextRequest) {
     // In this case we update the existing pet_portraits row directly by id and
     // do not try to match by original_image_url or upload anything to Storage.
     if (portraitId) {
-      console.log(
-        "[receive-n8n-image] portrait_id payload",
-        JSON.stringify({
-          portrait_id: portraitId,
-          has_image_url: typeof body.image_url === "string" && !!(body.image_url as string).trim(),
-          has_gemini_image_url:
-            typeof body.gemini_image_url === "string" &&
-            !!(body.gemini_image_url as string).trim(),
-          status: typeof body.status === "string" ? (body.status as string).trim() : undefined,
-          keys: Object.keys(body),
-        }),
-      )
       const avifUrl =
         typeof body.image_url === "string" ? (body.image_url as string).trim() : ""
       const geminiImageUrl =
@@ -64,6 +52,10 @@ export async function POST(request: NextRequest) {
       const statusFromBody =
         typeof body.status === "string" ? (body.status as string).trim() : ""
       const status = statusFromBody || "preview"
+      const paymentIntentId =
+        typeof body.payment_intent_id === "string"
+          ? (body.payment_intent_id as string).trim()
+          : ""
 
       const updatePayload: Record<string, unknown> = {
         status,
@@ -73,6 +65,9 @@ export async function POST(request: NextRequest) {
       }
       if (geminiImageUrl) {
         updatePayload.original_image_url = geminiImageUrl
+      }
+      if (paymentIntentId) {
+        updatePayload.payment_intent_id = paymentIntentId
       }
 
       const { error: updateError } = await supabase
