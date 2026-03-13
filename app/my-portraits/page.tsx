@@ -17,6 +17,7 @@ type Purchase = {
   portraits_used: number
   portraits_remaining: number
   created_at: string
+  order_id?: string | null
 }
 
 type Portrait = {
@@ -237,14 +238,23 @@ function MyPortraitsContent() {
                         {label} — {used}/{p.portraits_total} portraits used
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        purchased {displayDate}
+                        Purchased {displayDate} {purchasedDate.getFullYear()}
                       </span>
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Order ID:{" "}
+                      <span className="font-mono">
+                        {p.order_id || "NULL"}
+                      </span>
+                    </p>
                     {p.portraits_remaining > 0 && (
                       <div className="mt-4 flex flex-col gap-2">
                         <p className="text-sm font-semibold text-foreground">
                           You have{" "}
-                          <span className="text-primary">{p.portraits_remaining} portrait{p.portraits_remaining !== 1 ? "s" : ""} remaining</span>{" "}
+                          <span className="text-primary">
+                            {p.portraits_remaining} portrait
+                            {p.portraits_remaining !== 1 ? "s" : ""} remaining
+                          </span>{" "}
                           in this pack.
                         </p>
                         <Button asChild className="rounded-organic-sm w-full sm:w-auto">
