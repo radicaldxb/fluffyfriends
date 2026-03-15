@@ -30,6 +30,7 @@ type Portrait = {
   portrait_url: string | null
   created_at: string
   order_reference?: string | null
+  status?: string | null
 }
 
 /** Show only last 7 characters of order ID/reference (e.g. Stripe session ID). */
@@ -71,6 +72,7 @@ function MyPortraitsContent() {
   const [hasSearched, setHasSearched] = useState(false)
   const [currentLookupEmail, setCurrentLookupEmail] = useState<string>("")
   const [isPollingForLinks, setIsPollingForLinks] = useState(false)
+  const [pollingTimedOut, setPollingTimedOut] = useState(false)
 
   const hasPendingLinks = (list: Portrait[]) =>
     list.some(
@@ -114,6 +116,7 @@ function MyPortraitsContent() {
       setPurchases(data.purchases || [])
       setTotalRemaining(typeof data.totalRemaining === "number" ? data.totalRemaining : 0)
       setPortraits(data.portraits || [])
+      setPollingTimedOut(false)
     } catch (err) {
       if (!options?.silent) {
         setError(
@@ -127,14 +130,23 @@ function MyPortraitsContent() {
     }
   }
 
-  // When any portrait is missing download URLs, poll every 5s until they appear (WF3 writes them asynchronously).
+  // When any portrait is missing download URLs, poll every 5s until they appear (WF3 writes them asynchronously). Stop after 10 minutes.
   useEffect(() => {
     if (!portraits.length || !hasPendingLinks(portraits) || !currentLookupEmail) {
       setIsPollingForLinks(false)
       return
     }
     setIsPollingForLinks(true)
+    setPollingTimedOut(false)
+    let attempts = 0
     const interval = setInterval(async () => {
+      attempts += 1
+      if (attempts >= 120) {
+        setPollingTimedOut(true)
+        setIsPollingForLinks(false)
+        clearInterval(interval)
+        return
+      }
       const res = await fetch(
         `/api/my-portraits?email=${encodeURIComponent(currentLookupEmail)}&t=${Date.now()}`,
         { cache: "no-store" },
@@ -166,7 +178,12 @@ function MyPortraitsContent() {
           Enter the email address you used when you ordered.
         </p>
 
-        {isPollingForLinks && (
+        {pollingTimedOut && (
+          <div className="mb-6 rounded-organic bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-foreground">
+            This is taking longer than expected. Please check back in a few minutes or contact us at hello@fluffyfriends.online
+          </div>
+        )}
+        {isPollingForLinks && !pollingTimedOut && (
           <div className="mb-6 rounded-organic bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground flex items-center gap-2">
             <span className="text-primary">⏳</span>
             Your high-res files are being prepared — this page will update automatically.
@@ -368,22 +385,55 @@ function MyPortraitsContent() {
                           </Button>
                         )}
                         {!landscapeValid && !portraitValid && (
-                          <div className="mt-3 rounded-organic bg-muted/40 border border-border p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="flex gap-1">
-                                {[0, 1, 2].map((i) => (
-                                  <div
-                                    key={i}
-                                    className="h-2 w-2 rounded-full bg-primary animate-bounce"
-                                    style={{ animationDelay: `${i * 150}ms` }}
-                                  />
-                                ))}
+                          <>
+                            {p.status === "upscale_failed" ? (
+                              <div className="mt-3 rounded-organic bg-amber-500/10 border border-amber-500/30 p-4">
+                                <p className="text-sm text-foreground">
+                                  We hit a small snag processing your portrait. Our team has been notified and will deliver your files within 24 hours. No action needed.
+                                </p>
                               </div>
-                              <p className="text-sm text-muted-foreground">
-                                Preparing your print-ready files… check your email shortly.
-                              </p>
-                            </div>
-                          </div>
+                            ) : pollingTimedOut ? (
+                              <div className="mt-3 rounded-organic bg-amber-500/10 border border-amber-500/30 p-4">
+                                <p className="text-sm text-foreground">
+                                  This is taking longer than expected. Please check back in a few minutes or contact us at hello@fluffyfriends.online
+                                </p>
+                              </div>
+                            ) : isPollingForLinks ? (
+                              <div className="mt-3 rounded-organic bg-muted/40 border border-border p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex gap-1">
+                                    {[0, 1, 2].map((i) => (
+                                      <div
+                                        key={i}
+                                        className="h-2 w-2 rounded-full bg-primary animate-bounce"
+                                        style={{ animationDelay: `${i * 150}ms` }}
+                                      />
+                                    ))}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Your high-res files are being prepared — this page will update automatically.
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-3 rounded-organic bg-muted/40 border border-border p-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex gap-1">
+                                    {[0, 1, 2].map((i) => (
+                                      <div
+                                        key={i}
+                                        className="h-2 w-2 rounded-full bg-primary animate-bounce"
+                                        style={{ animationDelay: `${i * 150}ms` }}
+                                      />
+                                    ))}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Preparing your print-ready files… check your email shortly.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

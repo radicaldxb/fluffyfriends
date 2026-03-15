@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
     landscape_url: string | null
     portrait_url: string | null
     created_at: string
+    status?: string | null
     payment_intent_id?: string | null
   }> = []
 
@@ -84,6 +85,7 @@ export async function GET(request: NextRequest) {
       landscape_url: p.landscape_url != null ? String(p.landscape_url).trim() : null,
       portrait_url: p.portrait_url != null ? String(p.portrait_url).trim() : null,
       created_at: p.created_at,
+      status: (p as { status?: string }).status ?? null,
       payment_intent_id: (p as any).payment_intent_id ?? null,
     })).filter((p) => {
       if (seenIds.has(p.id)) return false
@@ -113,6 +115,7 @@ export async function GET(request: NextRequest) {
       landscape_url: p.landscape_url != null ? String(p.landscape_url).trim() : null,
       portrait_url: p.portrait_url != null ? String(p.portrait_url).trim() : null,
       created_at: p.created_at,
+      status: (p as { status?: string }).status ?? null,
       payment_intent_id: (p as any).payment_intent_id ?? null,
     })
   }
@@ -135,6 +138,7 @@ export async function GET(request: NextRequest) {
       portrait_url: rawPortrait || null,
       created_at: p.created_at,
       order_reference: p.payment_intent_id ?? null,
+      status: p.status ?? null,
     }
   })
 

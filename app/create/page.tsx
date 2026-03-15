@@ -421,41 +421,43 @@ function CreatePortraitContent() {
                           ))}
                         </div>
                       ) : (
-                        themes.map((t, index) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setTheme(t.id)}
-                            className={cn(
-                              "group relative overflow-hidden rounded-organic border-2 text-left transition-all duration-200 hover:border-primary/60 hover:shadow-md",
-                              theme === t.id
-                                ? "border-primary bg-primary/10 shadow-sm"
-                                : "border-border bg-card"
-                            )}
-                            style={{ animationDelay: `${index * 30}ms` }}
-                          >
-                            <div className="relative w-full h-40 overflow-hidden rounded-organic-sm bg-muted">
-                              {/* Use native img here to avoid any Image config issues so previews always show */}
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={t.previewUrl}
-                                alt={t.name}
-                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                loading="lazy"
-                              />
-                              {theme === t.id && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                                  <span className="flex h-8 w-8 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground">
-                                    <Check className="h-4 w-4" />
-                                  </span>
-                                </div>
+                        themes.map((t, index) => {
+                          const { id, name, previewUrl } = t
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => setTheme(id)}
+                              className={cn(
+                                "group relative overflow-hidden rounded-organic border-2 text-left transition-all duration-200 hover:border-primary/60 hover:shadow-md",
+                                theme === id
+                                  ? "border-primary bg-primary/10 shadow-sm"
+                                  : "border-border bg-card"
                               )}
-                            </div>
-                            <div className="p-2.5">
-                              <span className="font-heading font-semibold text-foreground">{t.name}</span>
-                            </div>
-                          </button>
-                        ))
+                              style={{ animationDelay: `${index * 30}ms` }}
+                            >
+                              <div className="relative w-full h-40 overflow-hidden rounded-organic-sm bg-muted">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={previewUrl}
+                                  alt={name}
+                                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  loading="lazy"
+                                />
+                                {theme === id && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground">
+                                      <Check className="h-4 w-4" />
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-2.5">
+                                <span className="font-heading font-semibold text-foreground">{name}</span>
+                              </div>
+                            </button>
+                          )
+                        })
                       )}
                     </div>
                     <div className="mt-6">
