@@ -32,6 +32,13 @@ type Portrait = {
   order_reference?: string | null
 }
 
+/** Show only last 7 characters of order ID/reference (e.g. Stripe session ID). */
+function orderDisplay(idOrRef: string | null | undefined): string {
+  if (idOrRef == null || typeof idOrRef !== "string") return "—"
+  const s = idOrRef.trim()
+  return s.length <= 7 ? s.toUpperCase() : s.slice(-7).toUpperCase()
+}
+
 function MyPortraitsFallback() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -242,10 +249,8 @@ function MyPortraitsContent() {
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Order ID:{" "}
-                      <span className="font-mono">
-                        {p.order_id || "NULL"}
-                      </span>
+                      Order:{" "}
+                      <span className="font-mono">{orderDisplay(p.order_id)}</span>
                     </p>
                     {p.portraits_remaining > 0 && (
                       <div className="mt-4 flex flex-col gap-2">
@@ -336,10 +341,8 @@ function MyPortraitsContent() {
                       </p>
                       {p.order_reference && (
                         <p className="mt-0.5 text-[11px] text-muted-foreground">
-                          Order reference:{" "}
-                          <span className="font-mono">
-                            {p.order_reference.slice(-7).toUpperCase()}
-                          </span>
+                          Order:{" "}
+                          <span className="font-mono">{orderDisplay(p.order_reference)}</span>
                         </p>
                       )}
                       <div className="mt-2 flex flex-wrap items-center gap-2">

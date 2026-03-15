@@ -22,7 +22,7 @@ const WIZARD_STEPS = [
   { id: 3, label: "Pay & create", short: "3" },
 ] as const
 
-type ThemeItem = { id: string; name: string; previewUrl: string; description?: string }
+type ThemeItem = { id: string; name: string; previewUrl: string }
 
 function cleanValidatorMessage(raw: string | null): string {
   if (!raw) return ""
@@ -58,13 +58,7 @@ function CreatePortraitContent() {
     { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
     { id: "king", name: "King", previewUrl: "/images/themes/king-preview.webp" },
     { id: "queen", name: "Queen", previewUrl: "/images/themes/queen-preview.webp" },
-    {
-      id: "admiral",
-      name: "Admiral",
-      description:
-        "A distinguished naval admiral portrait with white dress uniform, gold medals, and a captain's study backdrop",
-      previewUrl: "/images/themes/naval-preview.webp",
-    },
+    { id: "admiral", name: "Admiral", previewUrl: "/images/themes/naval-preview.webp" },
   ])
   const [theme, setTheme] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -459,9 +453,6 @@ function CreatePortraitContent() {
                             </div>
                             <div className="p-2.5">
                               <span className="font-heading font-semibold text-foreground">{t.name}</span>
-                              {t.description && (
-                                <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{t.description}</p>
-                              )}
                             </div>
                           </button>
                         ))
