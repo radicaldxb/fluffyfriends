@@ -275,9 +275,26 @@ const sections = [
   "Contact and Support",
 ] as const
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.answer.join("\n"),
+    },
+  })),
+}
+
 export default function FaqPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Navbar />
       <section className="mx-auto w-full max-w-4xl px-4 py-14 sm:px-6 md:py-20">
         <header className="mb-8 md:mb-10">

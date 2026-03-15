@@ -80,7 +80,7 @@ export function HeroSection() {
           <div className="relative flex w-full flex-1 justify-center lg:justify-end">
             <div className="relative w-full max-w-md">
               {/* Main portrait card (After) */}
-              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-foreground shadow-2xl shadow-foreground/20">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
                 <Image
                   src="/images/pet-after.webp"
                   alt="Your pet as fine art"

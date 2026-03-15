@@ -59,11 +59,6 @@ export async function GET(request: NextRequest) {
   const sessionId = request.nextUrl.searchParams.get("session_id")?.trim()
   const portraitIdParam = request.nextUrl.searchParams.get("portrait_id")?.trim()
 
-  console.log(
-    "[approve-portrait][GET] request",
-    sessionId ? `session_id=${sessionId.slice(0, 12)}…` : portraitIdParam ? `portrait_id=${portraitIdParam.slice(0, 12)}…` : "missing both",
-  )
-
   try {
     // Returning bundle customer: no session_id, look up by portrait_id
     if (portraitIdParam && !sessionId) {
@@ -106,15 +101,6 @@ export async function GET(request: NextRequest) {
 
     const ctx = await resolveSessionContext(sessionId)
     const hasImage = !!ctx.imageUrl
-    console.log(
-      "[approve-portrait][GET] resolved",
-      JSON.stringify({
-        portrait_id: ctx.portraitId,
-        pet_name: ctx.petName,
-        has_image: hasImage,
-        status: hasImage ? 200 : 202,
-      }),
-    )
 
     // Only expose the preview once the portrait actually has an image_url.
     // Until then, keep the frontend in the loading state and let it poll.
