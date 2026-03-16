@@ -161,8 +161,7 @@ export default function SupportPage() {
         <div className="mt-8 rounded-organic border border-border bg-card p-5">
           <p className="text-sm font-semibold text-foreground">Step 1 · Find your order</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            You&apos;ll find your order reference in your confirmation email. It starts with{" "}
-            <code className="font-mono text-[11px]">pi_</code>.
+            Enter your 7-character order ID. You&apos;ll find it in your confirmation email or on the My Portraits page.
           </p>
           <form
             className="mt-4 grid gap-3 sm:grid-cols-2"
@@ -183,14 +182,14 @@ export default function SupportPage() {
             </div>
             <div className="sm:col-span-1">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
-                Order reference
+                Order ID
               </label>
               <input
                 type="text"
                 value={lookupRef}
                 onChange={(e) => setLookupRef(e.target.value)}
                 className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                placeholder="pi_xxxxx — found in your confirmation email"
+                placeholder="e.g. 6UAQSYG"
                 required
               />
             </div>

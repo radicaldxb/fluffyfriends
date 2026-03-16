@@ -36,23 +36,23 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Must start with pi_
-  if (!trimmedIntent.startsWith("pi_")) {
-    return NextResponse.json({
-      found: false,
-      error: "Invalid order reference format. It should start with pi_",
-    })
-  }
-
-  // Look up portrait — email AND payment_intent_id must match
-  const { data, error } = await supabase
+  // Look up portrait — email AND payment_intent_id must match.
+  // Accept either full payment intent (pi_...) or the 7-character code shown on My Portraits.
+  let portraitQuery = supabase
     .from("pet_portraits")
     .select(
       "id, pet_name, theme, original_image_url, landscape_url, portrait_url, status, payment_intent_id, user_email",
     )
-    .eq("payment_intent_id", trimmedIntent)
     .ilike("user_email", trimmedEmail)
-    .single()
+
+  if (trimmedIntent.startsWith("pi_")) {
+    portraitQuery = portraitQuery.eq("payment_intent_id", trimmedIntent)
+  } else {
+    // Allow short codes (e.g. last 7 characters) by matching the end of the payment_intent_id.
+    portraitQuery = portraitQuery.ilike("payment_intent_id", `%${trimmedIntent}`)
+  }
+
+  const { data, error } = await portraitQuery.single()
 
   if (error || !data) {
     return NextResponse.json({
@@ -61,11 +61,13 @@ export async function POST(request: NextRequest) {
     })
   }
 
+  const fullIntent = (data.payment_intent_id as string | null) || trimmedIntent
+
   // Check for existing open ticket on this order
   const { data: existingTicket } = await supabase
     .from("support_tickets")
     .select("id, status")
-    .eq("payment_intent_id", trimmedIntent)
+    .eq("payment_intent_id", fullIntent)
     .in("status", ["pending", "processing"])
     .maybeSingle()
 
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
   const { data: resolvedTicket } = await supabase
     .from("support_tickets")
     .select("id, credit_added")
-    .eq("payment_intent_id", trimmedIntent)
+    .eq("payment_intent_id", fullIntent)
     .eq("status", "resolved")
     .eq("credit_added", true)
     .maybeSingle()
