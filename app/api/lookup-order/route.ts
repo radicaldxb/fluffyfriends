@@ -36,6 +36,43 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const orderRef = trimmedIntent.toUpperCase()
+
+  // Step 1 — Try to resolve by purchase (stripe_session_id suffix) for bundle / single purchases.
+  const { data: purchase, error: purchaseError } = await supabase
+    .from("portrait_purchases")
+    .select(
+      "id, email, stripe_session_id, package, portraits_total, portraits_used, portraits_remaining, created_at",
+    )
+    .ilike("email", trimmedEmail)
+    .ilike("stripe_session_id", `%${orderRef}`)
+    .maybeSingle()
+
+  if (purchase && !purchaseError) {
+    const { data: portraitsForEmail } = await supabase
+      .from("pet_portraits")
+      .select("id, pet_name, theme, status, image_url, landscape_url, portrait_url, created_at")
+      .ilike("user_email", trimmedEmail)
+      .order("created_at", { ascending: false })
+
+    return NextResponse.json({
+      found: true,
+      source: "purchase",
+      purchase: {
+        id: purchase.id,
+        email: purchase.email,
+        stripe_session_id: purchase.stripe_session_id,
+        package: purchase.package,
+        portraits_total: purchase.portraits_total,
+        portraits_used: purchase.portraits_used,
+        portraits_remaining: purchase.portraits_remaining,
+        created_at: purchase.created_at,
+      },
+      portraits: portraitsForEmail ?? [],
+    })
+  }
+
+  // Step 2 — Fall back to portrait lookup by payment_intent_id suffix (Stripe payment intent).
   // Look up portrait — email AND payment_intent_id must match.
   // Accept either full payment intent (pi_...) or the 7-character code shown on My Portraits.
   let portraitQuery = supabase
