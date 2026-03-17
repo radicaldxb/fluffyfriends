@@ -7,7 +7,6 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { SketchDivider } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
@@ -45,7 +44,6 @@ function CreatePageFallback() {
           </div>
         </div>
       </section>
-      <SketchDivider />
       <Footer />
     </main>
   )
@@ -58,7 +56,12 @@ function CreatePortraitContent() {
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
+    { id: "admiral", name: "Admiral", previewUrl: "/images/themes/admiral-preview.webp" },
+    { id: "vet", name: "Veterinarian", previewUrl: "/images/themes/vet-preview.webp" },
     { id: "king", name: "King", previewUrl: "/images/themes/king-preview.webp" },
+    { id: "queen", name: "Queen", previewUrl: "/images/themes/queen-preview.webp" },
+    { id: "samurai", name: "Samurai", previewUrl: "/images/themes/samurai-preview.webp" },
+    { id: "pilot", name: "Pilot", previewUrl: "/images/themes/pilot-preview.webp" },
   ])
   const [theme, setTheme] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -80,6 +83,10 @@ function CreatePortraitContent() {
   const [selectedProductId, setSelectedProductId] = useState<ProductId>("portrait_pack")
   const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
   const [checkoutError, setCheckoutError] = useState("")
+  const [voucherCode, setVoucherCode] = useState("")
+  const [voucherStatus, setVoucherStatus] = useState<"idle" | "valid" | "invalid" | "loading">("idle")
+  const [voucherMessage, setVoucherMessage] = useState("")
+  const [promotionCodeId, setPromotionCodeId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
 
@@ -282,6 +289,47 @@ function CreatePortraitContent() {
   const pageTitle = petNameDisplay ? `Create ${petNameDisplay}'s portrait` : "Create your portrait"
   const cleanedRejectionMessage = cleanValidatorMessage(message)
 
+  async function handleApplyVoucher() {
+    const code = voucherCode.trim()
+    if (!code) {
+      setVoucherStatus("invalid")
+      setVoucherMessage("Please enter a code.")
+      setPromotionCodeId(null)
+      return
+    }
+    setVoucherStatus("loading")
+    setVoucherMessage("")
+    setPromotionCodeId(null)
+    try {
+      const res = await fetch("/api/validate-voucher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.valid) {
+        setVoucherStatus("invalid")
+        setVoucherMessage(
+          typeof data.error === "string" && data.error ? data.error : "This code is not valid",
+        )
+        setPromotionCodeId(null)
+        return
+      }
+      setVoucherStatus("valid")
+      setPromotionCodeId(typeof data.promotionCodeId === "string" ? data.promotionCodeId : null)
+      const appliedCode = (data.code as string | undefined) ?? code.toUpperCase()
+      const discountText =
+        typeof data.discountText === "string" && data.discountText
+          ? data.discountText
+          : "discount applied"
+      setVoucherMessage(`✓ ${appliedCode} applied — ${discountText}`)
+    } catch {
+      setVoucherStatus("invalid")
+      setVoucherMessage("We couldn't validate this code. Please try again.")
+      setPromotionCodeId(null)
+    }
+  }
+
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
   const progressPercent = showWizard ? (wizardStep / 3) * 100 : 100
@@ -376,41 +424,43 @@ function CreatePortraitContent() {
                           ))}
                         </div>
                       ) : (
-                        themes.map((t, index) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setTheme(t.id)}
-                            className={cn(
-                              "group relative overflow-hidden rounded-organic border-2 text-left transition-all duration-200 hover:border-primary/60 hover:shadow-md",
-                              theme === t.id
-                                ? "border-primary bg-primary/10 shadow-sm"
-                                : "border-border bg-card"
-                            )}
-                            style={{ animationDelay: `${index * 30}ms` }}
-                          >
-                            <div className="relative w-full h-40 overflow-hidden rounded-organic-sm bg-muted">
-                              {/* Use native img here to avoid any Image config issues so previews always show */}
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={t.previewUrl}
-                                alt={t.name}
-                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                loading="lazy"
-                              />
-                              {theme === t.id && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                                  <span className="flex h-8 w-8 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground">
-                                    <Check className="h-4 w-4" />
-                                  </span>
-                                </div>
+                        themes.map((t, index) => {
+                          const { id, name, previewUrl } = t
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => setTheme(id)}
+                              className={cn(
+                                "group relative overflow-hidden rounded-organic border-2 text-left transition-all duration-200 hover:border-primary/60 hover:shadow-md",
+                                theme === id
+                                  ? "border-primary bg-primary/10 shadow-sm"
+                                  : "border-border bg-card"
                               )}
-                            </div>
-                            <div className="p-2.5">
-                              <span className="font-heading font-semibold text-foreground">{t.name}</span>
-                            </div>
-                          </button>
-                        ))
+                              style={{ animationDelay: `${index * 30}ms` }}
+                            >
+                              <div className="relative w-full h-40 overflow-hidden rounded-organic-sm bg-muted">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={previewUrl}
+                                  alt={name}
+                                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  loading="lazy"
+                                />
+                                {theme === id && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground">
+                                      <Check className="h-4 w-4" />
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-2.5">
+                                <span className="font-heading font-semibold text-foreground">{name}</span>
+                              </div>
+                            </button>
+                          )
+                        })
                       )}
                     </div>
                     <div className="mt-6">
@@ -766,6 +816,55 @@ function CreatePortraitContent() {
                     <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
                   )}
 
+                  {/* Voucher code input */}
+                  <div className="mt-6 w-full max-w-xl text-left">
+                    <div className="rounded-organic-sm border border-border bg-muted/30 px-4 py-3">
+                      <p className="text-sm font-medium text-foreground">Have a discount code?</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Enter it here before continuing to payment.
+                      </p>
+                      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <input
+                          type="text"
+                          value={voucherCode}
+                          onChange={(e) => {
+                            setVoucherCode(e.target.value)
+                            if (voucherStatus !== "idle") {
+                              setVoucherStatus("idle")
+                              setVoucherMessage("")
+                              setPromotionCodeId(null)
+                            }
+                          }}
+                          placeholder="Enter discount code"
+                          className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={voucherStatus === "loading"}
+                          onClick={handleApplyVoucher}
+                          className="mt-1 inline-flex items-center justify-center rounded-organic-sm px-4 py-2 text-sm font-semibold sm:mt-0"
+                        >
+                          {voucherStatus === "loading" ? "Checking…" : "Apply"}
+                        </Button>
+                      </div>
+                      {voucherMessage && (
+                        <p
+                          className={cn(
+                            "mt-2 text-xs",
+                            voucherStatus === "valid"
+                              ? "text-emerald-600"
+                              : voucherStatus === "invalid"
+                                ? "text-destructive"
+                                : "text-muted-foreground",
+                          )}
+                        >
+                          {voucherMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="mt-6 flex flex-col items-center gap-3">
                     <Button
                       onClick={async () => {
@@ -781,6 +880,7 @@ function CreatePortraitContent() {
                               product_id: selectedProductId,
                               portrait_id: resultPortraitId,
                               ...(theme && { theme }),
+                              ...(promotionCodeId && { promotionCodeId }),
                             }),
                           })
                           const data = await res.json().catch(() => ({}))
@@ -817,8 +917,6 @@ function CreatePortraitContent() {
           )}
         </div>
       </section>
-
-      <SketchDivider />
       <Footer />
     </main>
   )
