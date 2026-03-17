@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       .from("pet_portraits")
       .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status, payment_intent_id")
       .eq("user_id", userRow.id)
-      .eq("status", "completed")
+      .in("status", ["completed", "upscale_failed", "quality_review"])
       .order("created_at", { ascending: false })
 
     if (portraitError) {
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     .from("pet_portraits")
     .select("id, pet_name, theme, image_url, original_image_url, landscape_url, portrait_url, created_at, status, payment_intent_id")
     .ilike("user_email", email)
-    .eq("status", "completed")
+    .in("status", ["completed", "upscale_failed", "quality_review"])
     .order("created_at", { ascending: false })
 
   for (const p of byEmailRows || []) {

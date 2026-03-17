@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       )
     }
     body = JSON.parse(raw) as Record<string, unknown>
+    console.log("[receive-n8n-image] body:", JSON.stringify(body))
   } catch (e) {
     return NextResponse.json(
       { error: "Invalid JSON body. In n8n, ensure the body is valid JSON and image_base64 is a string (no leading = in body).", details: e instanceof Error ? e.message : "Parse error" },
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
         updatePayload.original_image_url = geminiImageUrl
       }
       if (paymentIntentId) {
+        console.log("[receive-n8n-image] saving payment_intent_id:", paymentIntentId)
         updatePayload.payment_intent_id = paymentIntentId
       }
 
