@@ -56,9 +56,12 @@ function CreatePortraitContent() {
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
+    { id: "admiral", name: "Admiral", previewUrl: "/images/themes/admiral-preview.webp" },
+    { id: "vet", name: "Veterinarian", previewUrl: "/images/themes/vet-preview.webp" },
     { id: "king", name: "King", previewUrl: "/images/themes/king-preview.webp" },
     { id: "queen", name: "Queen", previewUrl: "/images/themes/queen-preview.webp" },
-    { id: "admiral", name: "Admiral", previewUrl: "/images/themes/naval-preview.webp" },
+    { id: "samurai", name: "Samurai", previewUrl: "/images/themes/samurai-preview.webp" },
+    { id: "pilot", name: "Pilot", previewUrl: "/images/themes/pilot-preview.webp" },
   ])
   const [theme, setTheme] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
