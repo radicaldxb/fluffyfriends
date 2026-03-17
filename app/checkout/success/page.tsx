@@ -535,24 +535,6 @@ function SuccessContent() {
                       placeholder="Where should we imagine this hanging?"
                     />
                   </div>
-                  {(country === "United States" || country === "US") && (
-                    <div>
-                      <label
-                        htmlFor="success-state"
-                        className="block text-sm text-muted-foreground mb-1"
-                      >
-                        State
-                      </label>
-                      <input
-                        id="success-state"
-                        type="text"
-                        value={stateRegion}
-                        onChange={(e) => setStateRegion(e.target.value)}
-                        className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                        placeholder="Optional"
-                      />
-                    </div>
-                  )}
                   <label className="flex items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
