@@ -22,8 +22,9 @@ export const PRODUCTS: Product[] = [
     id: "starter",
     name: "Starter",
     description: "Try it once. We think you'll come back.",
-    priceCents: 1700,
-    priceDisplay: "$17",
+    // Temporary live-testing price: $1 Starter
+    priceCents: 100,
+    priceDisplay: "$1",
     perPortrait: 1,
     type: "download",
   },
