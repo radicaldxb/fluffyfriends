@@ -96,6 +96,12 @@ export async function POST(request: NextRequest) {
             }
             const portraitsTotal = portraitsMap[packageName] || 1
 
+            // Handle both string and object forms of session.payment_intent
+            const paymentIntentId =
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : session.payment_intent?.id ?? null
+
             if (customerEmail) {
               const { error: purchaseError } = await supabase
                 .from("portrait_purchases")
@@ -106,6 +112,7 @@ export async function POST(request: NextRequest) {
                   portraits_total: portraitsTotal,
                   portraits_used: 0,
                   portraits_remaining: portraitsTotal,
+                  payment_intent_id: paymentIntentId,
                 })
 
               if (purchaseError) {

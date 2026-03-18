@@ -47,19 +47,13 @@ export async function POST(request: NextRequest) {
   try {
     const { data: purchase } = await supabase
       .from("portrait_purchases")
-      .select("stripe_session_id")
+      .select("stripe_session_id, payment_intent_id")
       .eq("email", email)
       .order("created_at", { ascending: false })
       .limit(1)
       .single()
 
-    if (purchase?.stripe_session_id) {
-      const session = await stripe.checkout.sessions.retrieve(purchase.stripe_session_id)
-      payment_intent_id =
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id ?? null
-    }
+    payment_intent_id = purchase?.payment_intent_id || null
   } catch (err) {
     console.error("[trigger-generation] Failed to resolve payment_intent_id for bundle order:", err)
   }
