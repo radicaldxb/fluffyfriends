@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single()
 
+    console.log("[trigger-generation] email used for lookup:", email)
+    console.log("[trigger-generation] purchase found:", JSON.stringify(purchase))
+
     payment_intent_id = purchase?.payment_intent_id || null
   } catch (err) {
     console.error("[trigger-generation] Failed to resolve payment_intent_id for bundle order:", err)
