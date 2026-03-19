@@ -1,6 +1,6 @@
 # n8n Workflow Setup Guide
 
-**Testing:** Use your **deployed Netlify site** (e.g. `https://fluffyfriends-dev.netlify.app/create` or `/test-n8n`) to test. The app always calls `N8N_WEBHOOK_URL` directly from the server; testing on Netlify keeps things simple.
+**Testing:** Use your **deployed Netlify site** (e.g. `https://fluffyfriends.online/create` or `/test-n8n`) to test. The app always calls `N8N_WEBHOOK_URL` directly from the server; testing on Netlify keeps things simple.
 
 ---
 
@@ -17,7 +17,7 @@ Before debugging the main transform-pet workflow, confirm that **production** we
 
 4. **Point the app at it:** In **Netlify** → Site settings → **Environment variables** → set **N8N_WEBHOOK_URL** to that URL. **Trigger a new deploy** so the change is used.
 
-5. **Ping from the app:** Open **https://fluffyfriends-dev.netlify.app/test-n8n** and click **“Ping webhook”**.
+5. **Ping from the app:** Open **https://fluffyfriends.online/test-n8n** and click **“Ping webhook”**.
 
 6. **Check the result:**
    - **OK: Yes, Status: 200**, body like `{"message":"Workflow was started"}` → production webhooks work. In n8n, open **Executions** and you should see a new execution for this workflow.

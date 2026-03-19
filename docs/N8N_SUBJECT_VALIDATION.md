@@ -146,7 +146,7 @@ So: **Validate subject** → **IF**.
 
 - **Method:** POST.
 - **URL:** Your app callback, e.g.  
-  `https://fluffyfriends-dev.netlify.app/api/receive-n8n-image`
+  `https://fluffyfriends.online/api/receive-n8n-image`
 - **Headers:** Same as your success Supabase node (e.g. `X-Webhook-Secret`).
 - **Body (JSON):**
 

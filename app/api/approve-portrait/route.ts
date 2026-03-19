@@ -22,7 +22,7 @@ async function resolveSessionContext(sessionId: string) {
 
   const { data: portraitRow, error: portraitError } = await supabase
     .from("pet_portraits")
-    .select("id, pet_name, image_url, original_image_url, created_at, status, payment_intent_id")
+    .select("id, pet_name, image_url, original_image_url, created_at, status")
     .eq("id", portraitId)
     .single()
 
@@ -52,18 +52,12 @@ async function resolveSessionContext(sessionId: string) {
     totalCents,
     currency,
     customerEmail,
-    paymentIntentId: (portraitRow.payment_intent_id as string | null) || null,
   }
 }
 
 export async function GET(request: NextRequest) {
   const sessionId = request.nextUrl.searchParams.get("session_id")?.trim()
   const portraitIdParam = request.nextUrl.searchParams.get("portrait_id")?.trim()
-
-  console.log(
-    "[approve-portrait][GET] request",
-    sessionId ? `session_id=${sessionId.slice(0, 12)}…` : portraitIdParam ? `portrait_id=${portraitIdParam.slice(0, 12)}…` : "missing both",
-  )
 
   try {
     // Returning bundle customer: no session_id, look up by portrait_id
@@ -107,15 +101,6 @@ export async function GET(request: NextRequest) {
 
     const ctx = await resolveSessionContext(sessionId)
     const hasImage = !!ctx.imageUrl
-    console.log(
-      "[approve-portrait][GET] resolved",
-      JSON.stringify({
-        portrait_id: ctx.portraitId,
-        pet_name: ctx.petName,
-        has_image: hasImage,
-        status: hasImage ? 200 : 202,
-      }),
-    )
 
     // Only expose the preview once the portrait actually has an image_url.
     // Until then, keep the frontend in the loading state and let it poll.
@@ -155,6 +140,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sessionId =
       typeof body.session_id === "string" ? body.session_id.trim() : ""
+    const paymentIntentId =
+      typeof body.payment_intent_id === "string" ? body.payment_intent_id.trim() : ""
     const email = typeof body.email === "string" ? body.email.trim() : ""
     const fullName = typeof body.full_name === "string" ? body.full_name.trim() : ""
     const city = typeof body.city === "string" ? body.city.trim() : ""
@@ -172,14 +159,13 @@ export async function POST(request: NextRequest) {
       originalImageUrl: string | null
       totalCents: number
       currency: string
-      paymentIntentId: string | null
     }
 
     if (portraitIdDirect && !sessionId) {
       // Returning bundle customer — look up portrait directly, no Stripe session needed
       const { data: portraitRow, error } = await supabase
         .from("pet_portraits")
-        .select("id, pet_name, image_url, original_image_url, payment_intent_id")
+        .select("id, pet_name, image_url, original_image_url")
         .eq("id", portraitIdDirect)
         .single()
 
@@ -194,7 +180,6 @@ export async function POST(request: NextRequest) {
         originalImageUrl: (portraitRow.original_image_url as string | null) || null,
         totalCents: 0,
         currency: "usd",
-        paymentIntentId: (portraitRow.payment_intent_id as string | null) || null,
       }
     } else {
       // New customer — existing Stripe flow
@@ -296,7 +281,7 @@ export async function POST(request: NextRequest) {
           user_first_name: fullName.split(" ")[0] || fullName,
           total_cents: ctx.totalCents,
           currency: ctx.currency,
-          payment_intent_id: ctx.paymentIntentId || null,
+          payment_intent_id: paymentIntentId || null,
         }),
       })
 

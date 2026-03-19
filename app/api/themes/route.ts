@@ -2,8 +2,7 @@ import { NextResponse } from "next/server"
 
 /**
  * GET /api/themes
- * Temporary implementation: always return the two static themes we have preview images for.
- * This guarantees the /create page shows working theme cards while we wire up dynamic themes.
+ * Returns the static themes with preview images used on the /create page.
  */
 export async function GET() {
   const themes = [

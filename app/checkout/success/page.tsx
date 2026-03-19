@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { SketchDivider } from "@/components/sketch-divider"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
@@ -304,6 +303,21 @@ function SuccessContent() {
                 Download links will appear here when ready. If they don't show after a few minutes, contact us and we'll send you the files.
               </p>
             )}
+            {/* Loyalty reward section */}
+            <div className="mt-10 rounded-organic border border-primary/30 bg-primary/5 px-5 py-6 text-left">
+              <h3 className="text-base font-bold text-foreground">
+                🎁 Your loyalty reward
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Use this code on your next order for 15% off:
+              </p>
+              <div className="mt-3 inline-flex items-center justify-center rounded-organic-sm bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold tracking-wide">
+                WELCOME15
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Share it with a friend too — valid on any FluffyFriends portrait package.
+              </p>
+            </div>
             {typeof portraitsRemaining === "number" && portraitsRemaining > 0 && (
               <div className="mt-8 rounded-organic border border-primary/30 bg-primary/5 p-5 text-center">
                 <p className="text-sm font-medium text-foreground">
@@ -521,24 +535,6 @@ function SuccessContent() {
                       placeholder="Where should we imagine this hanging?"
                     />
                   </div>
-                  {(country === "United States" || country === "US") && (
-                    <div>
-                      <label
-                        htmlFor="success-state"
-                        className="block text-sm text-muted-foreground mb-1"
-                      >
-                        State
-                      </label>
-                      <input
-                        id="success-state"
-                        type="text"
-                        value={stateRegion}
-                        onChange={(e) => setStateRegion(e.target.value)}
-                        className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                        placeholder="Optional"
-                      />
-                    </div>
-                  )}
                   <label className="flex items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
@@ -668,9 +664,6 @@ function SuccessContent() {
                   />
                 </div>
               </div>
-              <p className="mt-6 text-sm text-muted-foreground max-w-md mx-auto">
-                Our studio is rendering your artwork. This usually takes a minute or two.
-              </p>
               {preview.status === "loading" &&
                 typeof (preview as { attempt?: number }).attempt === "number" &&
                 (preview as { attempt: number }).attempt >= 10 && (

@@ -9,7 +9,7 @@ const pillars = [
   {
     icon: LayoutGrid,
     title: "Two formats, one price",
-    copy: "Wide format and tall format — both included, both print-ready.",
+  copy: "Wide format and portrait format — both included, both print-ready.",
   },
   {
     icon: BookOpen,

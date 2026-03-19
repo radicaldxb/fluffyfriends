@@ -20,7 +20,7 @@ const steps = [
     step: "03",
     title: "Pay once, own it forever",
     description:
-      "From $17, one time. No subscription. Within minutes, two print-ready files land in your inbox — wide format and tall format — plus a free guide for printing and framing.",
+      "From $17, one time. No subscription. Within minutes, two print-ready files land in your inbox — wide format and portrait format — plus a free guide for printing and framing.",
   },
 ]
 

@@ -44,7 +44,7 @@ Use this when configuring the **Name Tag** (or **Cloudinary Upload**) HTTP Reque
 - **API Secret** (click “Reveal” to copy it — keep it secret)
 
 **Step A4.** Your Fluffyfriends site’s **receive-n8n-image** API is deployed and you know:
-- Its URL (e.g. `https://fluffyfriends-dev.netlify.app/api/receive-n8n-image`)
+- Its URL (e.g. `https://fluffyfriends.online/api/receive-n8n-image`)
 - The **X-Webhook-Secret** value you use in n8n when calling it
 
 ---
@@ -147,7 +147,7 @@ We will only add the name tag when the theme is **fireman**. All other themes ke
 |--------|--------|
 | **Name** | `Supabase (with nametag)` or keep `Supabase` if you prefer |
 | **Method** | POST |
-| **URL** | Your receive-n8n-image URL (e.g. `https://fluffyfriends-dev.netlify.app/api/receive-n8n-image`) |
+| **URL** | Your receive-n8n-image URL (e.g. `https://fluffyfriends.online/api/receive-n8n-image`) |
 | **Send Headers** | Yes |
 | **Header 1** | Name: `X-Webhook-Secret`  Value: your webhook secret |
 | **Send Body** | Yes |

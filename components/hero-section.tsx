@@ -57,27 +57,30 @@ export function HeroSection() {
                 <Link href="#gallery">See real portraits</Link>
               </Button>
             </div>
-            {/* Trust strip – from copy doc */}
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+            {/* Trust strip – arranged in two neat columns on desktop */}
+            <div className="mt-6 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 max-w-xl">
               {["From $17, one-time", "No subscription", "Two formats included", "Happiness guarantee"].map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1.5"
-                >
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
+                <div key={t} className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
                     ✓
                   </span>
                   <span className="font-semibold text-foreground">{t}</span>
-                </span>
+                </div>
               ))}
             </div>
+            <p className="mt-6 text-sm text-muted-foreground text-center lg:text-left">
+              Already have a portrait pack?{" "}
+              <Link href="/my-portraits" className="underline hover:text-foreground">
+                Access my portraits →
+              </Link>
+            </p>
           </div>
 
           {/* Right – Before / After card, styled like redesign */}
           <div className="relative flex w-full flex-1 justify-center lg:justify-end">
             <div className="relative w-full max-w-md">
               {/* Main portrait card (After) */}
-              <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-foreground shadow-2xl shadow-foreground/20">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
                 <Image
                   src="/images/pet-after.webp"
                   alt="Your pet as fine art"
