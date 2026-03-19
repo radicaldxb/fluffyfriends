@@ -54,7 +54,10 @@ export function GallerySection() {
               country: users?.country ?? null,
             }
           })
-          .filter((p): p is Portrait => !!p)
+          .filter(
+            (p): p is NonNullable<typeof p> =>
+              p !== null,
+          )
         setFromDb(withValidSrc.slice(0, GALLERY_LIMIT))
       }
       setLoading(false)

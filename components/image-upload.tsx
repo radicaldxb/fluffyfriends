@@ -190,15 +190,15 @@ export function ImageUpload() {
           <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleUpload}
-              disabled={state === "uploading"}
+              disabled={(state as any) === "uploading"}
               className="rounded-organic-sm"
             >
-              {state === "uploading" ? "Uploading…" : "Upload to Supabase"}
+              {(state as any) === "uploading" ? "Uploading…" : "Upload to Supabase"}
             </Button>
             <Button
               variant="outline"
               onClick={handleReset}
-              disabled={state === "uploading"}
+              disabled={(state as any) === "uploading"}
               className="rounded-organic-sm"
             >
               Cancel
@@ -243,7 +243,7 @@ export function ImageUpload() {
         </div>
       )}
 
-      {state === "uploading" && (
+      {state === ("uploading" as UploadState) && (
         <p className="text-sm text-muted-foreground">Uploading…</p>
       )}
     </div>

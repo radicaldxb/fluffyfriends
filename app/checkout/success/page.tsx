@@ -442,7 +442,10 @@ function SuccessContent() {
                   ) : (
                     <Button
                       onClick={(e) => handleSubmitDetails(e as React.FormEvent)}
-                      disabled={approveStatus === "submitting" || wf3Status === "waiting"}
+                      disabled={
+                        approveStatus === ("submitting" as ApproveStatus) ||
+                        wf3Status === ("waiting" as typeof wf3Status)
+                      }
                       className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 h-auto"
                     >
                       Email my portraits →
@@ -599,7 +602,10 @@ function SuccessContent() {
                     <>
                       <Button
                         type="submit"
-                        disabled={approveStatus === "submitting" || wf3Status === "waiting"}
+                        disabled={
+                          approveStatus === ("submitting" as ApproveStatus) ||
+                          wf3Status === ("waiting" as typeof wf3Status)
+                        }
                         className="w-full rounded-organic-sm"
                       >
                         Email my portraits →
