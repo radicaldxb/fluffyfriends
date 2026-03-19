@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
   // Purchases: all for this email (case-insensitive like portrait-balance)
   const { data: purchaseRows, error: purchaseError } = await supabase
     .from("portrait_purchases")
-    .select("id, package, portraits_total, portraits_used, portraits_remaining, created_at, stripe_session_id")
+    .select(
+      "id, package, portraits_total, portraits_used, portraits_remaining, created_at, stripe_session_id, payment_intent_id",
+    )
     .ilike("email", email)
     .order("created_at", { ascending: false })
 
@@ -28,7 +30,8 @@ export async function GET(request: NextRequest) {
     portraits_used: p.portraits_used,
     portraits_remaining: p.portraits_remaining,
     created_at: p.created_at,
-    order_id: p.stripe_session_id ?? null,
+    // Prefer payment_intent_id for order display; fall back to stripe_session_id
+    order_id: p.payment_intent_id || p.stripe_session_id || null,
   }))
 
   const totalRemaining =
