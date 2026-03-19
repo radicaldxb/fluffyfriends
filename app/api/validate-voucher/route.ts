@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ valid: false, error: "No code provided" }, { status: 400 })
     }
 
-    const stripe = new Stripe(stripeSecret, { apiVersion: "2023-10-16" })
+    const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" })
 
     const promotionCodes = await stripe.promotionCodes.list({
       code: code.trim().toUpperCase(),

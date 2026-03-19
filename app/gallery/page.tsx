@@ -48,7 +48,7 @@ export default function GalleryPage() {
               country: users?.country ?? null,
             }
           })
-          .filter((p): p is Portrait => p !== null)
+          .filter((p): p is Portrait => !!p)
         setPortraits(withValidSrc)
       }
       setLoading(false)
