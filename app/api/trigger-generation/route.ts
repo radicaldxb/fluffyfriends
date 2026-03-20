@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
     .from("pet_portraits")
     .update({
       status: "generating",
+      pet_image_url: (portrait.original_image_url as string) || null,
       ...(portraitEmailNorm ? { user_email: portraitEmailNorm } : {}),
     })
     .eq("id", portraitId)

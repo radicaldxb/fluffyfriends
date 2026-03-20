@@ -42,18 +42,29 @@ export async function POST(request: NextRequest) {
   const { data: purchase, error: purchaseError } = await supabase
     .from("portrait_purchases")
     .select(
-      "id, email, stripe_session_id, package, portraits_total, portraits_used, portraits_remaining, created_at",
+      "id, email, stripe_session_id, package, portraits_total, portraits_used, portraits_remaining, created_at, payment_intent_id",
     )
     .ilike("email", trimmedEmail)
     .ilike("stripe_session_id", `%${orderRef}`)
     .maybeSingle()
 
   if (purchase && !purchaseError) {
-    const { data: portraitsForEmail } = await supabase
+    const purchasePi = (purchase.payment_intent_id as string | null | undefined)?.trim() || ""
+
+    let portraitsQuery = supabase
       .from("pet_portraits")
-      .select("id, pet_name, theme, status, image_url, original_image_url, landscape_url, portrait_url, created_at")
+      .select(
+        "id, pet_name, theme, status, image_url, original_image_url, pet_image_url, landscape_url, portrait_url, payment_intent_id, created_at",
+      )
       .ilike("user_email", trimmedEmail)
-      .order("created_at", { ascending: false })
+
+    if (purchasePi) {
+      portraitsQuery = portraitsQuery.eq("payment_intent_id", purchasePi)
+    }
+
+    const { data: portraitsForEmail } = await portraitsQuery.order("created_at", {
+      ascending: false,
+    })
 
     return NextResponse.json({
       found: true,
@@ -125,15 +136,18 @@ export async function POST(request: NextRequest) {
     .eq("credit_added", true)
     .maybeSingle()
 
+  const row = data as typeof data & { pet_image_url?: string | null }
+
   return NextResponse.json({
     found: true,
     portrait: {
-      id: data.id,
-      pet_name: data.pet_name,
-      theme: data.theme,
-      original_image_url: data.original_image_url,
-      generated_image_url: data.landscape_url || data.portrait_url || null,
-      status: data.status,
+      id: row.id,
+      pet_name: row.pet_name,
+      theme: row.theme,
+      pet_image_url: row.pet_image_url ?? null,
+      original_image_url: row.original_image_url,
+      generated_image_url: row.landscape_url || row.portrait_url || null,
+      status: row.status,
     },
     already_remade: !!resolvedTicket,
   })

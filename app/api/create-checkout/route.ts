@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getProduct, type ProductId } from "@/lib/products"
 import { getStripeClient } from "@/lib/stripe"
+import { supabase } from "@/lib/supabase"
 
 const VALID_IDS: ProductId[] = ["starter", "portrait_pack", "family_pack"]
 
@@ -61,6 +62,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const { data: portrait, error: portraitError } = await supabase
+      .from("pet_portraits")
+      .select("original_image_url")
+      .eq("id", portraitId)
+      .single()
+
+    if (portraitError || !portrait) {
+      return NextResponse.json({ error: "Portrait not found" }, { status: 404 })
+    }
+
+    const petImageUrl =
+      typeof portrait.original_image_url === "string"
+        ? portrait.original_image_url.trim()
+        : ""
+
     const amountCents = product.priceCents
     const packageName = productId
 
@@ -103,6 +119,7 @@ export async function POST(request: NextRequest) {
         product_id: productId,
         package: packageName,
         ...(themeFromBody && { theme: themeFromBody }),
+        ...(petImageUrl ? { pet_image_url: petImageUrl } : {}),
       },
       success_url: successUrl,
       cancel_url: `${siteUrl}/create`,

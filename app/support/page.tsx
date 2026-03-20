@@ -10,7 +10,10 @@ type SupportPortrait = {
   id: string
   pet_name: string | null
   theme: string | null
+  /** Original uploaded pet photo (Supabase storage URL). */
+  pet_image_url: string | null
   original_image_url: string | null
+  /** Print / portrait preview: landscape or portrait URL only (not AVIF preview). */
   generated_image_url: string | null
   status: string | null
 }
@@ -21,9 +24,10 @@ type LookupResult = {
 }
 
 function mapPurchasePortraitRow(row: Record<string, unknown>): SupportPortrait {
+  const petImg =
+    typeof row.pet_image_url === "string" ? row.pet_image_url.trim() : ""
   const orig =
     typeof row.original_image_url === "string" ? row.original_image_url.trim() : ""
-  const img = typeof row.image_url === "string" ? row.image_url.trim() : ""
   const landscape =
     typeof row.landscape_url === "string" ? row.landscape_url.trim() : ""
   const portraitUrl =
@@ -32,23 +36,31 @@ function mapPurchasePortraitRow(row: Record<string, unknown>): SupportPortrait {
     id: String(row.id),
     pet_name: (row.pet_name as string | null) ?? null,
     theme: (row.theme as string | null) ?? null,
-    original_image_url: orig || null,
-    generated_image_url: landscape || portraitUrl || img || null,
+    pet_image_url: petImg || null,
+    original_image_url: petImg || orig || null,
+    generated_image_url: landscape || portraitUrl || null,
     status: (row.status as string | null) ?? null,
   }
 }
 
 function mapSingleLookupPortrait(p: Record<string, unknown>): SupportPortrait {
+  const petImg =
+    typeof p.pet_image_url === "string" ? p.pet_image_url.trim() : ""
+  const orig =
+    typeof p.original_image_url === "string" ? p.original_image_url.trim() : ""
+  const landscape =
+    typeof p.landscape_url === "string" ? p.landscape_url.trim() : ""
+  const portraitUrl =
+    typeof p.portrait_url === "string" ? p.portrait_url.trim() : ""
+  const genFlat =
+    typeof p.generated_image_url === "string" ? p.generated_image_url.trim() : ""
   return {
     id: String(p.id),
     pet_name: (p.pet_name as string | null) ?? null,
     theme: (p.theme as string | null) ?? null,
-    original_image_url:
-      typeof p.original_image_url === "string" ? p.original_image_url.trim() || null : null,
-    generated_image_url:
-      typeof p.generated_image_url === "string"
-        ? p.generated_image_url.trim() || null
-        : null,
+    pet_image_url: petImg || null,
+    original_image_url: petImg || orig || null,
+    generated_image_url: landscape || portraitUrl || genFlat || null,
     status: (p.status as string | null) ?? null,
   }
 }
@@ -195,7 +207,8 @@ export default function SupportPage() {
           theme: portraitForSubmit?.theme ?? null,
           issue_type: issueType,
           message,
-          original_image_url: portraitForSubmit?.original_image_url ?? null,
+          original_image_url:
+            portraitForSubmit?.pet_image_url ?? portraitForSubmit?.original_image_url ?? null,
           generated_image_url: portraitForSubmit?.generated_image_url ?? null,
           already_remade: order.already_remade,
         }),
@@ -313,10 +326,10 @@ export default function SupportPage() {
                     Your original photo
                   </p>
                   <div className="aspect-[4/5] w-full overflow-hidden rounded-organic-sm border border-border bg-muted flex items-center justify-center">
-                    {previewPortrait.original_image_url ? (
+                    {previewPortrait.pet_image_url || previewPortrait.original_image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={previewPortrait.original_image_url}
+                        src={previewPortrait.pet_image_url || previewPortrait.original_image_url || ""}
                         alt={previewPortrait.pet_name || "Original pet photo"}
                         className="h-full w-full object-cover"
                       />
@@ -405,7 +418,8 @@ export default function SupportPage() {
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {eligiblePortraits.map((p) => {
-                        const thumb = p.generated_image_url || p.original_image_url
+                        const thumb =
+                          p.generated_image_url || p.pet_image_url || p.original_image_url
                         const selected = selectedPortraitId === p.id
                         return (
                           <button
