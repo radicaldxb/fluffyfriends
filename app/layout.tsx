@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono, Nunito } from "next/font/google"
+import Script from "next/script"
 import "./globals.css"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import EnvBanner from "@/components/env-banner"
@@ -50,6 +51,18 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_ENV === "staging" && (
           <meta name="robots" content="noindex, nofollow" />
         )}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8KYJG9BH46"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8KYJG9BH46');
+  `}
+        </Script>
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         <ScrollToTop />

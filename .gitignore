@@ -10,3 +10,6 @@ node_modules
 # Logs
 *.log
 tailwindcss*.log
+
+# TypeScript incremental
+tsconfig.tsbuildinfo

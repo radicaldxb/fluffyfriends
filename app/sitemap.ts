@@ -1,8 +1,16 @@
 import type { MetadataRoute } from "next";
+import { themeIds } from "@/lib/themes";
 
 const BASE = "https://fluffyfriends.online";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const themePages: MetadataRoute.Sitemap = themeIds.map((id) => ({
+    url: `${BASE}/themes/${id}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
   return [
     {
       url: `${BASE}/`,
@@ -21,6 +29,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${BASE}/themes`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...themePages,
+    {
+      url: `${BASE}/intelligence`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65,
     },
     {
       url: `${BASE}/faq`,

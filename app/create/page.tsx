@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
 import { PRODUCTS, type ProductId } from "@/lib/products"
+import { themeIds } from "@/lib/themes"
 
 export const dynamic = "force-dynamic"
 
@@ -53,6 +54,7 @@ function CreatePortraitContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const emailFromQuery = searchParams.get("email")?.trim() || ""
+  const themeFromQuery = searchParams.get("theme")?.trim().toLowerCase() || ""
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
@@ -95,6 +97,11 @@ function CreatePortraitContent() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  useEffect(() => {
+    if (!themeFromQuery || !themeIds.includes(themeFromQuery)) return
+    setTheme(themeFromQuery)
+  }, [themeFromQuery])
 
   useEffect(() => {
     if (!emailFromQuery) return
