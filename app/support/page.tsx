@@ -198,11 +198,10 @@ export default function SupportPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim() || null,
+          name: name.trim() || undefined,
           email: lookupEmail.trim().toLowerCase(),
           payment_intent_id: lookupRef.trim(),
-          portrait_id:
-            issueType === "bad_image" ? portraitForSubmit?.id ?? null : null,
+          portrait_id: portraitForSubmit?.id ?? null,
           pet_name: portraitForSubmit?.pet_name ?? null,
           theme: portraitForSubmit?.theme ?? null,
           issue_type: issueType,
@@ -213,13 +212,21 @@ export default function SupportPage() {
           already_remade: order.already_remade,
         }),
       })
-      const data = await res.json().catch(() => ({}))
+      const data = (await res.json().catch(() => ({}))) as {
+        success?: boolean
+        error?: string
+        details?: string | null
+      }
       if (!res.ok || !data.success) {
-        setSubmitError(
+        const base =
           typeof data.error === "string" && data.error
             ? data.error
-            : "We couldn't submit your request. Please try again.",
-        )
+            : "We couldn't submit your request. Please try again."
+        const detail =
+          typeof data.details === "string" && data.details.trim()
+            ? ` (${data.details.trim()})`
+            : ""
+        setSubmitError(`${base}${detail}`)
         return
       }
       setName("")
@@ -320,42 +327,23 @@ export default function SupportPage() {
               <p className="text-sm font-semibold text-foreground">
                 Step 2 · Review your portrait
               </p>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Your original photo
-                  </p>
-                  <div className="aspect-[4/5] w-full overflow-hidden rounded-organic-sm border border-border bg-muted flex items-center justify-center">
-                    {previewPortrait.pet_image_url || previewPortrait.original_image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={previewPortrait.pet_image_url || previewPortrait.original_image_url || ""}
-                        alt={previewPortrait.pet_name || "Original pet photo"}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">No original photo available</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Your portrait
-                  </p>
-                  <div className="aspect-[4/5] w-full overflow-hidden rounded-organic-sm border border-border bg-muted flex items-center justify-center">
-                    {previewPortrait.generated_image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={previewPortrait.generated_image_url}
-                        alt={previewPortrait.pet_name || "Generated portrait"}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        We&apos;re still preparing your portrait.
-                      </span>
-                    )}
-                  </div>
+              <div className="mt-4 max-w-md">
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  Your portrait
+                </p>
+                <div className="aspect-[4/5] w-full overflow-hidden rounded-organic-sm border border-border bg-muted flex items-center justify-center">
+                  {previewPortrait.generated_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previewPortrait.generated_image_url}
+                      alt={previewPortrait.pet_name || "Portrait"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      We&apos;re still preparing your portrait.
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="mt-3 text-xs text-muted-foreground">
@@ -418,8 +406,7 @@ export default function SupportPage() {
                     </p>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {eligiblePortraits.map((p) => {
-                        const thumb =
-                          p.generated_image_url || p.pet_image_url || p.original_image_url
+                        const thumb = p.generated_image_url
                         const selected = selectedPortraitId === p.id
                         return (
                           <button

@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
   let portraitQuery = supabase
     .from("pet_portraits")
     .select(
-      "id, pet_name, theme, original_image_url, landscape_url, portrait_url, status, payment_intent_id, user_email",
+      "id, pet_name, theme, original_image_url, pet_image_url, landscape_url, portrait_url, status, payment_intent_id, user_email",
     )
     .ilike("user_email", trimmedEmail)
 

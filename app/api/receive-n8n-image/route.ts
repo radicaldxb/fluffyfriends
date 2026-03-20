@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
         typeof body.payment_intent_id === "string"
           ? (body.payment_intent_id as string).trim()
           : ""
+      const petImageUrl =
+        typeof body.pet_image_url === "string"
+          ? (body.pet_image_url as string).trim()
+          : null
 
       const updatePayload: Record<string, unknown> = {
         status,
@@ -70,6 +74,9 @@ export async function POST(request: NextRequest) {
       if (paymentIntentId) {
         console.log("[receive-n8n-image] saving payment_intent_id:", paymentIntentId)
         updatePayload.payment_intent_id = paymentIntentId
+      }
+      if (petImageUrl) {
+        updatePayload.pet_image_url = petImageUrl
       }
 
       const { error: updateError } = await supabase

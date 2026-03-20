@@ -70,6 +70,9 @@ export async function POST(request: NextRequest) {
 
   const trimmedMessage = (message || "").trim()
   const trimmedEmail = (email || "").trim().toLowerCase()
+  const submittedName = typeof name === "string" ? name.trim() : ""
+  // DB column `name` is NOT NULL; form field is optional — fall back to email local-part.
+  const nameForDb = submittedName || trimmedEmail.split("@")[0] || "Customer"
   const refRaw = (payment_intent_id || "").trim()
   const issueNorm = (issue_type || "").trim()
 
@@ -87,14 +90,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (issueNorm === "bad_image") {
-    const pid = typeof portrait_id === "string" ? portrait_id.trim() : ""
-    if (!pid) {
-      return NextResponse.json(
-        { success: false, error: "Please select the portrait this quality issue is about." },
-        { status: 400 },
-      )
-    }
+  const portraitIdForDb =
+    typeof portrait_id === "string" && portrait_id.trim() ? portrait_id.trim() : null
+
+  if (issueNorm === "bad_image" && !portraitIdForDb) {
+    return NextResponse.json(
+      { success: false, error: "Please select the portrait this quality issue is about." },
+      { status: 400 },
+    )
   }
 
   // Validate minimum message length
@@ -150,17 +153,12 @@ export async function POST(request: NextRequest) {
 
   const openTickets = existingTickets.filter((t) => t.status !== "resolved")
 
-  const portraitIdForInsert =
-    issueNorm === "bad_image" && typeof portrait_id === "string"
-      ? portrait_id.trim()
-      : null
-
-  // Duplicate: same portrait_id + issue_type while not resolved
-  if (portraitIdForInsert) {
+  // Duplicate bad_image for same portrait (only enforced for quality complaints)
+  if (issueNorm === "bad_image" && portraitIdForDb) {
     const dup = openTickets.find(
       (t) =>
-        t.portrait_id === portraitIdForInsert &&
-        (t.issue_type || "").trim() === issueNorm,
+        t.portrait_id === portraitIdForDb &&
+        (t.issue_type || "").trim() === "bad_image",
     )
     if (dup) {
       return NextResponse.json({ success: false, error: ERR_DUPLICATE_PORTRAIT }, { status: 400 })
@@ -186,9 +184,9 @@ export async function POST(request: NextRequest) {
     .from("support_tickets")
     .insert({
       email: trimmedEmail,
-      name,
+      name: nameForDb,
       payment_intent_id: canonicalPaymentIntentId,
-      portrait_id: portraitIdForInsert,
+      portrait_id: portraitIdForDb,
       pet_name,
       theme,
       issue_type: issueNorm,
@@ -204,7 +202,11 @@ export async function POST(request: NextRequest) {
   if (error || !ticket) {
     console.error("[submit-support] Failed to insert support_tickets row:", error)
     return NextResponse.json(
-      { success: false, error: "Failed to submit request." },
+      {
+        success: false,
+        error: "Failed to submit request.",
+        details: error?.message ?? null,
+      },
       { status: 500 },
     )
   }
@@ -225,10 +227,10 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           ticket_id: ticket.id,
-          name,
+          name: nameForDb,
           email: trimmedEmail,
           payment_intent_id: canonicalPaymentIntentId,
-          portrait_id: portraitIdForInsert,
+          portrait_id: portraitIdForDb,
           pet_name,
           theme,
           issue_type: issueNorm,
