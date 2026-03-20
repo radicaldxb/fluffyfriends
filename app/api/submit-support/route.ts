@@ -12,6 +12,28 @@ if (!supabaseUrl || !serviceRoleKey) {
 
 const supabase = supabaseUrl && serviceRoleKey ? createClient(supabaseUrl, serviceRoleKey) : null
 
+const ERR_BAD_IMAGE_MAX =
+  "You've already raised the maximum number of quality complaints for this order. Please contact us directly at hello@fluffyfriends.online"
+const ERR_DUPLICATE_PORTRAIT =
+  "A support request already exists for this portrait. Please contact us at hello@fluffyfriends.online if you need further help."
+const ERR_OTHER_MAX =
+  "You've reached the maximum number of support requests for this order. Please contact us directly at hello@fluffyfriends.online"
+
+function ticketMatchesOrderRef(
+  ticketPid: string | null | undefined,
+  requestRef: string,
+  canonicalPaymentIntentId: string,
+): boolean {
+  const t = (ticketPid || "").trim()
+  if (!t) return false
+  const req = requestRef.trim()
+  const reqUpper = req.toUpperCase()
+  if (canonicalPaymentIntentId && t === canonicalPaymentIntentId) return true
+  if (req && t === req) return true
+  if (reqUpper.length >= 6 && t.toUpperCase().endsWith(reqUpper)) return true
+  return false
+}
+
 export async function POST(request: NextRequest) {
   if (!supabase) {
     return NextResponse.json(
@@ -36,7 +58,7 @@ export async function POST(request: NextRequest) {
     name?: string
     email?: string
     payment_intent_id?: string
-    portrait_id?: string
+    portrait_id?: string | null
     pet_name?: string
     theme?: string
     issue_type?: string
@@ -47,6 +69,33 @@ export async function POST(request: NextRequest) {
   }
 
   const trimmedMessage = (message || "").trim()
+  const trimmedEmail = (email || "").trim().toLowerCase()
+  const refRaw = (payment_intent_id || "").trim()
+  const issueNorm = (issue_type || "").trim()
+
+  if (!trimmedEmail || !refRaw) {
+    return NextResponse.json(
+      { success: false, error: "Missing email or order reference." },
+      { status: 400 },
+    )
+  }
+
+  if (!issueNorm) {
+    return NextResponse.json(
+      { success: false, error: "Please choose the type of issue you need help with." },
+      { status: 400 },
+    )
+  }
+
+  if (issueNorm === "bad_image") {
+    const pid = typeof portrait_id === "string" ? portrait_id.trim() : ""
+    if (!pid) {
+      return NextResponse.json(
+        { success: false, error: "Please select the portrait this quality issue is about." },
+        { status: 400 },
+      )
+    }
+  }
 
   // Validate minimum message length
   if (!trimmedMessage || trimmedMessage.length < 50) {
@@ -59,17 +108,90 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const refUpper = refRaw.toUpperCase()
+  let canonicalPaymentIntentId = refRaw
+  let portraitsTotal: number | null = null
+
+  const { data: purchaseRow } = await supabase
+    .from("portrait_purchases")
+    .select("payment_intent_id, stripe_session_id, portraits_total")
+    .ilike("email", trimmedEmail)
+    .or(
+      `payment_intent_id.ilike.%${refUpper},stripe_session_id.ilike.%${refUpper}`,
+    )
+    .maybeSingle()
+
+  if (purchaseRow) {
+    const pt = purchaseRow.portraits_total
+    portraitsTotal =
+      typeof pt === "number" ? pt : pt != null ? Number(pt) : null
+    const pi = purchaseRow.payment_intent_id
+    if (typeof pi === "string" && pi.trim()) {
+      canonicalPaymentIntentId = pi.trim()
+    }
+  }
+
+  const { data: ticketRows, error: ticketFetchError } = await supabase
+    .from("support_tickets")
+    .select("id, portrait_id, issue_type, status, payment_intent_id")
+    .ilike("email", trimmedEmail)
+
+  if (ticketFetchError) {
+    console.error("[submit-support] Failed to load existing tickets:", ticketFetchError)
+    return NextResponse.json(
+      { success: false, error: "Failed to validate request. Please try again." },
+      { status: 500 },
+    )
+  }
+
+  const existingTickets = (ticketRows || []).filter((t) =>
+    ticketMatchesOrderRef(t.payment_intent_id, refRaw, canonicalPaymentIntentId),
+  )
+
+  const openTickets = existingTickets.filter((t) => t.status !== "resolved")
+
+  const portraitIdForInsert =
+    issueNorm === "bad_image" && typeof portrait_id === "string"
+      ? portrait_id.trim()
+      : null
+
+  // Duplicate: same portrait_id + issue_type while not resolved
+  if (portraitIdForInsert) {
+    const dup = openTickets.find(
+      (t) =>
+        t.portrait_id === portraitIdForInsert &&
+        (t.issue_type || "").trim() === issueNorm,
+    )
+    if (dup) {
+      return NextResponse.json({ success: false, error: ERR_DUPLICATE_PORTRAIT }, { status: 400 })
+    }
+  }
+
+  if (issueNorm === "bad_image") {
+    const maxTickets =
+      portraitsTotal === 1 ? 1 : portraitsTotal != null && portraitsTotal > 1 ? 3 : 1
+    const badImageOpen = openTickets.filter((t) => (t.issue_type || "").trim() === "bad_image")
+    if (badImageOpen.length >= maxTickets) {
+      return NextResponse.json({ success: false, error: ERR_BAD_IMAGE_MAX }, { status: 400 })
+    }
+  } else {
+    const otherOpen = openTickets.filter((t) => (t.issue_type || "").trim() !== "bad_image")
+    if (otherOpen.length >= 2) {
+      return NextResponse.json({ success: false, error: ERR_OTHER_MAX }, { status: 400 })
+    }
+  }
+
   // Insert ticket
   const { data: ticket, error } = await supabase
     .from("support_tickets")
     .insert({
-      email,
+      email: trimmedEmail,
       name,
-      payment_intent_id,
-      portrait_id,
+      payment_intent_id: canonicalPaymentIntentId,
+      portrait_id: portraitIdForInsert,
       pet_name,
       theme,
-      issue_type,
+      issue_type: issueNorm,
       message: trimmedMessage,
       original_image_url,
       generated_image_url,
@@ -88,12 +210,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Trigger n8n WF4 support workflow (best-effort; we don't fail the request if this call fails)
-  const n8nBase = process.env.N8N_WEBHOOK_URL
+  const n8nSupportUrl = process.env.N8N_SUPPORT_WEBHOOK_URL?.trim()
   const n8nSecret = process.env.N8N_WEBHOOK_SECRET
 
-  if (n8nBase) {
+  console.log("[submit-support] calling WF4:", process.env.N8N_SUPPORT_WEBHOOK_URL)
+
+  if (n8nSupportUrl) {
     try {
-      await fetch(`${n8nBase.replace(/\/+$/, "")}/support-request`, {
+      await fetch(n8nSupportUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,12 +226,12 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           ticket_id: ticket.id,
           name,
-          email,
-          payment_intent_id,
-          portrait_id,
+          email: trimmedEmail,
+          payment_intent_id: canonicalPaymentIntentId,
+          portrait_id: portraitIdForInsert,
           pet_name,
           theme,
-          issue_type,
+          issue_type: issueNorm,
           message: trimmedMessage,
           original_image_url,
           generated_image_url,
@@ -116,12 +240,13 @@ export async function POST(request: NextRequest) {
         }),
       })
     } catch (err) {
-      console.error("[submit-support] Failed to call n8n support-request webhook:", err)
+      console.error("[submit-support] Failed to call n8n support webhook (WF4):", err)
     }
   } else {
-    console.warn("[submit-support] N8N_WEBHOOK_URL not configured; skipping WF4 trigger.")
+    console.warn(
+      "[submit-support] N8N_SUPPORT_WEBHOOK_URL not configured; skipping WF4 trigger.",
+    )
   }
 
   return NextResponse.json({ success: true, ticket_id: ticket.id })
 }
-

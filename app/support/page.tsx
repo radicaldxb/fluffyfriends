@@ -1,22 +1,59 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+type SupportPortrait = {
+  id: string
+  pet_name: string | null
+  theme: string | null
+  original_image_url: string | null
+  generated_image_url: string | null
+  status: string | null
+}
+
 type LookupResult = {
-  portrait: {
-    id: string
-    pet_name: string | null
-    theme: string | null
-    original_image_url: string | null
-    generated_image_url: string | null
-    status: string | null
-  }
+  portraits: SupportPortrait[]
   already_remade: boolean
 }
+
+function mapPurchasePortraitRow(row: Record<string, unknown>): SupportPortrait {
+  const orig =
+    typeof row.original_image_url === "string" ? row.original_image_url.trim() : ""
+  const img = typeof row.image_url === "string" ? row.image_url.trim() : ""
+  const landscape =
+    typeof row.landscape_url === "string" ? row.landscape_url.trim() : ""
+  const portraitUrl =
+    typeof row.portrait_url === "string" ? row.portrait_url.trim() : ""
+  return {
+    id: String(row.id),
+    pet_name: (row.pet_name as string | null) ?? null,
+    theme: (row.theme as string | null) ?? null,
+    original_image_url: orig || null,
+    generated_image_url: landscape || portraitUrl || img || null,
+    status: (row.status as string | null) ?? null,
+  }
+}
+
+function mapSingleLookupPortrait(p: Record<string, unknown>): SupportPortrait {
+  return {
+    id: String(p.id),
+    pet_name: (p.pet_name as string | null) ?? null,
+    theme: (p.theme as string | null) ?? null,
+    original_image_url:
+      typeof p.original_image_url === "string" ? p.original_image_url.trim() || null : null,
+    generated_image_url:
+      typeof p.generated_image_url === "string"
+        ? p.generated_image_url.trim() || null
+        : null,
+    status: (p.status as string | null) ?? null,
+  }
+}
+
+const COMPLETED_LIKE = new Set(["completed", "quality_review", "upscale_failed"])
 
 export default function SupportPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -26,6 +63,7 @@ export default function SupportPage() {
   const [isLookingUp, setIsLookingUp] = useState(false)
 
   const [order, setOrder] = useState<LookupResult | null>(null)
+  const [selectedPortraitId, setSelectedPortraitId] = useState<string>("")
 
   const [name, setName] = useState("")
   const [issueType, setIssueType] = useState("")
@@ -36,10 +74,26 @@ export default function SupportPage() {
   const messageLength = message.trim().length
   const supportsRemakeOption = !order?.already_remade
 
+  const eligiblePortraits = useMemo(() => {
+    if (!order?.portraits.length) return []
+    return order.portraits.filter(
+      (p) => p.status != null && COMPLETED_LIKE.has(String(p.status).toLowerCase()),
+    )
+  }, [order])
+
+  const previewPortrait = useMemo(() => {
+    if (!order?.portraits.length) return null
+    if (issueType === "bad_image" && selectedPortraitId) {
+      return order.portraits.find((p) => p.id === selectedPortraitId) ?? order.portraits[0]
+    }
+    return order.portraits[0]
+  }, [order, issueType, selectedPortraitId])
+
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault()
     setLookupError("")
     setOrder(null)
+    setSelectedPortraitId("")
 
     const email = lookupEmail.trim().toLowerCase()
     const ref = lookupRef.trim()
@@ -56,7 +110,7 @@ export default function SupportPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, payment_intent_id: ref }),
       })
-      const data = await res.json().catch(() => ({}))
+      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
       if (!res.ok || !data.found) {
         setLookupError(
           typeof data.error === "string" && data.error
@@ -65,8 +119,21 @@ export default function SupportPage() {
         )
         return
       }
+
+      let portraits: SupportPortrait[] = []
+      if (data.source === "purchase" && Array.isArray(data.portraits)) {
+        portraits = (data.portraits as Record<string, unknown>[]).map(mapPurchasePortraitRow)
+      } else if (data.portrait && typeof data.portrait === "object") {
+        portraits = [mapSingleLookupPortrait(data.portrait as Record<string, unknown>)]
+      }
+
+      if (!portraits.length) {
+        setLookupError("We found your order but no portraits are linked yet. Please try again later.")
+        return
+      }
+
       setOrder({
-        portrait: data.portrait,
+        portraits,
         already_remade: Boolean(data.already_remade),
       })
       setStep(2)
@@ -91,8 +158,25 @@ export default function SupportPage() {
       return
     }
 
+    if (issueType === "bad_image") {
+      if (!selectedPortraitId) {
+        setSubmitError("Please select the portrait you want to report a quality issue for.")
+        return
+      }
+    }
+
     if (messageLength < 50) {
       setSubmitError("Please provide more detail (minimum 50 characters).")
+      return
+    }
+
+    const portraitForSubmit =
+      issueType === "bad_image"
+        ? order.portraits.find((p) => p.id === selectedPortraitId)
+        : order.portraits[0]
+
+    if (issueType === "bad_image" && !portraitForSubmit) {
+      setSubmitError("Please select a valid portrait.")
       return
     }
 
@@ -105,13 +189,14 @@ export default function SupportPage() {
           name: name.trim() || null,
           email: lookupEmail.trim().toLowerCase(),
           payment_intent_id: lookupRef.trim(),
-          portrait_id: order.portrait.id,
-          pet_name: order.portrait.pet_name,
-          theme: order.portrait.theme,
+          portrait_id:
+            issueType === "bad_image" ? portraitForSubmit?.id ?? null : null,
+          pet_name: portraitForSubmit?.pet_name ?? null,
+          theme: portraitForSubmit?.theme ?? null,
           issue_type: issueType,
           message,
-          original_image_url: order.portrait.original_image_url,
-          generated_image_url: order.portrait.generated_image_url,
+          original_image_url: portraitForSubmit?.original_image_url ?? null,
+          generated_image_url: portraitForSubmit?.generated_image_url ?? null,
           already_remade: order.already_remade,
         }),
       })
@@ -124,6 +209,11 @@ export default function SupportPage() {
         )
         return
       }
+      setName("")
+      setIssueType("")
+      setMessage("")
+      setSelectedPortraitId("")
+      setSubmitError("")
       setStep(3)
     } catch (err) {
       setSubmitError(
@@ -139,7 +229,7 @@ export default function SupportPage() {
   const issueOptions = [
     { value: "not_arrived", label: "Portrait didn't arrive" },
     ...(supportsRemakeOption
-      ? [{ value: "quality_remake", label: "Portrait quality issue — I'd like a remake" }]
+      ? [{ value: "bad_image", label: "Portrait quality issue — I'd like a remake" }]
       : []),
     { value: "download_issue", label: "Download not working" },
     { value: "billing", label: "Billing question" },
@@ -211,7 +301,7 @@ export default function SupportPage() {
         </div>
 
         {/* Step 2 – Preview + form */}
-        {step >= 2 && order && (
+        {step === 2 && order && previewPortrait && (
           <div className="mt-10 space-y-6">
             <div className="rounded-organic border border-border bg-card p-5">
               <p className="text-sm font-semibold text-foreground">
@@ -223,11 +313,11 @@ export default function SupportPage() {
                     Your original photo
                   </p>
                   <div className="aspect-[4/5] w-full overflow-hidden rounded-organic-sm border border-border bg-muted flex items-center justify-center">
-                    {order.portrait.original_image_url ? (
+                    {previewPortrait.original_image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={order.portrait.original_image_url}
-                        alt={order.portrait.pet_name || "Original pet photo"}
+                        src={previewPortrait.original_image_url}
+                        alt={previewPortrait.pet_name || "Original pet photo"}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -240,11 +330,11 @@ export default function SupportPage() {
                     Your portrait
                   </p>
                   <div className="aspect-[4/5] w-full overflow-hidden rounded-organic-sm border border-border bg-muted flex items-center justify-center">
-                    {order.portrait.generated_image_url ? (
+                    {previewPortrait.generated_image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={order.portrait.generated_image_url}
-                        alt={order.portrait.pet_name || "Generated portrait"}
+                        src={previewPortrait.generated_image_url}
+                        alt={previewPortrait.pet_name || "Generated portrait"}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -257,8 +347,8 @@ export default function SupportPage() {
               </div>
               <div className="mt-3 text-xs text-muted-foreground">
                 <p>
-                  {order.portrait.pet_name || "Your pet"}
-                  {order.portrait.theme && ` · ${order.portrait.theme}`}
+                  {previewPortrait.pet_name || "Your pet"}
+                  {previewPortrait.theme && ` · ${previewPortrait.theme}`}
                 </p>
                 <p className="mt-0.5">
                   Order: <span className="font-mono">{lookupRef.trim()}</span>
@@ -283,7 +373,12 @@ export default function SupportPage() {
                   </label>
                   <select
                     value={issueType}
-                    onChange={(e) => setIssueType(e.target.value)}
+                    onChange={(e) => {
+                      setIssueType(e.target.value)
+                      if (e.target.value !== "bad_image") {
+                        setSelectedPortraitId("")
+                      }
+                    }}
                     className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                     required
                   >
@@ -295,6 +390,59 @@ export default function SupportPage() {
                     ))}
                   </select>
                 </div>
+
+                {issueType === "bad_image" && eligiblePortraits.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    We don&apos;t see a finished portrait on this order yet. If your portrait is still
+                    generating, please wait and try again — or email us at hello@fluffyfriends.online.
+                  </p>
+                )}
+
+                {issueType === "bad_image" && eligiblePortraits.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      Which portrait is this about? *
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {eligiblePortraits.map((p) => {
+                        const thumb = p.generated_image_url || p.original_image_url
+                        const selected = selectedPortraitId === p.id
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => setSelectedPortraitId(p.id)}
+                            className={cn(
+                              "rounded-organic border bg-card p-2 text-left transition-colors",
+                              selected
+                                ? "border-primary ring-2 ring-ring/30"
+                                : "border-border hover:bg-secondary/40",
+                            )}
+                          >
+                            <div className="aspect-square w-full overflow-hidden rounded-organic-sm border border-border bg-muted">
+                              {thumb ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={thumb}
+                                  alt={p.pet_name || "Portrait"}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <span className="flex h-full items-center justify-center px-1 text-center text-[10px] text-muted-foreground">
+                                  No preview
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-xs font-medium text-foreground line-clamp-2">
+                              {p.pet_name || "Pet"}
+                              {p.theme ? ` · ${p.theme}` : ""}
+                            </p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
