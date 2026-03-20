@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   if (purchase && !purchaseError) {
     const { data: portraitsForEmail } = await supabase
       .from("pet_portraits")
-      .select("id, pet_name, theme, status, image_url, landscape_url, portrait_url, created_at")
+      .select("id, pet_name, theme, status, image_url, original_image_url, landscape_url, portrait_url, created_at")
       .ilike("user_email", trimmedEmail)
       .order("created_at", { ascending: false })
 
