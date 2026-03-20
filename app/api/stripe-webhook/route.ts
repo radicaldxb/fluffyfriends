@@ -201,6 +201,21 @@ export async function POST(request: NextRequest) {
               } catch (err) {
                 console.error("[stripe-webhook] Failed to call n8n order-paid webhook:", err)
               }
+
+              // Deduct portrait credit for starter orders immediately
+              if (packageName === "starter" && customerEmail) {
+                try {
+                  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fluffyfriends.online"
+                  await fetch(`${baseUrl}/api/deduct-portrait`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: customerEmail }),
+                  })
+                  console.log("[stripe-webhook] Portrait credit deducted for starter order:", customerEmail)
+                } catch (err) {
+                  console.error("[stripe-webhook] Failed to deduct portrait credit:", err)
+                }
+              }
             }
           }
         }
