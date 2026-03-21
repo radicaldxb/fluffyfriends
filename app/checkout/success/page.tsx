@@ -353,7 +353,7 @@ function SuccessContent() {
               <p className="text-sm text-muted-foreground">
                 Not happy with your portrait? We'd love to make it right.{" "}
                 <a
-                  href="mailto:support@fluffyfriends.online"
+                  href="mailto:hello@fluffyfriends.online"
                   className="underline hover:text-foreground"
                 >
                   Get in touch

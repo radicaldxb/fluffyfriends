@@ -12,22 +12,10 @@ const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", weight: [
 export const metadata: Metadata = {
   title: 'FluffyFriends.online — AI Pet Portrait Studio',
   description:
-    'Transform your beloved pet into museum-quality fine art with the power of AI. Choose from dozens of stunning themes.',
+    'Transform your beloved pet into museum-quality fine art with the power of AI. Choose from 8 stunning themes.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      { url: '/image/favicon.ico', sizes: 'any' },
-      { url: '/image/favicon.svg', type: 'image/svg+xml' },
-      {
-        url: '/image/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/image/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-    ],
-    apple: '/image/apple-touch-icon.png',
+    icon: [{ url: '/image/favicon.svg', type: 'image/svg+xml' }],
   },
 }
 

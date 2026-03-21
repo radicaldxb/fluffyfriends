@@ -34,7 +34,7 @@ const faqs = [
     category: "The Portrait",
     question: "What themes are available?",
     answer: [
-      "At launch we offer six themes: King, Fireman, Police Officer, Sailor, Veterinarian, and Pilot. New themes are added regularly — sign up to our newsletter to be the first to know when new themes drop.",
+      "FluffyFriends currently offers 8 themes: King, Queen, Fireman, Police Officer, Admiral, Veterinarian, Samurai, and Pilot. Each theme dresses your pet in a unique costume with a matching backdrop.",
     ],
   },
   {

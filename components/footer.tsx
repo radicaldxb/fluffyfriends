@@ -19,7 +19,14 @@ export function Footer() {
           <a href="/terms" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Terms of Service</a>
           <a href="/privacy" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</a>
           <a href="/support" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Support</a>
-          <a href="#" className="text-sm text-muted-foreground transition-colors hover:text-foreground">Instagram</a>
+          <a
+            href="https://www.instagram.com/fluffyfriendsonline"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Instagram
+          </a>
         </nav>
 
         <div className="space-y-2">

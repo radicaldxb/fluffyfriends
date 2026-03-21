@@ -24,14 +24,14 @@ export default function MemorialPageClient() {
 
       if (!res.ok || !data.ok) {
         setStatus("error")
-        setErrorMessage("Something went wrong — please try hello@fluffyfriends.online.")
+        setErrorMessage("Something went wrong — please email us at hello@fluffyfriends.online")
         return
       }
 
       setStatus("success")
     } catch {
       setStatus("error")
-      setErrorMessage("Something went wrong — please try hello@fluffyfriends.online.")
+      setErrorMessage("Something went wrong — please email us at hello@fluffyfriends.online")
     }
   }
 
