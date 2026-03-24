@@ -1,4 +1,4 @@
- "use client"
+"use client"
 
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -147,6 +147,15 @@ const faqs = [
     question: "What happens if I use a promo code?",
     answer: [
       "Enter your promo code at checkout before completing payment. Discounts are applied automatically. Promo codes cannot be applied after an order is placed.",
+    ],
+  },
+  {
+    id: "payment-sms",
+    category: "Pricing and Payment",
+    question: "Why does my bank statement or SMS show 'Radical Thinking' instead of FluffyFriends?",
+    answer: [
+      "FluffyFriends is a product of Radical Thinking, a digital agency based in Dubai. Depending on your bank or card provider, the charge may appear as 'Radical Thinking' on your bank statement or payment SMS.",
+      "This is a legitimate transaction. If you have any concerns, you can verify us at radical-thinking.net or contact us at support@fluffyfriends.online and we'll confirm your order details.",
     ],
   },
   {

@@ -22,7 +22,7 @@ async function resolveSessionContext(sessionId: string) {
 
   const { data: portraitRow, error: portraitError } = await supabase
     .from("pet_portraits")
-    .select("id, pet_name, image_url, original_image_url, created_at, status")
+    .select("id, pet_name, image_url, original_image_url, created_at, status, payment_intent_id")
     .eq("id", portraitId)
     .single()
 
@@ -52,6 +52,7 @@ async function resolveSessionContext(sessionId: string) {
     totalCents,
     currency,
     customerEmail,
+    paymentIntentId: (portraitRow.payment_intent_id as string | null) || null,
   }
 }
 
@@ -140,8 +141,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sessionId =
       typeof body.session_id === "string" ? body.session_id.trim() : ""
-    const paymentIntentId =
-      typeof body.payment_intent_id === "string" ? body.payment_intent_id.trim() : ""
     const email = typeof body.email === "string" ? body.email.trim() : ""
     const fullName = typeof body.full_name === "string" ? body.full_name.trim() : ""
     const city = typeof body.city === "string" ? body.city.trim() : ""
@@ -159,13 +158,14 @@ export async function POST(request: NextRequest) {
       originalImageUrl: string | null
       totalCents: number
       currency: string
+      paymentIntentId: string | null
     }
 
     if (portraitIdDirect && !sessionId) {
       // Returning bundle customer — look up portrait directly, no Stripe session needed
       const { data: portraitRow, error } = await supabase
         .from("pet_portraits")
-        .select("id, pet_name, image_url, original_image_url")
+        .select("id, pet_name, image_url, original_image_url, payment_intent_id")
         .eq("id", portraitIdDirect)
         .single()
 
@@ -180,6 +180,7 @@ export async function POST(request: NextRequest) {
         originalImageUrl: (portraitRow.original_image_url as string | null) || null,
         totalCents: 0,
         currency: "usd",
+        paymentIntentId: (portraitRow.payment_intent_id as string | null) || null,
       }
     } else {
       // New customer — existing Stripe flow
@@ -281,7 +282,7 @@ export async function POST(request: NextRequest) {
           user_first_name: fullName.split(" ")[0] || fullName,
           total_cents: ctx.totalCents,
           currency: ctx.currency,
-          payment_intent_id: paymentIntentId || null,
+          payment_intent_id: ctx.paymentIntentId || null,
         }),
       })
 

@@ -25,7 +25,12 @@ const organizationSchema = {
     email: "hello@fluffyfriends.online",
     contactType: "customer support",
   },
-  sameAs: [] as string[],
+  sameAs: [
+    "https://www.instagram.com/fluffyfriendsonline",
+    "https://www.facebook.com/fluffyfriendsonline",
+    "https://www.pinterest.com/fluffyfriendsonline",
+    "https://www.tiktok.com/@fluffyfriendsonline",
+  ],
 }
 
 const websiteSchema = {

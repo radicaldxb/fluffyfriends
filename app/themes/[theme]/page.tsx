@@ -89,7 +89,7 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           alt={`FluffyFriends ${theme.name} pet portrait theme`}
           fill
           priority
-          className="object-cover"
+          className="object-cover object-top"
           sizes="100vw"
         />
         <div
@@ -215,7 +215,7 @@ export default async function ThemeLandingPage({ params }: PageProps) {
                     src={related.previewImage}
                     alt={`${related.name} theme preview`}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, 33vw"
                   />
                 </div>
