@@ -125,10 +125,9 @@ export async function POST(request: NextRequest) {
       cancel_url: `${siteUrl}/create`,
       // If a validated promotion code is provided from our own UI, attach it as an explicit discount
       // and disable arbitrary codes inside Stripe Checkout. Otherwise, allow promotion codes there.
-      allow_promotion_codes: !promotionCodeId,
-      ...(promotionCodeId && {
-        discounts: [{ promotion_code: promotionCodeId }],
-      }),
+      ...(promotionCodeId
+        ? { discounts: [{ promotion_code: promotionCodeId }] }
+        : { allow_promotion_codes: true }),
     })
 
     if (!session.url) {
