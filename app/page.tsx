@@ -26,7 +26,7 @@ const organizationSchema = {
     contactType: "customer support",
   },
   sameAs: [
-    "https://www.instagram.com/fluffyfriendsonline",
+    "https://www.instagram.com/fluffyfriends.online",
     "https://www.facebook.com/fluffyfriendsonline",
     "https://www.pinterest.com/fluffyfriendsonline",
     "https://www.tiktok.com/@fluffyfriendsonline",
