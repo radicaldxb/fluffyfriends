@@ -101,8 +101,8 @@ export function HeroSection() {
                 </div>
               </div>
 
-              {/* Before thumbnail card */}
-              <div className="absolute -left-16 -bottom-4 hidden w-40 overflow-hidden rounded-2xl border border-border bg-muted shadow-lg sm:block z-10">
+              {/* Before thumbnail — inset on mobile (parent is narrow); offset card from sm up */}
+              <div className="absolute bottom-24 right-3 z-10 w-[34%] max-w-[150px] overflow-hidden rounded-organic-sm border border-border bg-muted shadow-lg sm:-bottom-4 sm:-left-16 sm:right-auto sm:w-40 sm:max-w-none">
                 <div className="relative aspect-[4/5]">
                   <Image
                     src="/images/pet-before.webp"

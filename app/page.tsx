@@ -58,26 +58,47 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
       <main className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex flex-col">
+        <div className="flex flex-1 flex-col">
           <Navbar />
-          <HeroSection />
-          <HeroDifferentiatorStrip />
-          <SketchDivider />
-          <ImmortaliseSection />
-          <SketchDivider />
-          <ProcessSection />
-          <SketchDivider />
-          <WhyFluffyfriendsSection />
-          <SketchDivider />
-          <GallerySection />
-          <SketchDivider />
-          <AboutSection />
-          <SketchDivider />
-          <PricingSection />
-          <SketchDivider />
-          <ReviewsSection />
-          <SketchDivider />
-          <GiftSection />
+          {/* Below lg: Hero → How it works → Gallery → Pricing → other sections → Gift. lg+: original order. */}
+          <div className="order-1 lg:order-1">
+            <HeroSection />
+          </div>
+          <div className="order-2 lg:order-2">
+            <HeroDifferentiatorStrip />
+          </div>
+          <div className="order-6 lg:order-3">
+            <SketchDivider />
+            <ImmortaliseSection />
+          </div>
+          <div className="order-3 lg:order-4">
+            <SketchDivider />
+            <ProcessSection />
+          </div>
+          <div className="order-7 lg:order-5">
+            <SketchDivider />
+            <WhyFluffyfriendsSection />
+          </div>
+          <div className="order-4 lg:order-6">
+            <SketchDivider />
+            <GallerySection />
+          </div>
+          <div className="order-8 lg:order-7">
+            <SketchDivider />
+            <AboutSection />
+          </div>
+          <div className="order-5 lg:order-8">
+            <SketchDivider />
+            <PricingSection />
+          </div>
+          <div className="order-9 lg:order-9">
+            <SketchDivider />
+            <ReviewsSection />
+          </div>
+          <div className="order-10 lg:order-10">
+            <SketchDivider />
+            <GiftSection />
+          </div>
         </div>
         <Footer />
       </main>
