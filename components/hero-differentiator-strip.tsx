@@ -1,4 +1,5 @@
 import { Tag, LayoutGrid, BookOpen, Frame } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const pillars = [
   {
@@ -28,12 +29,15 @@ export function HeroDifferentiatorStrip() {
     <section className="relative border-t border-border/50 bg-card/30 py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {pillars.map((pillar) => {
+          {pillars.map((pillar, index) => {
             const Icon = pillar.icon
             return (
               <div
                 key={pillar.title}
-                className="flex flex-col items-center text-center sm:items-start sm:text-left"
+                className={cn(
+                  "flex flex-col items-center text-center sm:items-start sm:text-left",
+                  index >= 2 && "hidden sm:flex",
+                )}
               >
                 <div className="inline-flex h-11 w-11 items-center justify-center rounded-organic-sm bg-[#FDF4E8] text-primary shadow-sm">
                   <Icon className="h-5 w-5" aria-hidden />
