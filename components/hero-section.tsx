@@ -19,7 +19,7 @@ export function HeroSection() {
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-16">
           {/* Left – Copy */}
-          <div className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left">
+          <div className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left order-2 lg:order-1">
             {/* Eyebrow – emotional, not pushy */}
             <p className="mb-6 text-sm font-medium uppercase tracking-widest text-primary">
               Made with love. Made to last.
@@ -77,7 +77,7 @@ export function HeroSection() {
           </div>
 
           {/* Right – Before / After card, styled like redesign */}
-          <div className="relative flex w-full flex-1 justify-center lg:justify-end">
+          <div className="relative flex w-full flex-1 justify-center lg:justify-end order-1 lg:order-2">
             <div className="relative w-full max-w-md">
               {/* Main portrait card (After) */}
               <div className="relative aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
