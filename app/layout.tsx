@@ -17,9 +17,6 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: '/image/favicon.svg', type: 'image/svg+xml' }],
   },
-  other: {
-    'p:domain_verify': '072996b898e320f185b73df0af5261d2',
-  },
 }
 
 export const viewport: Viewport = {
@@ -39,6 +36,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <meta name="p:domain_verify" content="072996b898e320f185b73df0af5261d2" />
         {process.env.NEXT_PUBLIC_ENV === "staging" && (
           <meta name="robots" content="noindex, nofollow" />
         )}
