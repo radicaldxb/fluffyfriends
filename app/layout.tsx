@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     icon: [{ url: '/image/favicon.svg', type: 'image/svg+xml' }],
   },
   other: {
-    'p:domain_verify': 'PINTEREST_CODE_HERE',
+    'p:domain_verify': '072996b898e320f185b73df0af5261d2',
   },
 }
 

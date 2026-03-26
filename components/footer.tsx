@@ -1,7 +1,7 @@
 import Image from "next/image"
 
 /** Set to true when Pinterest should appear in the footer again. */
-const SHOW_PINTEREST_IN_FOOTER = false
+const SHOW_PINTEREST_IN_FOOTER = true
 
 export function Footer() {
   return (
