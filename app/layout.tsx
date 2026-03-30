@@ -25,6 +25,10 @@ export const viewport: Viewport = {
   userScalable: true,
 }
 
+/** Meta Pixel ID — digits only; set `NEXT_PUBLIC_FACEBOOK_PIXEL_ID` in Netlify. */
+const facebookPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID?.trim() ?? ""
+const loadFacebookPixel = /^\d{5,24}$/.test(facebookPixelId)
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,11 +57,12 @@ export default function RootLayout({
     gtag('config', 'G-8KYJG9BH46');
   `}
         </Script>
-        <Script
-          id="facebook-pixel"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
+        {loadFacebookPixel ? (
+          <Script
+            id="facebook-pixel"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
       n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -66,23 +71,26 @@ export default function RootLayout({
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1775434052703488');
+      fbq('init', '${facebookPixelId}');
       fbq('track', 'PageView');
     `,
-          }}
-        />
+            }}
+          />
+        ) : null}
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
-        <noscript>
-          <img
-            height={1}
-            width={1}
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1775434052703488&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
-        <MetaPixelPageView />
+        {loadFacebookPixel ? (
+          <noscript>
+            <img
+              height={1}
+              width={1}
+              style={{ display: "none" }}
+              src={`https://www.facebook.com/tr?id=${encodeURIComponent(facebookPixelId)}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        ) : null}
+        {loadFacebookPixel ? <MetaPixelPageView /> : null}
         <ScrollToTop />
         {children}
         <EnvBanner />
