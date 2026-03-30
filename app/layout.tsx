@@ -55,7 +55,7 @@ export default function RootLayout({
         </Script>
         <Script
           id="facebook-pixel"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
       !function(f,b,e,v,n,t,s)
