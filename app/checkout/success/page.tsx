@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import Image from "next/image"
 import { AlertCircle, Check, Mail, Palette, Ruler, Frame, Paperclip, Send, Inbox, Download } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { purchase } from "@/lib/fpixel"
 
 export const dynamic = "force-dynamic"
 
@@ -21,6 +22,7 @@ type PreviewState =
       petName: string
       amountDisplay: string
       currency: string
+      amountCents: number
     }
   | { status: "error"; message: string }
 
@@ -50,6 +52,7 @@ function SuccessContent() {
   const [userDetailsKnown, setUserDetailsKnown] = useState(false)
   const [loaderStep, setLoaderStep] = useState(0)
   const [wf3Status, setWf3Status] = useState<"idle" | "waiting" | "ready">("idle")
+  const purchaseTracked = useRef(false)
 
   const LOADER_STEPS = [
     { icon: Palette, text: "Preparing your portrait files…" },
@@ -61,6 +64,14 @@ function SuccessContent() {
     { icon: Inbox, text: "Email on its way! Check spam just in case…" },
     { icon: Download, text: "Preparing your download page…" },
   ]
+
+  useEffect(() => {
+    if (purchaseTracked.current) return
+    if (preview.status !== "ready") return
+    if (preview.amountCents <= 0) return
+    purchaseTracked.current = true
+    purchase(preview.amountCents / 100, preview.currency || "USD")
+  }, [preview])
 
   useEffect(() => {
     if (!sessionId && !portraitFromQuery) {
@@ -126,6 +137,7 @@ function SuccessContent() {
             petName: data.pet_name || "Your pet",
             amountDisplay,
             currency,
+            amountCents: cents,
           })
           if (data.customer_email && !email) {
             setEmail(data.customer_email)

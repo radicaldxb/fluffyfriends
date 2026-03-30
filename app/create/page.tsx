@@ -12,6 +12,7 @@ import Image from "next/image"
 import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
 import { PRODUCTS, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
+import { initiateCheckout } from "@/lib/fpixel"
 
 export const dynamic = "force-dynamic"
 
@@ -896,6 +897,7 @@ function CreatePortraitContent() {
                             setCheckoutError(data.error || "We couldn't start checkout. Please try again in a moment.")
                             return
                           }
+                          initiateCheckout()
                           window.location.href = data.url as string
                         } catch (err) {
                           setCheckoutStatus("error")
