@@ -22,7 +22,7 @@ async function resolveSessionContext(sessionId: string) {
 
   const { data: portraitRow, error: portraitError } = await supabase
     .from("pet_portraits")
-    .select("id, pet_name, image_url, original_image_url, created_at, status, payment_intent_id")
+    .select("id, pet_name, theme, image_url, original_image_url, created_at, status, payment_intent_id")
     .eq("id", portraitId)
     .single()
 
@@ -44,9 +44,13 @@ async function resolveSessionContext(sessionId: string) {
   const currency = session.currency || "usd"
   const customerEmail = session.customer_details?.email || session.customer_email || ""
 
+  const themeRaw = (portraitRow.theme as string | null) || ""
+  const theme = themeRaw.trim() || null
+
   return {
     portraitId: effectivePortraitId,
     petName: resolvedPetName,
+    theme,
     imageUrl,
     originalImageUrl: (portraitRow.original_image_url as string | null) || null,
     totalCents,
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (portraitIdParam && !sessionId) {
       const { data: portraitRow, error } = await supabase
         .from("pet_portraits")
-        .select("id, pet_name, image_url")
+        .select("id, pet_name, theme, image_url")
         .eq("id", portraitIdParam)
         .single()
 
@@ -85,10 +89,13 @@ export async function GET(request: NextRequest) {
       }
 
       const petName = ((portraitRow.pet_name as string) || "My Pet").trim() || "My Pet"
+      const themeRaw = (portraitRow.theme as string | null) || ""
+      const theme = themeRaw.trim() || null
       return NextResponse.json(
         {
           portrait_id: portraitRow.id,
           pet_name: petName,
+          theme,
           amount_cents: 0,
           currency: "USD",
         },
@@ -119,6 +126,7 @@ export async function GET(request: NextRequest) {
       {
         portrait_id: ctx.portraitId,
         pet_name: ctx.petName,
+        theme: ctx.theme,
         amount_cents: ctx.totalCents,
         currency: ctx.currency,
         customer_email: ctx.customerEmail ?? "",

@@ -9,6 +9,7 @@ import Image from "next/image"
 import { AlertCircle, Check, Mail, Palette, Ruler, Frame, Paperclip, Send, Inbox, Download } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { trackGa4Purchase } from "@/lib/ga4"
 import { purchase } from "@/lib/fpixel"
 
 export const dynamic = "force-dynamic"
@@ -20,6 +21,7 @@ type PreviewState =
       status: "ready"
       portraitId: string
       petName: string
+      theme: string | null
       amountDisplay: string
       currency: string
       amountCents: number
@@ -70,8 +72,27 @@ function SuccessContent() {
     if (preview.status !== "ready") return
     if (preview.amountCents <= 0) return
     purchaseTracked.current = true
-    purchase(preview.amountCents / 100, preview.currency || "USD")
-  }, [preview])
+    const value = preview.amountCents / 100
+    const currency = (preview.currency || "USD").toUpperCase()
+    purchase(value, currency)
+
+    const transactionId = sessionId.trim() || `portrait_${preview.portraitId}`
+    trackGa4Purchase({
+      transaction_id: transactionId,
+      value,
+      currency,
+      items: [
+        {
+          item_id: preview.portraitId,
+          item_name: `AI pet portrait — ${preview.petName}`,
+          item_category: "pet_portrait",
+          ...(preview.theme ? { item_variant: preview.theme } : {}),
+          price: value,
+          quantity: 1,
+        },
+      ],
+    })
+  }, [preview, sessionId])
 
   useEffect(() => {
     if (!sessionId && !portraitFromQuery) {
@@ -129,12 +150,15 @@ function SuccessContent() {
         const cents = typeof data.amount_cents === "number" ? data.amount_cents : 0
         const amountDisplay = cents > 0 ? `$${(cents / 100).toFixed(2)}` : "–"
         const currency = typeof data.currency === "string" ? data.currency.toUpperCase() : (sessionId ? "USD" : "")
+        const theme =
+          typeof data.theme === "string" && data.theme.trim() ? data.theme.trim() : null
 
         if (!cancelled) {
           setPreview({
             status: "ready",
             portraitId,
             petName: data.pet_name || "Your pet",
+            theme,
             amountDisplay,
             currency,
             amountCents: cents,
