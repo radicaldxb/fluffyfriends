@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono, Nunito } from "next/font/google"
 import Script from "next/script"
 import "./globals.css"
+import { Ga4PageView } from "@/components/ga4-pageview"
 import { MetaPixelPageView } from "@/components/meta-pixel-pageview"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import EnvBanner from "@/components/env-banner"
@@ -45,18 +46,17 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_ENV === "staging" && (
           <meta name="robots" content="noindex, nofollow" />
         )}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-8KYJG9BH46"
-          strategy="afterInteractive"
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];
+w[l].push({'gtm.start':new Date().getTime(),
+event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+f.parentNode.insertBefore(j,f);})
+(window,document,'script','dataLayer','GTM-NLSHKZ2F');`,
+          }}
         />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-8KYJG9BH46');
-  `}
-        </Script>
         {loadFacebookPixel ? (
           <Script
             id="facebook-pixel"
@@ -79,6 +79,14 @@ export default function RootLayout({
         ) : null}
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NLSHKZ2F"
+            height={0}
+            width={0}
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         {loadFacebookPixel ? (
           <noscript>
             <img
@@ -90,6 +98,7 @@ export default function RootLayout({
             />
           </noscript>
         ) : null}
+        <Ga4PageView />
         {loadFacebookPixel ? <MetaPixelPageView /> : null}
         <ScrollToTop />
         {children}
