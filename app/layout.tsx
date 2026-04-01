@@ -6,6 +6,7 @@ import { Ga4PageView } from "@/components/ga4-pageview"
 import { MetaPixelPageView } from "@/components/meta-pixel-pageview"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import EnvBanner from "@/components/env-banner"
+import { GTM_HEAD_SCRIPT, GTM_NS_IFRAME_SRC } from "@/lib/gtm"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -46,15 +47,10 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_ENV === "staging" && (
           <meta name="robots" content="noindex, nofollow" />
         )}
+        {/* Google Tag Manager — root layout wraps all routes; new pages under app/ get GTM automatically */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];
-w[l].push({'gtm.start':new Date().getTime(),
-event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-f.parentNode.insertBefore(j,f);})
-(window,document,'script','dataLayer','GTM-NLSHKZ2F');`,
+            __html: GTM_HEAD_SCRIPT,
           }}
         />
         {loadFacebookPixel ? (
@@ -81,7 +77,7 @@ f.parentNode.insertBefore(j,f);})
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-NLSHKZ2F"
+            src={GTM_NS_IFRAME_SRC}
             height={0}
             width={0}
             style={{ display: "none", visibility: "hidden" }}

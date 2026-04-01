@@ -19,6 +19,19 @@ export type Ga4PurchaseParams = {
 }
 
 /**
+ * Virtual page_view for SPA / App Router client navigations.
+ * Initial load is covered by `gtag('config', …)` in layout; call this on pathname changes only.
+ */
+export function trackGa4PageView(pagePath: string): void {
+  if (typeof window === "undefined") return
+  const g = window.gtag
+  if (typeof g !== "function") return
+  g("config", GA_MEASUREMENT_ID, {
+    page_path: pagePath,
+  })
+}
+
+/**
  * GA4 recommended ecommerce `purchase` event.
  * Requires gtag loaded (layout); no-ops if unavailable.
  */
