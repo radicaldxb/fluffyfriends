@@ -1,6 +1,7 @@
-/** Same ID as `app/layout.tsx` gtag config; override via env if needed. */
-export const GA_MEASUREMENT_ID =
-  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "G-8KYJG9BH46"
+/**
+ * Analytics via GTM `dataLayer` (no direct gtag in layout). GTM should expose GA4 tags
+ * that listen for these events / ecommerce fields.
+ */
 
 export type Ga4PurchaseItem = {
   item_id: string
@@ -18,32 +19,49 @@ export type Ga4PurchaseParams = {
   items: Ga4PurchaseItem[]
 }
 
+function pushDataLayer(obj: Record<string, unknown>): void {
+  if (typeof window === "undefined") return
+  const w = window as Window & { dataLayer?: unknown[] }
+  w.dataLayer = w.dataLayer || []
+  w.dataLayer.push(obj)
+}
+
 /**
- * Virtual page_view for SPA / App Router client navigations.
- * Initial load is covered by `gtag('config', …)` in layout; call this on pathname changes only.
+ * Virtual page_view for App Router client navigations (initial load is handled by GTM).
  */
 export function trackGa4PageView(pagePath: string): void {
   if (typeof window === "undefined") return
-  const g = window.gtag
-  if (typeof g !== "function") return
-  g("config", GA_MEASUREMENT_ID, {
-    page_path: pagePath,
+  const path = pagePath.startsWith("/") ? pagePath : `/${pagePath}`
+  const search = window.location.search || ""
+  const pageLocation = `${window.location.origin}${path}${search}`
+  pushDataLayer({
+    event: "virtual_page_view",
+    page_path: path,
+    page_location: pageLocation,
+    page_title: document.title,
   })
 }
 
 /**
- * GA4 recommended ecommerce `purchase` event.
- * Requires gtag loaded (layout); no-ops if unavailable.
+ * GA4 recommended ecommerce `purchase` event via dataLayer.
  */
 export function trackGa4Purchase(params: Ga4PurchaseParams): void {
   if (typeof window === "undefined") return
-  const g = window.gtag
-  if (typeof g !== "function") return
-
-  g("event", "purchase", {
-    transaction_id: params.transaction_id,
-    value: params.value,
-    currency: params.currency,
-    items: params.items,
+  pushDataLayer({ ecommerce: null })
+  pushDataLayer({
+    event: "purchase",
+    ecommerce: {
+      transaction_id: params.transaction_id,
+      value: params.value,
+      currency: params.currency,
+      items: params.items.map((i) => ({
+        item_id: i.item_id,
+        item_name: i.item_name,
+        ...(i.item_category ? { item_category: i.item_category } : {}),
+        ...(i.item_variant ? { item_variant: i.item_variant } : {}),
+        price: i.price,
+        quantity: i.quantity,
+      })),
+    },
   })
 }

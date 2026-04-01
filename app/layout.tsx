@@ -6,7 +6,7 @@ import { Ga4PageView } from "@/components/ga4-pageview"
 import { MetaPixelPageView } from "@/components/meta-pixel-pageview"
 import { ScrollToTop } from "@/components/scroll-to-top"
 import EnvBanner from "@/components/env-banner"
-import { GTM_HEAD_SCRIPT, GTM_NS_IFRAME_SRC } from "@/lib/gtm"
+import { GTM_CONSENT_DEFAULT_SCRIPT, GTM_HEAD_SCRIPT, GTM_NS_IFRAME_SRC } from "@/lib/gtm"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -47,6 +47,12 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_ENV === "staging" && (
           <meta name="robots" content="noindex, nofollow" />
         )}
+        {/* Consent defaults before GTM so GA4 can send (see lib/gtm.ts). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: GTM_CONSENT_DEFAULT_SCRIPT,
+          }}
+        />
         {/* Google Tag Manager — root layout wraps all routes; new pages under app/ get GTM automatically */}
         <script
           dangerouslySetInnerHTML={{

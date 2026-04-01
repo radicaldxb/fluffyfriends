@@ -21,7 +21,7 @@ function Ga4PageViewInner() {
   return null
 }
 
-/** Sends GA4 page_view on client-side navigations; first paint is covered by gtag config in layout. */
+/** Pushes `virtual_page_view` to `dataLayer` on client navigations; map in GTM → GA4 `page_view`. */
 export function Ga4PageView() {
   return (
     <Suspense fallback={null}>

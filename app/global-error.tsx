@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import "./globals.css"
 import { Button } from "@/components/ui/button"
-import { GTM_HEAD_SCRIPT, GTM_NS_IFRAME_SRC } from "@/lib/gtm"
+import { GTM_CONSENT_DEFAULT_SCRIPT, GTM_HEAD_SCRIPT, GTM_NS_IFRAME_SRC } from "@/lib/gtm"
 
 /**
  * Replaces the root layout when active; must repeat GTM here so tags still load.
@@ -23,6 +23,11 @@ export default function GlobalError({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: GTM_CONSENT_DEFAULT_SCRIPT,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: GTM_HEAD_SCRIPT,
