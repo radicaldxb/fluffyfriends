@@ -26,8 +26,10 @@ export function Navbar() {
             alt=""
             width={180}
             height={48}
+            sizes="(max-width: 640px) 180px, 220px"
             className="h-[2.875rem] w-auto object-contain sm:h-[3.45rem]"
             priority
+            unoptimized
           />
         </a>
 
@@ -50,7 +52,7 @@ export function Navbar() {
             className="hidden sm:inline-flex rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
             asChild
           >
-            <a href="/create">Make My Portrait</a>
+            <a href="/create">Create My Portrait →</a>
           </Button>
           <button
             className="text-foreground p-2 md:hidden -m-2"
@@ -82,7 +84,7 @@ export function Navbar() {
                 className="w-full rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
                 asChild
               >
-                <a href="/create" onClick={() => setMobileOpen(false)}>Make My Portrait</a>
+                <a href="/create" onClick={() => setMobileOpen(false)}>Create My Portrait →</a>
               </Button>
             </li>
           </ul>

@@ -10,25 +10,31 @@ const FADE_MS = 800
 
 const kingMain = themes.king.masterImage
 
-/** Slide 2 expects `public/images/misty-queen.jpg` — add the file to avoid a broken main image. */
+/** Use unique `id` for React keys — several slides share the same beforeSrc (pet-before.webp). */
 const SLIDES = [
   {
+    id: "jimmy-fireman",
     mainSrc: "/images/pet-after.webp",
+    beforeSrc: "/images/pet-before.webp",
     nameLine: "Jimmy 🐾",
     themeLabel: "🚒 Fireman",
-    alt: "Example Fireman theme pet portrait",
+    alt: "Jimmy — Fireman theme pet portrait",
   },
   {
-    mainSrc: "/images/misty-queen.jpg",
+    id: "misty-queen",
+    mainSrc: "/images/misty-after.webp",
+    beforeSrc: "/images/pet-before.webp",
     nameLine: "Misty 🐾",
     themeLabel: "👑 Queen",
-    alt: "Example Queen theme cat portrait",
+    alt: "Misty — Queen theme cat portrait",
   },
   {
+    id: "buddy-king",
     mainSrc: kingMain,
+    beforeSrc: "/images/pet-before.webp",
     nameLine: "Buddy 🐾",
     themeLabel: "👑 King",
-    alt: "Example King theme pet portrait",
+    alt: "Buddy — King theme pet portrait",
   },
 ]
 
@@ -36,7 +42,7 @@ export function HeroPortraitRotator() {
   const [active, setActive] = useState(0)
 
   useEffect(() => {
-    const urls = SLIDES.map((s) => s.mainSrc)
+    const urls = [...new Set(SLIDES.flatMap((s) => [s.mainSrc, s.beforeSrc]))]
     for (const src of urls) {
       const img = new window.Image()
       img.src = src
@@ -58,7 +64,7 @@ export function HeroPortraitRotator() {
           const isRemote = slide.mainSrc.startsWith("http")
           return (
             <div
-              key={slide.mainSrc}
+              key={slide.id}
               className={cn(
                 "absolute inset-0 transition-opacity ease-in-out",
                 active === i ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
@@ -84,7 +90,7 @@ export function HeroPortraitRotator() {
           <div className="relative mt-1 min-h-[1.75rem] sm:min-h-[2rem]">
             {SLIDES.map((slide, i) => (
               <p
-                key={slide.nameLine}
+                key={slide.id}
                 className={cn(
                   "text-lg font-bold leading-tight text-foreground transition-opacity ease-in-out",
                   active === i
@@ -106,17 +112,29 @@ export function HeroPortraitRotator() {
         </div>
       </div>
 
-      {/* Before thumbnail — static, same as slide 1 */}
+      {/* Before thumbnail — crossfades per slide (keys must be unique even when beforeSrc repeats) */}
       <div className="absolute bottom-24 right-3 z-10 w-[34%] max-w-[150px] overflow-hidden rounded-organic-sm border border-border bg-muted shadow-lg sm:-bottom-4 sm:-left-16 sm:right-auto sm:w-40 sm:max-w-none">
         <div className="relative aspect-[4/5]">
-          <Image
-            src="/images/pet-before.webp"
-            alt="Original pet photo"
-            fill
-            className="object-cover"
-            sizes="150px"
-          />
-          <div className="absolute left-2 top-2 rounded-organic-pill bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
+          {SLIDES.map((slide, i) => (
+            <div
+              key={`before-${slide.id}`}
+              className={cn(
+                "absolute inset-0 transition-opacity ease-in-out",
+                active === i ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
+              )}
+              style={{ transitionDuration: `${FADE_MS}ms` }}
+            >
+              <Image
+                src={slide.beforeSrc}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="150px"
+                priority={i === 0}
+              />
+            </div>
+          ))}
+          <div className="absolute left-2 top-2 z-20 rounded-organic-pill bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
             Before
           </div>
         </div>
@@ -128,7 +146,7 @@ export function HeroPortraitRotator() {
         <div className="relative min-h-[1.25rem]">
           {SLIDES.map((slide, i) => (
             <p
-              key={slide.themeLabel}
+              key={slide.id}
               className={cn(
                 "text-sm font-bold text-foreground transition-opacity ease-in-out",
                 active === i
