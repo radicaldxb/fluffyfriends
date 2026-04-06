@@ -6,17 +6,19 @@ const steps = [
     step: "01",
     title: "Choose their theme",
     description:
-      "8 themes — from regal Kings and Queens to fearless Pilots, Admirals and Samurai warriors.",
+      "King, Queen, Fireman, Pilot, Admiral, Samurai, Veterinarian, or Police Officer. Every theme is designed so your pet's name becomes part of the portrait itself.",
   },
   {
     step: "02",
     title: "Upload one photo",
-    description: "One clear photo. We check it before you pay.",
+    description:
+      "One clear photo is all we need. We check it works before you pay — no surprises, no wasted money.",
   },
   {
     step: "03",
     title: "Receive your portrait",
-    description: "Two print-ready files in your inbox within minutes.",
+    description:
+      "Within minutes, two print-ready files land in your inbox — portrait format and landscape format — plus a free guide for printing and framing.",
   },
 ] as const
 
