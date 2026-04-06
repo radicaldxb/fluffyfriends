@@ -16,3 +16,6 @@ tailwindcss*.log
 
 # TypeScript incremental
 tsconfig.tsbuildinfo
+
+# Never commit these
+context/secrets.md
