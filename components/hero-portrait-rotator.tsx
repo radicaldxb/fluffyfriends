@@ -3,15 +3,13 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { themes } from "@/lib/themes"
 
 const INTERVAL_MS = 5000
 const FADE_MS = 800
 
-const kingMain = themes.king.masterImage
-
 /**
  * Paths must match filenames in `public/images/` exactly (case-sensitive on Linux).
+ * Fireman = Golden Retriever, Queen = cat, King = Dachshund (local hero assets only).
  */
 const SLIDES = [
   {
@@ -20,7 +18,7 @@ const SLIDES = [
     beforeSrc: "/images/pet-before.webp",
     nameLine: "Jimmy 🐾",
     themeLabel: "🚒 Fireman",
-    alt: "Jimmy — Fireman theme pet portrait",
+    alt: "Golden Retriever — Fireman theme portrait",
   },
   {
     id: "misty-queen",
@@ -28,23 +26,15 @@ const SLIDES = [
     beforeSrc: "/images/Misty-before.webp",
     nameLine: "Misty 🐾",
     themeLabel: "👑 Queen",
-    alt: "Misty — Queen theme pet portrait",
-  },
-  {
-    id: "oscar-officer",
-    mainSrc: "/images/Oscar-after.webp",
-    beforeSrc: "/images/Oscar-before.webp",
-    nameLine: "Oscar 🐾",
-    themeLabel: "🚓 Officer",
-    alt: "Oscar — Officer theme pet portrait",
+    alt: "Cat — Queen theme portrait",
   },
   {
     id: "buddy-king",
-    mainSrc: kingMain,
-    beforeSrc: "/images/pet-before.webp",
+    mainSrc: "/images/king-after.webp",
+    beforeSrc: "/images/king-before.webp",
     nameLine: "Buddy 🐾",
     themeLabel: "👑 King",
-    alt: "Buddy — King theme pet portrait",
+    alt: "Dachshund — King theme portrait",
   },
 ]
 
