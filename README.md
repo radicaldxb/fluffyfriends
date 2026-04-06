@@ -9,4 +9,5 @@
 - [Locked workflow fallback](docs/WORKFLOW_FALLBACK.md)
 - [Name tag troubleshooting](docs/NAMETAG_NOT_SHOWING_TROUBLESHOOTING.md) – if the chest patch shows `{{PET_NAME}}` or no name
 - [Current build snapshot](docs/CURRENT_BUILD.md) – stabilized state (Feb 2025)
-# CI test
+# CI test 
+
