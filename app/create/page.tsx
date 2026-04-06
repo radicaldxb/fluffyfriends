@@ -524,9 +524,6 @@ function CreatePortraitContent() {
                     <h2 className="text-xl font-semibold text-foreground">
                       Upload {theirOrName} photo
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      One clear photo is all we need. We&apos;ll check it first, so there are no surprises or money wasted.
-                    </p>
                     <input
                       ref={fileInputRef}
                       id="pet-photo"
