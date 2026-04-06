@@ -65,28 +65,7 @@ export function HowItWorksVisualSection() {
           </p>
         </div>
 
-        {/* Part B — image columns (product-first) */}
-        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
-          {featureColumns.map((col) => (
-            <figure key={col.src} className="flex flex-col items-center text-center">
-              <div className="relative h-[240px] w-full overflow-hidden rounded-2xl shadow-md md:h-[340px]">
-                <Image
-                  src={col.src}
-                  alt={col.alt}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-              </div>
-              <figcaption className="mt-4 w-full">
-                <h3 className="text-base font-bold tracking-tight text-foreground">{col.headline}</h3>
-                <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-
-        {/* Part C — step cards */}
+        {/* Part B — three step cards */}
         <div className="mt-16 grid gap-6 md:grid-cols-3">
           {steps.map((item) => {
             const Icon = item.Icon
@@ -108,6 +87,27 @@ export function HowItWorksVisualSection() {
               </div>
             )
           })}
+        </div>
+
+        {/* Part C — three image columns */}
+        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
+          {featureColumns.map((col) => (
+            <figure key={col.src} className="flex flex-col items-center text-center">
+              <div className="relative h-[240px] w-full overflow-hidden rounded-2xl shadow-md md:h-[340px]">
+                <Image
+                  src={col.src}
+                  alt={col.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
+              <figcaption className="mt-4 w-full">
+                <h3 className="text-base font-bold tracking-tight text-foreground">{col.headline}</h3>
+                <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
+              </figcaption>
+            </figure>
+          ))}
         </div>
 
         {/* Part D */}
