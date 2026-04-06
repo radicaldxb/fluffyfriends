@@ -2,25 +2,29 @@ import Image from "next/image"
 import Link from "next/link"
 import { Frame, Palette, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 const featureColumns = [
   {
     src: "/images/Oscar-portrait.webp",
     alt: "Portrait format pet portrait mockup",
-    headline: "Hang it on your wall.",
-    body: "Portrait format — tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
+    overlayLabel: "Portrait design",
+    body: "Tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
+    imageClassName: "object-cover object-top",
   },
   {
     src: "/images/Mochi-Landscape.webp",
     alt: "Landscape format pet portrait mockup",
-    headline: "Display it anywhere.",
-    body: "Landscape format — wide and cinematic. Ideal for mantels, shelves, and wide frames.",
+    overlayLabel: "Landscape design",
+    body: "Wide and cinematic. Ideal for mantels, shelves, and wide frames.",
+    imageClassName: "object-cover",
   },
   {
     src: "/images/Willy-frame.webp",
     alt: "Pet name crafted into the portrait artwork",
-    headline: "Their name. In the art.",
+    overlayLabel: "Pet name and unique characteristics",
     body: "Not a caption. Not a watermark. Their name is crafted into the costume itself — a badge, a crest, a name tag. Uniquely theirs.",
+    imageClassName: "object-cover",
   },
 ] as const
 
@@ -98,13 +102,17 @@ export function HowItWorksVisualSection() {
                   src={col.src}
                   alt={col.alt}
                   fill
-                  className="object-cover"
+                  className={cn(col.imageClassName)}
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
+                <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-orange-500/80 via-orange-500/35 to-transparent px-3 pb-10 pt-4">
+                  <p className="text-center text-sm font-semibold text-white drop-shadow-sm">
+                    {col.overlayLabel}
+                  </p>
+                </div>
               </div>
               <figcaption className="mt-4 w-full">
-                <h3 className="text-base font-bold tracking-tight text-foreground">{col.headline}</h3>
-                <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
+                <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
               </figcaption>
             </figure>
           ))}
@@ -117,7 +125,7 @@ export function HowItWorksVisualSection() {
             className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
             asChild
           >
-            <Link href="/create">See What Your Pet Would Look Like →</Link>
+            <Link href="/create">Create My Portrait →</Link>
           </Button>
         </div>
       </div>

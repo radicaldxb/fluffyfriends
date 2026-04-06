@@ -1,15 +1,17 @@
-import { Check, X } from "lucide-react"
+import Link from "next/link"
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 const comparisonRows = [
-  { feature: "Name personalised into portrait", fluffy: true, others: false },
-  { feature: "Two formats included", fluffy: true, others: false },
-  { feature: "Free print guide", fluffy: true, others: false },
-  { feature: "A1 print quality", fluffy: true, others: "Rarely" },
-  { feature: "One photo needed", fluffy: true, others: "Up to 15" },
-  { feature: "Ready in minutes", fluffy: true, others: "Up to 1 hour" },
-  { feature: "Flexible portraits", fluffy: true, others: false },
-  { feature: "No subscription", fluffy: true, others: "Often required" },
+  { feature: "Their name in the portrait", fluffy: true, others: false },
+  { feature: "Portrait + landscape, always included", fluffy: true, others: false },
+  { feature: "Free print & frame guide", fluffy: true, others: false },
+  { feature: "A1 print quality (poster-size sharp)", fluffy: true, others: "Rarely" },
+  { feature: "One photo — that's it", fluffy: true, others: "Up to 15" },
+  { feature: "Ready in minutes, not hours", fluffy: true, others: "Up to 1 hour" },
+  { feature: "Use credits any way you like", fluffy: true, others: false },
+  { feature: "Pay once, own it forever", fluffy: true, others: "Often required" },
 ] as const
 
 const plans = [
@@ -75,6 +77,17 @@ const plans = [
   },
 ]
 
+function FluffyCheck() {
+  return (
+    <span
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm"
+      aria-hidden
+    >
+      ✓
+    </span>
+  )
+}
+
 export function PricingSection() {
   return (
     <section id="pricing" className="relative py-14 md:py-20">
@@ -99,7 +112,7 @@ export function PricingSection() {
         </div>
 
         {/* Credit explainer — above cards */}
-          <p className="mt-10 text-center text-sm text-muted-foreground">
+        <p className="mt-10 text-center text-sm text-muted-foreground">
           1 portrait = 1 artwork · Mix and match any way you like
         </p>
 
@@ -168,32 +181,63 @@ export function PricingSection() {
           ))}
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-organic border border-border bg-card shadow-sm">
+        {/* Comparison table — headline + dark anchor + CTA */}
+        <div className="mt-16 text-center">
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Why FluffyFriends wins every time.
+          </h2>
+          <p className="mt-3 text-pretty text-muted-foreground">
+            We checked. No one else does all of this.
+          </p>
+        </div>
+
+        <div className="mt-8 overflow-hidden rounded-organic bg-[#111827] shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[320px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="px-4 py-3 font-semibold text-foreground"> </th>
-                  <th className="px-4 py-3 font-semibold text-foreground">FluffyFriends</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Others</th>
+                <tr className="border-b border-white/10">
+                  <th className="px-4 py-4 font-medium text-gray-400 sm:px-6" scope="col">
+                    <span className="sr-only">Feature</span>
+                  </th>
+                  <th className="px-4 py-4 text-center sm:px-6" scope="col">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-base font-bold text-white">FluffyFriends</span>
+                      <span className="rounded-organic-sm bg-primary px-2.5 py-1 text-[11px] font-semibold leading-tight text-primary-foreground">
+                        The one that does it all
+                      </span>
+                    </div>
+                  </th>
+                  <th className="px-4 py-4 text-center text-sm font-medium text-gray-500 sm:px-6" scope="col">
+                    Everyone else
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map((row) => (
-                  <tr key={row.feature} className="border-b border-border/70 last:border-0">
-                    <td className="px-4 py-3 text-muted-foreground">{row.feature}</td>
-                    <td className="px-4 py-3">
+                {comparisonRows.map((row, index) => (
+                  <tr
+                    key={row.feature}
+                    className={cn(
+                      "border-b border-white/[0.06] last:border-0",
+                      index % 2 === 1 && "bg-white/5",
+                    )}
+                  >
+                    <td className="px-4 py-3.5 text-gray-300 sm:px-6">{row.feature}</td>
+                    <td className="px-4 py-3.5 text-center sm:px-6">
                       {row.fluffy === true ? (
-                        <Check className="h-5 w-5 text-primary" aria-hidden />
+                        <div className="flex justify-center">
+                          <FluffyCheck />
+                        </div>
                       ) : (
-                        <span className="text-muted-foreground">{row.fluffy}</span>
+                        <span className="text-gray-400">{row.fluffy}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5 text-center text-gray-500 sm:px-6">
                       {row.others === false ? (
-                        <X className="h-5 w-5 text-muted-foreground" aria-hidden />
+                        <div className="flex justify-center opacity-80">
+                          <X className="h-5 w-5 text-gray-500" aria-hidden />
+                        </div>
                       ) : (
-                        <span className="text-muted-foreground">{row.others}</span>
+                        <span className="text-sm text-gray-500">{row.others}</span>
                       )}
                     </td>
                   </tr>
@@ -201,9 +245,22 @@ export function PricingSection() {
               </tbody>
             </table>
           </div>
+
+          <div className="border-t border-white/10 px-6 py-8 text-center">
+            <p className="text-lg font-semibold text-white">
+              Everything included. One payment. Yours forever.
+            </p>
+            <Button
+              size="lg"
+              className="mt-5 inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+              asChild
+            >
+              <Link href="/create">Create My Portrait →</Link>
+            </Button>
+          </div>
         </div>
 
-        {/* Trust line below cards */}
+        {/* Trust line below comparison */}
         <p className="mt-10 text-center text-sm font-medium text-foreground">
           Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
         </p>
