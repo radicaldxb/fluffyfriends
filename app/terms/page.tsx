@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+
+export const metadata: Metadata = {
+  title: "Terms of Service | FluffyFriends",
+  description: "FluffyFriends terms of service.",
+}
 
 export default function TermsPage() {
   return (

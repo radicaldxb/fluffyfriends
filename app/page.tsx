@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
 import { HeroDifferentiatorStrip } from "@/components/hero-differentiator-strip"
@@ -11,6 +12,12 @@ import { ReviewsSection } from "@/components/reviews-section"
 import { GiftSection } from "@/components/gift-section"
 import { Footer } from "@/components/footer"
 import { SketchDivider } from "@/components/sketch-divider"
+
+export const metadata: Metadata = {
+  title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
+  description:
+    "Transform your pet photo into fine art with their name in the artwork. Print-ready in minutes. From $17. Use FLUFFY15 for 15% off.",
+}
 
 const organizationSchema = {
   "@context": "https://schema.org",

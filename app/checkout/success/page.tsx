@@ -457,11 +457,25 @@ function SuccessContent() {
                 <p className="mt-3 text-sm text-muted-foreground">
                   Order total:{" "}
                   <strong>{preview.amountDisplay} {preview.currency}</strong>
-                  . You’ll receive wide and portrait print‑ready files plus a print guide.
+                  . You’ll receive wide and portrait print‑ready files plus a{" "}
+                  <a
+                    href="/print-guide.pdf"
+                    className="text-primary underline hover:no-underline"
+                  >
+                    print guide
+                  </a>
+                  .
                 </p>
               ) : (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Using 1 of your portrait pack credits. You’ll receive wide and portrait print‑ready files plus a print guide.
+                  Using 1 of your portrait pack credits. You’ll receive wide and portrait print‑ready files plus a{" "}
+                  <a
+                    href="/print-guide.pdf"
+                    className="text-primary underline hover:no-underline"
+                  >
+                    print guide
+                  </a>
+                  .
                 </p>
               )}
 

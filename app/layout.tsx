@@ -13,10 +13,10 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", weight: ["400", "600", "700", "800"] })
 
 export const metadata: Metadata = {
-  title: 'FluffyFriends.online — AI Pet Portrait Studio',
+  title: "FluffyFriends — AI Pet Portraits",
   description:
-    'Transform your beloved pet into museum-quality fine art with the power of AI. Choose from 8 stunning themes.',
-  generator: 'v0.app',
+    "AI pet portraits with your pet’s name in the artwork. Print-ready files in minutes. From $17.",
+  generator: "v0.app",
   icons: {
     icon: [{ url: '/image/favicon.svg', type: 'image/svg+xml' }],
   },

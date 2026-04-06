@@ -1,4 +1,11 @@
+import type { Metadata } from "next"
 import type { ReactNode } from "react"
+
+export const metadata: Metadata = {
+  title: "Create Your Pet Portrait | FluffyFriends",
+  description:
+    "Upload one photo of your pet, choose a theme, and receive two print-ready portrait files in minutes. Named and personalised.",
+}
 
 const CREATE_URL = "https://fluffyfriends.online/create"
 
