@@ -7,6 +7,9 @@ node_modules
 # Local Netlify folder
 .netlify
 
+# Claude Code / local worktrees
+.claude
+
 # Logs
 *.log
 tailwindcss*.log
