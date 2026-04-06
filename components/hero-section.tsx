@@ -43,9 +43,10 @@ export function HeroSection() {
                 className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                 asChild
               >
-                <Link href="/create">
-                  Make My Portrait
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                <Link href="/create" className="inline-flex items-center gap-2">
+                  <span className="sm:hidden">What Would My Pet Look Like?</span>
+                  <span className="hidden sm:inline">See What Your Pet Would Look Like</span>
+                  <ArrowRight className="ml-1 h-4 w-4 shrink-0" aria-hidden />
                 </Link>
               </Button>
               <Button
@@ -54,7 +55,7 @@ export function HeroSection() {
                 className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold h-auto"
                 asChild
               >
-                <Link href="#gallery">See real portraits</Link>
+                <Link href="#gallery">Browse the gallery</Link>
               </Button>
             </div>
             {/* Trust strip – arranged in two neat columns on desktop */}

@@ -1,4 +1,6 @@
+import Link from "next/link"
 import { Palette, Upload, Frame } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const steps = [
   {
@@ -67,6 +69,16 @@ export function ProcessSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-16 flex justify-center">
+          <Button
+            size="lg"
+            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+            asChild
+          >
+            <Link href="/create">Start My Portrait →</Link>
+          </Button>
         </div>
       </div>
     </section>

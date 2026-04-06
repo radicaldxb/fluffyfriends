@@ -17,7 +17,7 @@ const plans = [
       "Free print guide",
       "Personal print rights — print as many times as you like",
     ],
-    cta: "Create my portrait",
+    cta: "Start For $17",
     featured: false,
   },
   {
@@ -37,7 +37,7 @@ const plans = [
       "Free print guide",
       "Personal print rights",
     ],
-    cta: "Get the Portrait Pack",
+    cta: "Get 4 Portraits — Save $19",
     featured: true,
   },
   {
@@ -58,7 +58,7 @@ const plans = [
       "Personal print rights",
       "Beautiful as a gift set",
     ],
-    cta: "Get the Family Pack",
+    cta: "Best Value — 8 Portraits",
     featured: false,
   },
 ]
