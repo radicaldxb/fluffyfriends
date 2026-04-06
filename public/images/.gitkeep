@@ -1,7 +1,7 @@
 # Place hero and gallery images here.
 # Expected files (used by the site):
-#   pet-before.jpg   - hero before/after slider
-#   pet-after.jpg    - hero before/after slider
+#   pet-before.webp, pet-after.webp — hero (Jimmy / Buddy)
+#   Misty-after.webp, Misty-before.webp, Oscar-after.webp, Oscar-before.webp — hero
 #   gallery-fireman.jpg
 #   gallery-samurai.jpg
 #   gallery-renaissance.jpg

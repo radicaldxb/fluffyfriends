@@ -5,7 +5,7 @@ import { HeroPortraitRotator } from "@/components/hero-portrait-rotator"
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-background pt-16 pb-16 md:pt-24 md:pb-24">
+    <section className="relative overflow-x-clip bg-background pt-16 pb-16 md:pt-24 md:pb-24">
       {/* Subtle radial glow behind hero, inspired by redesign */}
       <div
         aria-hidden="true"
@@ -78,7 +78,7 @@ export function HeroSection() {
           </div>
 
           {/* Right – Before / After card, styled like redesign */}
-          <div className="relative flex w-full flex-1 justify-center lg:justify-end order-1 lg:order-2">
+          <div className="relative flex w-full min-w-0 flex-1 justify-center px-2 sm:px-0 lg:justify-end order-1 lg:order-2">
             <HeroPortraitRotator />
           </div>
         </div>

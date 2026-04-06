@@ -10,7 +10,9 @@ const FADE_MS = 800
 
 const kingMain = themes.king.masterImage
 
-/** Use unique `id` for React keys — several slides share the same beforeSrc (pet-before.webp). */
+/**
+ * Paths must match filenames in `public/images/` exactly (case-sensitive on Linux).
+ */
 const SLIDES = [
   {
     id: "jimmy-fireman",
@@ -22,11 +24,19 @@ const SLIDES = [
   },
   {
     id: "misty-queen",
-    mainSrc: "/images/misty-after.webp",
-    beforeSrc: "/images/pet-before.webp",
+    mainSrc: "/images/Misty-after.webp",
+    beforeSrc: "/images/Misty-before.webp",
     nameLine: "Misty 🐾",
     themeLabel: "👑 Queen",
-    alt: "Misty — Queen theme cat portrait",
+    alt: "Misty — Queen theme pet portrait",
+  },
+  {
+    id: "oscar-officer",
+    mainSrc: "/images/Oscar-after.webp",
+    beforeSrc: "/images/Oscar-before.webp",
+    nameLine: "Oscar 🐾",
+    themeLabel: "🚓 Officer",
+    alt: "Oscar — Officer theme pet portrait",
   },
   {
     id: "buddy-king",
@@ -57,19 +67,21 @@ export function HeroPortraitRotator() {
   }, [])
 
   return (
-    <div className="relative w-full max-w-md">
-      {/* Main portrait card (After) */}
-      <div className="relative aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
+    <div className="relative z-0 w-full max-w-md">
+      {/* Main portrait card — single stacking context so inactive layers cannot show through */}
+      <div className="relative z-[1] isolate aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
         {SLIDES.map((slide, i) => {
           const isRemote = slide.mainSrc.startsWith("http")
+          const on = active === i
           return (
             <div
               key={slide.id}
               className={cn(
                 "absolute inset-0 transition-opacity ease-in-out",
-                active === i ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
+                on ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
               )}
               style={{ transitionDuration: `${FADE_MS}ms` }}
+              aria-hidden={!on}
             >
               <Image
                 src={slide.mainSrc}
@@ -84,8 +96,8 @@ export function HeroPortraitRotator() {
           )
         })}
 
-        {/* Name badge overlay — text crossfades */}
-        <div className="absolute bottom-3 left-5 z-20 rounded-2xl bg-background/90 px-4 py-2.5 shadow-lg backdrop-blur-sm">
+        {/* Name badge */}
+        <div className="absolute bottom-3 left-5 z-20 rounded-organic bg-background/90 px-4 py-2.5 shadow-lg backdrop-blur-sm">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Portrait for</p>
           <div className="relative mt-1 min-h-[1.75rem] sm:min-h-[2rem]">
             {SLIDES.map((slide, i) => (
@@ -106,42 +118,45 @@ export function HeroPortraitRotator() {
           </div>
         </div>
 
-        {/* After badge — static */}
         <div className="absolute right-4 top-4 z-20 rounded-organic-pill bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow">
           After ✨
         </div>
       </div>
 
-      {/* Before thumbnail — crossfades per slide (keys must be unique even when beforeSrc repeats) */}
-      <div className="absolute bottom-24 right-3 z-10 w-[34%] max-w-[150px] overflow-hidden rounded-organic-sm border border-border bg-muted shadow-lg sm:-bottom-4 sm:-left-16 sm:right-auto sm:w-40 sm:max-w-none">
+      {/* Before thumbnail — above card edge, below floating badges that need to read clearly */}
+      <div className="absolute bottom-[5.25rem] right-2 z-[2] w-[34%] max-w-[150px] overflow-hidden rounded-organic-sm border border-border bg-muted shadow-lg sm:-bottom-4 sm:left-4 sm:right-auto sm:w-40 sm:max-w-none">
         <div className="relative aspect-[4/5]">
-          {SLIDES.map((slide, i) => (
-            <div
-              key={`before-${slide.id}`}
-              className={cn(
-                "absolute inset-0 transition-opacity ease-in-out",
-                active === i ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
-              )}
-              style={{ transitionDuration: `${FADE_MS}ms` }}
-            >
-              <Image
-                src={slide.beforeSrc}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="150px"
-                priority={i === 0}
-              />
-            </div>
-          ))}
+          {SLIDES.map((slide, i) => {
+            const on = active === i
+            return (
+              <div
+                key={`before-${slide.id}`}
+                className={cn(
+                  "absolute inset-0 transition-opacity ease-in-out",
+                  on ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
+                )}
+                style={{ transitionDuration: `${FADE_MS}ms` }}
+                aria-hidden={!on}
+              >
+                <Image
+                  src={slide.beforeSrc}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="150px"
+                  priority={i === 0}
+                />
+              </div>
+            )
+          })}
           <div className="absolute left-2 top-2 z-20 rounded-organic-pill bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
             Before
           </div>
         </div>
       </div>
 
-      {/* Floating theme badge — label static, theme line crossfades */}
-      <div className="absolute -left-6 top-1/3 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg">
+      {/* Theme badge — explicit z so it never sits under the portrait card */}
+      <div className="absolute left-2 top-[28%] z-[3] rounded-organic border border-border bg-card px-3 py-2.5 shadow-lg sm:-left-5 sm:px-4 sm:py-3">
         <p className="mb-1 text-xs text-muted-foreground">Theme</p>
         <div className="relative min-h-[1.25rem]">
           {SLIDES.map((slide, i) => (
@@ -162,8 +177,7 @@ export function HeroPortraitRotator() {
         </div>
       </div>
 
-      {/* Floating quality badge — static */}
-      <div className="absolute -right-4 bottom-1/3 rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-xl">
+      <div className="absolute -right-2 bottom-[30%] z-[3] rounded-organic bg-primary px-3 py-2.5 text-primary-foreground shadow-xl sm:-right-4 sm:px-4 sm:py-3">
         <p className="text-xs font-medium opacity-80">Print ready</p>
         <p className="text-sm font-bold">Up to A1 ↑</p>
       </div>
