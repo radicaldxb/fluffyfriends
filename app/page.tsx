@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
-import { HeroDifferentiatorStrip } from "@/components/hero-differentiator-strip"
 import { HowItWorksVisualSection } from "@/components/how-it-works-visual-section"
 import { GallerySection } from "@/components/gallery-section"
 import { AboutSection } from "@/components/about-section"
@@ -67,8 +66,6 @@ export default function Home() {
           <Navbar />
           <HeroSection />
           <GallerySection />
-          <SketchDivider />
-          <HeroDifferentiatorStrip />
           <SketchDivider />
           <HowItWorksVisualSection />
           <SketchDivider />
