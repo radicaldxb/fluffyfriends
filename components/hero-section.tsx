@@ -39,11 +39,10 @@ export function HeroSection() {
             {/* Trust signals — above CTAs */}
             <div className="mt-8 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 max-w-xl">
               {[
-                "From $17, one-time",
-                "No subscription",
-                "No payment until you've seen your portrait",
-                "Two formats included",
-                "Credit back in 5 mins if not right",
+                "Their name crafted into the artwork",
+                "Print-ready at poster size",
+                "Two formats — portrait and landscape",
+                "Delivered to your inbox in minutes",
               ].map((t) => (
                 <div key={t} className="inline-flex items-center gap-1.5">
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
