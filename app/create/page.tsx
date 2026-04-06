@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft, SunMedium, User, Camera } from "lucide-react"
+import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { PRODUCTS, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
@@ -77,12 +77,10 @@ function CreatePortraitContent() {
   const [previewError, setPreviewError] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [ageConfirm, setAgeConfirm] = useState(false)
-  const [showcasePermission, setShowcasePermission] = useState(true)
   const [wizardStep, setWizardStep] = useState(1)
   const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
   const [isDragging, setIsDragging] = useState(false)
   const [isValidationReject, setIsValidationReject] = useState(false)
-  const [hasConsented, setHasConsented] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<ProductId>("portrait_pack")
   const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
   const [checkoutError, setCheckoutError] = useState("")
@@ -189,7 +187,7 @@ function CreatePortraitContent() {
       formData.set("file", file)
       formData.set("theme", theme)
       if (petName.trim()) formData.set("pet_name", petName.trim())
-      formData.set("showcase_consent", showcasePermission ? "true" : "false")
+      formData.set("showcase_consent", "false")
       const res = await fetch("/api/create-portrait", { method: "POST", body: formData })
       const data = (await res.json().catch(() => ({}))) as {
         success?: boolean
@@ -230,11 +228,6 @@ function CreatePortraitContent() {
 
   // Trigger image validation / n8n workflow without going through the step 3 form submit.
   function handleCheckImage() {
-    // Record that the user has already passed consent, so we don't show checkboxes again on retry.
-    if (ageConfirm && agreeTerms) {
-      setHasConsented(true)
-    }
-    // Reuse the existing submit logic, but with a fake event.
     void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent)
   }
 
@@ -255,8 +248,6 @@ function CreatePortraitContent() {
     setPreviewError(false)
     setAgreeTerms(false)
     setAgeConfirm(false)
-    setShowcasePermission(true)
-    setHasConsented(false)
     fileInputRef.current && (fileInputRef.current.value = "")
   }
 
@@ -572,71 +563,38 @@ function CreatePortraitContent() {
                         </>
                       )}
                     </label>
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Photo reviewed before payment — no surprises
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Not sure? Upload it anyway. We check it before you pay.
                     </p>
-                    <p className="mt-4 text-sm font-semibold text-foreground">What makes a great photo</p>
-                    <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-                      <li className="flex items-start gap-2">
-                        <SunMedium className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>Well lit — natural light works best</span>
+                    <h3 className="mt-6 text-base font-semibold text-foreground">
+                      Any photo works — here&apos;s what gives the best result 🐾
+                    </h3>
+                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                      <li className="flex gap-2">
+                        <span className="text-primary" aria-hidden>
+                          ✓
+                        </span>
+                        <span>Their face clearly visible</span>
                       </li>
-                      <li className="flex items-start gap-2">
-                        <User className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>One pet only — no group shots please</span>
+                      <li className="flex gap-2">
+                        <span className="text-primary" aria-hidden>
+                          ✓
+                        </span>
+                        <span>One pet per portrait</span>
                       </li>
-                      <li className="flex items-start gap-2">
-                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>Face towards the camera — the more detail, the better the portrait</span>
+                      <li className="flex gap-2">
+                        <span className="text-primary" aria-hidden>
+                          ✓
+                        </span>
+                        <span>Natural light if possible</span>
                       </li>
-                      <li className="flex items-start gap-2">
-                        <Camera className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-                        <span>Avoid a busy background in the photo</span>
+                      <li className="flex gap-2">
+                        <span className="text-primary" aria-hidden>
+                          ✓
+                        </span>
+                        <span>Any background is fine — we handle the rest</span>
                       </li>
                     </ul>
-                    {/* Consent under the upload box – first pass only */}
-                    {!hasConsented && (
-                      <div className="mt-6 space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3">
-                        <label className="flex cursor-pointer items-start gap-3">
-                          <Checkbox
-                            checked={ageConfirm}
-                            onCheckedChange={(c) => setAgeConfirm(c === true)}
-                            className="mt-0.5 rounded border-2"
-                            aria-required
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            I&apos;m 18 or older{" "}
-                            <span className="ml-1 text-xs text-muted-foreground">
-                              (A quick legal requirement — you must be 18 or older to complete a purchase online.)
-                            </span>
-                          </span>
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-3">
-                          <Checkbox
-                            checked={agreeTerms}
-                            onCheckedChange={(c) => setAgreeTerms(c === true)}
-                            className="rounded border-2"
-                            aria-required
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            I agree with the{" "}
-                            <a href="/terms" className="text-primary underline hover:no-underline">
-                              Terms &amp; Conditions
-                            </a>
-                          </span>
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-3">
-                          <Checkbox
-                            checked={showcasePermission}
-                            onCheckedChange={(c) => setShowcasePermission(c === true)}
-                            className="rounded border-2"
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            I agree my portrait can be used on the website and social media
-                          </span>
-                        </label>
-                      </div>
-                    )}
                     <div className="mt-6 flex justify-between">
                       <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
                         <ChevronLeft className="mr-1 h-4 w-4" />
@@ -645,10 +603,10 @@ function CreatePortraitContent() {
                       <Button
                         type="button"
                         onClick={handleCheckImage}
-                        disabled={!file || (!hasConsented && (!ageConfirm || !agreeTerms))}
+                        disabled={!file}
                         className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                       >
-                        Continue — check image
+                        Continue
                         <ChevronRight className="ml-0.5 h-4 w-4" />
                       </Button>
                     </div>
@@ -747,7 +705,35 @@ function CreatePortraitContent() {
 
               {/* When user has remaining portraits + email: single CTA, no package selection */}
               {showPackFlow ? (
-                <div className="mt-8 flex flex-col items-center gap-3">
+                <div className="mt-8 flex flex-col items-center gap-3 w-full max-w-xl mx-auto">
+                  <div className="w-full space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3 text-left">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <Checkbox
+                        checked={ageConfirm}
+                        onCheckedChange={(c) => setAgeConfirm(c === true)}
+                        className="mt-0.5 rounded border-2"
+                        aria-required
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        I&apos;m 18 or older{" "}
+                        <span className="text-xs">(required to purchase online)</span>
+                      </span>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <Checkbox
+                        checked={agreeTerms}
+                        onCheckedChange={(c) => setAgreeTerms(c === true)}
+                        className="mt-0.5 rounded border-2"
+                        aria-required
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        I agree with the{" "}
+                        <a href="/terms" className="text-primary underline hover:no-underline">
+                          Terms &amp; Conditions
+                        </a>
+                      </span>
+                    </label>
+                  </div>
                   <Button
                     onClick={async () => {
                       if (!resultPortraitId) return
@@ -767,7 +753,7 @@ function CreatePortraitContent() {
                         `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(effectivePackEmail)}`,
                       )
                     }}
-                    disabled={checkoutStatus === "submitting"}
+                    disabled={checkoutStatus === "submitting" || !ageConfirm || !agreeTerms}
                     className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                   >
                     {checkoutStatus === "submitting" ? "Taking you there…" : "Use 1 portrait from my pack →"}
@@ -873,6 +859,35 @@ function CreatePortraitContent() {
                     </div>
                   </div>
 
+                  <div className="mt-6 w-full max-w-xl space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3 text-left mx-auto">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <Checkbox
+                        checked={ageConfirm}
+                        onCheckedChange={(c) => setAgeConfirm(c === true)}
+                        className="mt-0.5 rounded border-2"
+                        aria-required
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        I&apos;m 18 or older{" "}
+                        <span className="text-xs">(required to purchase online)</span>
+                      </span>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <Checkbox
+                        checked={agreeTerms}
+                        onCheckedChange={(c) => setAgreeTerms(c === true)}
+                        className="mt-0.5 rounded border-2"
+                        aria-required
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        I agree with the{" "}
+                        <a href="/terms" className="text-primary underline hover:no-underline">
+                          Terms &amp; Conditions
+                        </a>
+                      </span>
+                    </label>
+                  </div>
+
                   <div className="mt-6 flex flex-col items-center gap-3">
                     <Button
                       onClick={async () => {
@@ -904,7 +919,7 @@ function CreatePortraitContent() {
                           setCheckoutError(err instanceof Error ? err.message : "We couldn't start checkout. Please try again.")
                         }
                       }}
-                      disabled={checkoutStatus === "submitting"}
+                      disabled={checkoutStatus === "submitting" || !ageConfirm || !agreeTerms}
                       className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                     >
                       {checkoutStatus === "submitting"

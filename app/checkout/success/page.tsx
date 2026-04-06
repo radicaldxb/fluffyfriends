@@ -4,11 +4,13 @@ import { Suspense, useEffect, useRef, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import Image from "next/image"
 import { AlertCircle, Check, Mail, Palette, Ruler, Frame, Paperclip, Send, Inbox, Download } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
 import { trackGa4Purchase } from "@/lib/ga4"
 import { purchase } from "@/lib/fpixel"
 
@@ -54,6 +56,7 @@ function SuccessContent() {
   const [userDetailsKnown, setUserDetailsKnown] = useState(false)
   const [loaderStep, setLoaderStep] = useState(0)
   const [wf3Status, setWf3Status] = useState<"idle" | "waiting" | "ready">("idle")
+  const [galleryShowcaseConsent, setGalleryShowcaseConsent] = useState(false)
   const purchaseTracked = useRef(false)
 
   const LOADER_STEPS = [
@@ -216,6 +219,27 @@ function SuccessContent() {
     return () => clearInterval(interval)
   }, [approveStatus])
 
+  async function persistGalleryShowcaseConsent(checked: boolean) {
+    if (preview.status !== "ready") return
+    const portraitId = preview.portraitId
+    const sid = sessionId.trim()
+    const em = (emailFromQuery || email).trim().toLowerCase()
+    if (!sid && !em) return
+    try {
+      await fetch("/api/portrait-showcase-consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          portrait_id: portraitId,
+          showcase_consent: checked,
+          ...(sid ? { session_id: sid } : { email: em }),
+        }),
+      })
+    } catch {
+      /* non-blocking */
+    }
+  }
+
   async function handleSubmitDetails(e: React.FormEvent) {
     e.preventDefault()
     if (approveStatus === "submitting" || approveStatus === "success") return
@@ -294,6 +318,9 @@ function SuccessContent() {
   const isStep2Loading =
     (preview.status === "idle" || preview.status === "loading") && approveStatus !== "success"
   const isStep3Preview = preview.status === "ready" && approveStatus !== "success"
+  const canPersistGalleryConsent =
+    preview.status === "ready" &&
+    (sessionId.trim().length > 0 || (emailFromQuery || email).trim().length > 0)
   const isStep4Completed = approveStatus === "success"
   const isError = preview.status === "error"
 
@@ -437,6 +464,28 @@ function SuccessContent() {
                   Using 1 of your portrait pack credits. You’ll receive wide and portrait print‑ready files plus a print guide.
                 </p>
               )}
+
+              <label
+                className={cn(
+                  "mt-5 flex items-start gap-3 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3 text-left",
+                  canPersistGalleryConsent ? "cursor-pointer" : "cursor-not-allowed opacity-70",
+                )}
+              >
+                <Checkbox
+                  checked={galleryShowcaseConsent}
+                  disabled={!canPersistGalleryConsent}
+                  onCheckedChange={(c) => {
+                    const next = c === true
+                    setGalleryShowcaseConsent(next)
+                    void persistGalleryShowcaseConsent(next)
+                  }}
+                  className="mt-0.5 rounded-organic-sm"
+                />
+                <span className="text-sm text-muted-foreground leading-relaxed">
+                  I&apos;d love to be featured in the FluffyFriends gallery 🐾{" "}
+                  <span className="text-xs text-muted-foreground">(optional)</span>
+                </span>
+              </label>
 
               {!sessionId && userDetailsKnown ? (
                 <div className="mt-8 flex flex-col items-center gap-4">
