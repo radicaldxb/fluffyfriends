@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { HeroPortraitRotator } from "@/components/hero-portrait-rotator"
 
 export function HeroSection() {
   return (
@@ -78,56 +78,7 @@ export function HeroSection() {
 
           {/* Right – Before / After card, styled like redesign */}
           <div className="relative flex w-full flex-1 justify-center lg:justify-end order-1 lg:order-2">
-            <div className="relative w-full max-w-md">
-              {/* Main portrait card (After) */}
-              <div className="relative aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
-                <Image
-                  src="/images/pet-after.webp"
-                  alt="Your pet as fine art"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-                {/* Name badge overlay */}
-                <div className="absolute bottom-3 left-5 rounded-2xl bg-background/90 px-4 py-2.5 shadow-lg backdrop-blur-sm z-20">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Portrait for
-                  </p>
-                  <p className="text-lg font-bold leading-tight text-foreground">Jimmy 🐾</p>
-                </div>
-                {/* After badge */}
-              <div className="absolute right-4 top-4 rounded-organic-pill bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow">
-                  After ✨
-                </div>
-              </div>
-
-              {/* Before thumbnail — inset on mobile (parent is narrow); offset card from sm up */}
-              <div className="absolute bottom-24 right-3 z-10 w-[34%] max-w-[150px] overflow-hidden rounded-organic-sm border border-border bg-muted shadow-lg sm:-bottom-4 sm:-left-16 sm:right-auto sm:w-40 sm:max-w-none">
-                <div className="relative aspect-[4/5]">
-                  <Image
-                    src="/images/pet-before.webp"
-                    alt="Original pet photo"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute left-2 top-2 rounded-organic-pill bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
-                    Before
-                  </div>
-                </div>
-              </div>
-
-              {/* Floating theme badge */}
-              <div className="absolute -left-6 top-1/3 rounded-2xl border border-border bg-card px-4 py-3 shadow-lg">
-                <p className="mb-1 text-xs text-muted-foreground">Theme</p>
-                <p className="text-sm font-bold text-foreground">🚒 Fireman</p>
-              </div>
-
-              {/* Floating quality badge */}
-              <div className="absolute -right-4 bottom-1/3 rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-xl">
-                <p className="text-xs font-medium opacity-80">Print ready</p>
-                <p className="text-sm font-bold">Up to A1 ↑</p>
-              </div>
-            </div>
+            <HeroPortraitRotator />
           </div>
         </div>
       </div>
