@@ -6,7 +6,7 @@ import { GallerySection } from "@/components/gallery-section"
 import { AboutSection } from "@/components/about-section"
 import { PricingSection } from "@/components/pricing-section"
 import { ReviewsSection } from "@/components/reviews-section"
-import { GiftSection } from "@/components/gift-section"
+import { FinalCTASection } from "@/components/final-cta-section"
 import { Footer } from "@/components/footer"
 import { SketchDivider } from "@/components/sketch-divider"
 
@@ -75,7 +75,7 @@ export default function Home() {
           <SketchDivider />
           <AboutSection />
           <SketchDivider />
-          <GiftSection />
+          <FinalCTASection />
         </div>
         <Footer />
       </main>

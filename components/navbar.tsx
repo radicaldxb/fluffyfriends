@@ -10,7 +10,7 @@ const navLinks = [
   { label: "Gallery", href: "/#gallery" },
   { label: "Pricing", href: "/#pricing" },
   { label: "Reviews", href: "/#reviews" },
-  { label: "Gift", href: "/#gifts" },
+  { label: "About", href: "/#about" },
   { label: "My Portraits", href: "/my-portraits" },
 ]
 
