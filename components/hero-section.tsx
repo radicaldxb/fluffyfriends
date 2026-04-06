@@ -33,7 +33,7 @@ export function HeroSection() {
             </h1>
 
             <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg">
-              One photo is all it takes. We craft a personalised, print-ready portrait of your pet — with their name worked into every detail. Beautiful enough to frame. Sharp enough to fill an entire wall.
+              Upload one photo. We turn your pet into a stunning, personalised portrait — with their name worked into the artwork itself. Print-ready. Delivered in minutes. Yours forever.
             </p>
 
             {/* Trust signals — above CTAs */}
