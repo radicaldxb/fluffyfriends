@@ -27,11 +27,8 @@ export function ReviewsSection() {
             Reviews
           </p>
           <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            The moment they saw it, they cried.
+            Real pets. Real owners. Real reactions.
           </h2>
-          <p className="mt-4 text-pretty text-muted-foreground">
-            In the best possible way.
-          </p>
         </div>
 
         <div className="mt-16 grid gap-6 md:grid-cols-3">
