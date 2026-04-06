@@ -5,19 +5,19 @@ import { Button } from "@/components/ui/button"
 
 const featureColumns = [
   {
-    src: "/images/king-portrait-wall.webp",
-    alt: "Portrait format pet portrait on wall",
+    src: "/images/Oscar-portrait.webp",
+    alt: "Portrait format pet portrait mockup",
     headline: "Hang it on your wall.",
     body: "Portrait format — tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
   },
   {
-    src: "/images/mochi-landscape-wall.webp",
-    alt: "Landscape format pet portrait on wall",
+    src: "/images/Mochi-Landscape.webp",
+    alt: "Landscape format pet portrait mockup",
     headline: "Display it anywhere.",
     body: "Landscape format — wide and cinematic. Ideal for mantels, shelves, and wide frames.",
   },
   {
-    src: "/images/willy-name-detail.webp",
+    src: "/images/Willy-frame.webp",
     alt: "Pet name crafted into the portrait artwork",
     headline: "Their name. In the art.",
     body: "Not a caption. Not a watermark. Their name is crafted into the costume itself — a badge, a crest, a name tag. Uniquely theirs.",
