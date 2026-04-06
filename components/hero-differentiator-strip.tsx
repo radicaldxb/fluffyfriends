@@ -2,15 +2,15 @@ import Image from "next/image"
 
 const columns = [
   {
-    src: "/images/king-portrait-wall.webp",
-    alt: "Pet portrait in gold frame on wall",
+    src: "/images/Oscar-portrait.webp",
+    alt: "Portrait-format pet portrait mockup",
     headline: "Hang it on your wall.",
     subtext:
       "Portrait format — tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
   },
   {
-    src: "/images/mochi-landscape-wall.webp",
-    alt: "Landscape format pet portrait on wall",
+    src: "/images/Mochi-Landscape.webp",
+    alt: "Landscape-format pet portrait mockup",
     headline: "Display it anywhere.",
     subtext:
       "Landscape format — wide and cinematic. Ideal for mantels, shelves, and wide frames.",
