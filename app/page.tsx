@@ -66,17 +66,17 @@ export default function Home() {
         <div className="flex flex-1 flex-col">
           <Navbar />
           <HeroSection />
+          <GallerySection />
+          <SketchDivider />
           <HeroDifferentiatorStrip />
           <SketchDivider />
           <HowItWorksVisualSection />
           <SketchDivider />
-          <GallerySection />
-          <SketchDivider />
-          <AboutSection />
-          <SketchDivider />
           <ReviewsSection />
           <SketchDivider />
           <PricingSection />
+          <SketchDivider />
+          <AboutSection />
           <SketchDivider />
           <GiftSection />
         </div>
