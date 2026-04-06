@@ -9,13 +9,10 @@ export function AboutSection() {
           We&apos;re pet people. This is our passion.
         </h2>
         <p className="mt-6 text-pretty text-base leading-relaxed text-muted-foreground">
-          FluffyFriends was built by people who understand what a pet means to a family. The loyalty. The chaos. The unconditional love. The empty space they leave behind when they&apos;re gone.
+          FluffyFriends was built by pet people who wanted something better — portraits that are genuinely personalised, genuinely print-quality, and made with care.
         </p>
         <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
-          We built this because we wanted something better than what existed — portraits that are genuinely personalised, genuinely print-quality, and genuinely made with care. Not a hype tool. Not a trend. A service we&apos;d be proud to use ourselves.
-        </p>
-        <p className="mt-4 text-pretty text-base font-semibold text-foreground">
-          We&apos;re not going anywhere. And neither are your portraits.
+          Not a filter. Not a trend. A portrait you&apos;d be proud to hang on your wall for decades. 🐾
         </p>
       </div>
     </section>
