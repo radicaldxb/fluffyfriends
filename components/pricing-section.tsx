@@ -1,4 +1,16 @@
+import { Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+const comparisonRows = [
+  { feature: "Name personalised into portrait", fluffy: true, others: false },
+  { feature: "Two formats included", fluffy: true, others: false },
+  { feature: "Free print guide", fluffy: true, others: false },
+  { feature: "A1 print quality", fluffy: true, others: "Rarely" },
+  { feature: "One photo needed", fluffy: true, others: "Up to 15" },
+  { feature: "Ready in minutes", fluffy: true, others: "Up to 1 hour" },
+  { feature: "Flexible portraits", fluffy: true, others: false },
+  { feature: "No subscription", fluffy: true, others: "Often required" },
+] as const
 
 const plans = [
   {
@@ -154,6 +166,41 @@ export function PricingSection() {
               </Button>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 overflow-hidden rounded-organic border border-border bg-card shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[320px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-3 font-semibold text-foreground"> </th>
+                  <th className="px-4 py-3 font-semibold text-foreground">FluffyFriends</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Others</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row) => (
+                  <tr key={row.feature} className="border-b border-border/70 last:border-0">
+                    <td className="px-4 py-3 text-muted-foreground">{row.feature}</td>
+                    <td className="px-4 py-3">
+                      {row.fluffy === true ? (
+                        <Check className="h-5 w-5 text-primary" aria-hidden />
+                      ) : (
+                        <span className="text-muted-foreground">{row.fluffy}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {row.others === false ? (
+                        <X className="h-5 w-5 text-muted-foreground" aria-hidden />
+                      ) : (
+                        <span className="text-muted-foreground">{row.others}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Trust line below cards */}
