@@ -3,6 +3,27 @@ import Link from "next/link"
 import { Frame, Palette, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+const featureColumns = [
+  {
+    src: "/images/king-portrait-wall.webp",
+    alt: "Portrait format pet portrait on wall",
+    headline: "Hang it on your wall.",
+    body: "Portrait format — tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
+  },
+  {
+    src: "/images/mochi-landscape-wall.webp",
+    alt: "Landscape format pet portrait on wall",
+    headline: "Display it anywhere.",
+    body: "Landscape format — wide and cinematic. Ideal for mantels, shelves, and wide frames.",
+  },
+  {
+    src: "/images/willy-name-detail.webp",
+    alt: "Pet name crafted into the portrait artwork",
+    headline: "Their name. In the art.",
+    body: "Not a caption. Not a watermark. Their name is crafted into the costume itself — a badge, a crest, a name tag. Uniquely theirs.",
+  },
+] as const
+
 const steps = [
   {
     step: "01",
@@ -27,27 +48,6 @@ const steps = [
   },
 ] as const
 
-const featureColumns = [
-  {
-    src: "/images/king-portrait-wall.webp",
-    alt: "Portrait format pet portrait on wall",
-    headline: "Hang it on your wall.",
-    body: "Portrait format — tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
-  },
-  {
-    src: "/images/mochi-landscape-wall.webp",
-    alt: "Landscape format pet portrait on wall",
-    headline: "Display it anywhere.",
-    body: "Landscape format — wide and cinematic. Ideal for mantels, shelves, and wide frames.",
-  },
-  {
-    src: "/images/willy-name-detail.webp",
-    alt: "Pet name crafted into the portrait artwork",
-    headline: "Their name. In the art.",
-    body: "Not a caption. Not a watermark. Their name is crafted into the costume itself — a badge, a crest, a name tag. Uniquely theirs.",
-  },
-] as const
-
 export function HowItWorksVisualSection() {
   return (
     <section id="process" className="relative py-14 md:py-20">
@@ -65,7 +65,28 @@ export function HowItWorksVisualSection() {
           </p>
         </div>
 
-        {/* Part B */}
+        {/* Part B — image columns (product-first) */}
+        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
+          {featureColumns.map((col) => (
+            <figure key={col.src} className="flex flex-col items-center text-center">
+              <div className="relative h-[240px] w-full overflow-hidden rounded-2xl shadow-md md:h-[340px]">
+                <Image
+                  src={col.src}
+                  alt={col.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
+              <figcaption className="mt-4 w-full">
+                <h3 className="text-base font-bold tracking-tight text-foreground">{col.headline}</h3>
+                <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        {/* Part C — step cards */}
         <div className="mt-16 grid gap-6 md:grid-cols-3">
           {steps.map((item) => {
             const Icon = item.Icon
@@ -87,27 +108,6 @@ export function HowItWorksVisualSection() {
               </div>
             )
           })}
-        </div>
-
-        {/* Part C */}
-        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
-          {featureColumns.map((col) => (
-            <figure key={col.src} className="flex flex-col items-center text-center">
-              <div className="relative h-[240px] w-full overflow-hidden rounded-2xl shadow-md md:h-[340px]">
-                <Image
-                  src={col.src}
-                  alt={col.alt}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-              </div>
-              <figcaption className="mt-4 w-full">
-                <h3 className="text-base font-bold tracking-tight text-foreground">{col.headline}</h3>
-                <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
-              </figcaption>
-            </figure>
-          ))}
         </div>
 
         {/* Part D */}

@@ -12,7 +12,7 @@ export function AboutSection() {
           FluffyFriends was built by pet people who wanted something better — portraits that are genuinely personalised, genuinely print-quality, and made with care.
         </p>
         <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
-          Not a filter. Not a trend. A portrait you&apos;d be proud to hang on your wall for decades. 🐾
+          Not a filter. Not a trend. A portrait you&apos;d be proud to hang on your wall for decades.
         </p>
       </div>
     </section>

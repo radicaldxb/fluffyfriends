@@ -90,7 +90,7 @@ export function Footer() {
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground/90">
-            Portraits made with love, built to last. 🐾
+            Portraits made with love, built to last.
           </p>
           <p className="text-xs text-muted-foreground">
             {`\u00A9 ${new Date().getFullYear()} FluffyFriends.online`}

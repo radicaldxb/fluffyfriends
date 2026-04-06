@@ -2,17 +2,17 @@ import { Button } from "@/components/ui/button"
 
 const reviews = [
   {
-    name: "Sarah M., proud owner of Biscuit 🐾",
+    name: "Sarah M., proud owner of Biscuit",
     quote:
       "I genuinely did not expect it to look this good. The name detail in the portrait — I completely lost it. It's now framed above our fireplace and everyone who visits asks where I got it.",
   },
   {
-    name: "Tom R., proud owner of Luna 🐾",
+    name: "Tom R., proud owner of Luna",
     quote:
       "Bought it as a birthday gift for my partner. She screamed. The quality of the file is incredible — we printed it A2 and every single hair is sharp. It looks like a real painting.",
   },
   {
-    name: "Priya K., proud owner of Mochi 🐾",
+    name: "Priya K., proud owner of Mochi",
     quote:
       "Was honestly a bit sceptical. Now I've ordered three. The free print guide made everything so easy — I walked into my local print shop, handed them the file, and walked out with something I'll keep forever.",
   },
