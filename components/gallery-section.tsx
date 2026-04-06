@@ -121,8 +121,7 @@ export function GallerySection() {
         <div className="mt-10 flex justify-center">
           <Button
             size="lg"
-            variant="outline"
-            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-sm font-semibold h-auto"
+            className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-sm font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
             asChild
           >
             <Link href="/gallery">See your pet here</Link>
