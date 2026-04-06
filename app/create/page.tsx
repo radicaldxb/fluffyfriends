@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, ImageOff, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import { Check, Camera, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { PRODUCTS, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
@@ -538,10 +538,10 @@ function CreatePortraitContent() {
                     <label
                       htmlFor="pet-photo"
                       className={cn(
-                        "mt-4 flex cursor-pointer flex-col items-center justify-center rounded-organic border-2 border-dashed py-10 transition-colors",
+                        "mt-4 flex cursor-pointer flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-primary bg-primary/[0.04] py-10 transition-colors",
                         isDragging
                           ? "border-primary bg-primary/10"
-                          : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
+                          : "hover:border-primary/90 hover:bg-primary/[0.08]"
                       )}
                       onDragEnter={handleDragEnter}
                       onDragOver={handleDragOver}
@@ -555,7 +555,7 @@ function CreatePortraitContent() {
                         </div>
                       ) : (
                         <>
-                          <ImageOff className="h-10 w-10 text-muted-foreground" aria-hidden />
+                          <Camera className="h-12 w-12 shrink-0 text-primary" strokeWidth={1.75} aria-hidden />
                           <span className="mt-2 text-sm font-medium text-foreground">
                             Drop {theirOrName} photo here, or click to browse
                           </span>
@@ -563,9 +563,6 @@ function CreatePortraitContent() {
                         </>
                       )}
                     </label>
-                    <p className="mt-3 text-sm text-muted-foreground">
-                      Not sure? Upload it anyway. We check it before you pay.
-                    </p>
                     <h3 className="mt-6 text-base font-semibold text-foreground">
                       Any photo works — here&apos;s what gives the best result 🐾
                     </h3>
@@ -595,6 +592,9 @@ function CreatePortraitContent() {
                         <span>Any background is fine — we handle the rest</span>
                       </li>
                     </ul>
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Not sure? Upload it anyway. We check it before you pay.
+                    </p>
                     <div className="mt-6 flex justify-between">
                       <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
                         <ChevronLeft className="mr-1 h-4 w-4" />
