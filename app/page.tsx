@@ -74,9 +74,9 @@ export default function Home() {
           <SketchDivider />
           <AboutSection />
           <SketchDivider />
-          <PricingSection />
-          <SketchDivider />
           <ReviewsSection />
+          <SketchDivider />
+          <PricingSection />
           <SketchDivider />
           <GiftSection />
         </div>

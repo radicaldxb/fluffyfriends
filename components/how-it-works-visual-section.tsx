@@ -7,7 +7,8 @@ const steps = [
   {
     step: "01",
     title: "Choose their theme",
-    description: "Browse 8 themes — each one named and personalised.",
+    description:
+      "Browse 8 themes — from regal Kings and Queens to fearless Pilots, Admirals and Samurai warriors — each one named and personalised.",
   },
   {
     step: "02",

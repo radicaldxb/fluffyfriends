@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { HeroPortraitRotator } from "@/components/hero-portrait-rotator"
@@ -37,17 +36,31 @@ export function HeroSection() {
               One photo is all it takes. We craft a personalised, print-ready portrait of your pet — with their name worked into every detail. Beautiful enough to frame. Sharp enough to fill an entire wall.
             </p>
 
+            {/* Trust signals — above CTAs */}
+            <div className="mt-8 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 max-w-xl">
+              {[
+                "From $17, one-time",
+                "No subscription",
+                "No payment until you've seen your portrait",
+                "Two formats included",
+                "Credit back in 5 mins if not right",
+              ].map((t) => (
+                <div key={t} className="inline-flex items-center gap-1.5">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
+                    ✓
+                  </span>
+                  <span className="font-semibold text-foreground">{t}</span>
+                </div>
+              ))}
+            </div>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
                 size="lg"
                 className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                 asChild
               >
-                <Link href="/create" className="inline-flex items-center gap-2">
-                  <span className="sm:hidden">What Would My Pet Look Like?</span>
-                  <span className="hidden sm:inline">See What Your Pet Would Look Like</span>
-                  <ArrowRight className="ml-1 h-4 w-4 shrink-0" aria-hidden />
-                </Link>
+                <Link href="/create">See What Your Pet Would Look Like →</Link>
               </Button>
               <Button
                 size="lg"
@@ -57,17 +70,6 @@ export function HeroSection() {
               >
                 <Link href="#gallery">Browse the gallery</Link>
               </Button>
-            </div>
-            {/* Trust strip – arranged in two neat columns on desktop */}
-            <div className="mt-6 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 max-w-xl">
-              {["From $17, one-time", "No subscription", "Two formats included", "Happiness guarantee"].map((t) => (
-                <div key={t} className="inline-flex items-center gap-1.5">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
-                    ✓
-                  </span>
-                  <span className="font-semibold text-foreground">{t}</span>
-                </div>
-              ))}
             </div>
             <p className="mt-6 text-sm text-muted-foreground text-center lg:text-left">
               Already have a portrait pack?{" "}
