@@ -1,18 +1,35 @@
 import Link from "next/link"
-import { X } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import {
+  BadgeCheck,
+  BookOpen,
+  Camera,
+  Check,
+  Clock,
+  LayoutTemplate,
+  Shuffle,
+  Tag,
+  X,
+  ZoomIn,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const comparisonRows = [
-  { feature: "Their name in the portrait", fluffy: true, others: false },
-  { feature: "Portrait + landscape, always included", fluffy: true, others: false },
-  { feature: "Free print & frame guide", fluffy: true, others: false },
-  { feature: "A1 print quality (poster-size sharp)", fluffy: true, others: "Rarely" },
-  { feature: "One photo — that's it", fluffy: true, others: "Up to 15" },
-  { feature: "Ready in minutes, not hours", fluffy: true, others: "Up to 1 hour" },
-  { feature: "Use credits any way you like", fluffy: true, others: false },
-  { feature: "Pay once, own it forever", fluffy: true, others: "Often required" },
-] as const
+const comparisonRows: {
+  feature: string
+  icon: LucideIcon
+  fluffy: true
+  others: false | string
+}[] = [
+  { feature: "Their name in the portrait", icon: Tag, fluffy: true, others: false },
+  { feature: "Portrait + landscape, always included", icon: LayoutTemplate, fluffy: true, others: false },
+  { feature: "Free print & frame guide", icon: BookOpen, fluffy: true, others: false },
+  { feature: "A1 quality — poster-size sharp", icon: ZoomIn, fluffy: true, others: "Rarely" },
+  { feature: "One photo — that's it", icon: Camera, fluffy: true, others: "Up to 15" },
+  { feature: "Ready in minutes, not hours", icon: Clock, fluffy: true, others: "Up to 1 hour" },
+  { feature: "Use credits any way you like", icon: Shuffle, fluffy: true, others: false },
+  { feature: "Pay once, own it forever", icon: BadgeCheck, fluffy: true, others: "Often required" },
+]
 
 const plans = [
   {
@@ -76,17 +93,6 @@ const plans = [
     featured: false,
   },
 ]
-
-function FluffyCheck() {
-  return (
-    <span
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-sm"
-      aria-hidden
-    >
-      ✓
-    </span>
-  )
-}
 
 export function PricingSection() {
   return (
@@ -183,12 +189,10 @@ export function PricingSection() {
 
         {/* Comparison table — headline + dark anchor + CTA */}
         <div className="mt-16 text-center">
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Why FluffyFriends wins every time.
+          <h2 className="text-balance text-3xl font-bold text-foreground">
+            No one else does all of this.
           </h2>
-          <p className="mt-3 text-pretty text-muted-foreground">
-            We checked. No one else does all of this.
-          </p>
+          <p className="mt-2 text-base text-muted-foreground">We checked.</p>
         </div>
 
         <div className="mt-8 overflow-hidden rounded-organic bg-[#111827] shadow-xl">
@@ -213,7 +217,9 @@ export function PricingSection() {
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map((row, index) => (
+                {comparisonRows.map((row, index) => {
+                  const Icon = row.icon
+                  return (
                   <tr
                     key={row.feature}
                     className={cn(
@@ -221,11 +227,22 @@ export function PricingSection() {
                       index % 2 === 1 && "bg-white/5",
                     )}
                   >
-                    <td className="px-4 py-3.5 text-gray-300 sm:px-6">{row.feature}</td>
+                    <td className="px-4 py-3.5 text-gray-300 sm:px-6">
+                      <span className="flex items-center gap-2">
+                        <Icon
+                          className="h-4 w-4 shrink-0 text-[#e8954a]"
+                          aria-hidden
+                        />
+                        <span>{row.feature}</span>
+                      </span>
+                    </td>
                     <td className="px-4 py-3.5 text-center sm:px-6">
                       {row.fluffy === true ? (
                         <div className="flex justify-center">
-                          <FluffyCheck />
+                          <Check
+                            className="h-5 w-5 text-primary stroke-[3]"
+                            aria-hidden
+                          />
                         </div>
                       ) : (
                         <span className="text-gray-400">{row.fluffy}</span>
@@ -233,21 +250,25 @@ export function PricingSection() {
                     </td>
                     <td className="px-4 py-3.5 text-center text-gray-500 sm:px-6">
                       {row.others === false ? (
-                        <div className="flex justify-center opacity-80">
-                          <X className="h-5 w-5 text-gray-500" aria-hidden />
+                        <div className="flex justify-center">
+                          <X
+                            className="h-5 w-5 text-muted-foreground/50"
+                            aria-hidden
+                          />
                         </div>
                       ) : (
                         <span className="text-sm text-gray-500">{row.others}</span>
                       )}
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
 
           <div className="border-t border-white/10 px-6 py-8 text-center">
-            <p className="text-lg font-semibold text-white">
+            <p className="text-base font-semibold text-white">
               Everything included. One payment. Yours forever.
             </p>
             <Button

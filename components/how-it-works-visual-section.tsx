@@ -8,21 +8,21 @@ const featureColumns = [
   {
     src: "/images/Oscar-portrait.webp",
     alt: "Portrait format pet portrait mockup",
-    overlayLabel: "Portrait design",
+    title: "Portrait design",
     body: "Tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
     imageClassName: "object-cover object-top",
   },
   {
     src: "/images/Mochi-Landscape.webp",
     alt: "Landscape format pet portrait mockup",
-    overlayLabel: "Landscape design",
+    title: "Landscape design",
     body: "Wide and cinematic. Ideal for mantels, shelves, and wide frames.",
     imageClassName: "object-cover",
   },
   {
     src: "/images/Willy-frame.webp",
     alt: "Pet name crafted into the portrait artwork",
-    overlayLabel: "Pet name and unique characteristics",
+    title: "Pet name and unique characteristics",
     body: "Not a caption. Not a watermark. Their name is crafted into the costume itself — a badge, a crest, a name tag. Uniquely theirs.",
     imageClassName: "object-cover",
   },
@@ -105,14 +105,14 @@ export function HowItWorksVisualSection() {
                   className={cn(col.imageClassName)}
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
-                <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-orange-500/80 via-orange-500/35 to-transparent px-3 pb-10 pt-4">
-                  <p className="text-center text-sm font-semibold text-white drop-shadow-sm">
-                    {col.overlayLabel}
-                  </p>
-                </div>
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-orange-500/80 via-orange-500/35 to-transparent"
+                  aria-hidden
+                />
               </div>
               <figcaption className="mt-4 w-full">
-                <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
+                <h3 className="text-base font-bold tracking-tight text-foreground">{col.title}</h3>
+                <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{col.body}</p>
               </figcaption>
             </figure>
           ))}
