@@ -200,14 +200,16 @@ export function PricingSection() {
         </div>
 
         <div className="mt-8 overflow-hidden rounded-organic border border-border/80 bg-card shadow-sm ring-1 ring-border/40">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[320px] text-left text-sm">
+            <table className="w-full table-fixed text-left text-sm md:table-auto">
               <thead>
                 <tr className="border-b border-border/70 bg-secondary/60">
-                  <th className="px-4 py-4 font-medium text-muted-foreground sm:px-6" scope="col">
+                  <th
+                    className="w-[70%] px-3 py-4 font-medium text-muted-foreground sm:px-6 md:w-auto"
+                    scope="col"
+                  >
                     <span className="sr-only">Feature</span>
                   </th>
-                  <th className="px-4 py-4 text-center sm:px-6" scope="col">
+                  <th className="w-[30%] px-2 py-4 text-center sm:px-6 md:w-auto" scope="col">
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-base font-bold text-foreground">FluffyFriends</span>
                       <span className="rounded-organic-sm bg-primary px-2.5 py-1 text-[11px] font-semibold leading-tight text-primary-foreground">
@@ -215,7 +217,10 @@ export function PricingSection() {
                       </span>
                     </div>
                   </th>
-                  <th className="px-4 py-4 text-center text-sm font-medium text-muted-foreground sm:px-6" scope="col">
+                  <th
+                    className="hidden px-4 py-4 text-center text-sm font-medium text-muted-foreground md:table-cell sm:px-6"
+                    scope="col"
+                  >
                     Everyone else
                   </th>
                 </tr>
@@ -231,7 +236,7 @@ export function PricingSection() {
                       index % 2 === 1 && "bg-secondary/35",
                     )}
                   >
-                    <td className="px-4 py-3.5 sm:px-6">
+                    <td className="w-[70%] px-3 py-3.5 align-middle sm:px-6 md:w-auto">
                       <span className="flex items-center gap-2">
                         <Icon
                           className="h-4 w-4 shrink-0 text-primary"
@@ -240,7 +245,7 @@ export function PricingSection() {
                         <span className="text-muted-foreground">{row.feature}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-center sm:px-6">
+                    <td className="w-[30%] px-2 py-3.5 text-center align-middle sm:px-6 md:w-auto">
                       {row.fluffy === true ? (
                         <div className="flex justify-center">
                           <Check
@@ -252,7 +257,7 @@ export function PricingSection() {
                         <span className="text-muted-foreground">{row.fluffy}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-center text-muted-foreground/90 sm:px-6">
+                    <td className="hidden px-4 py-3.5 text-center text-muted-foreground/90 md:table-cell sm:px-6">
                       {row.others === false ? (
                         <div className="flex justify-center">
                           <X
@@ -269,7 +274,10 @@ export function PricingSection() {
                 })}
               </tbody>
             </table>
-          </div>
+
+          <p className="border-b border-border/50 px-4 py-3 text-center text-sm text-muted-foreground md:hidden">
+            Others rarely offer all of this.
+          </p>
 
           <div className="border-t border-border/70 bg-secondary/45 px-6 py-8 text-center">
             <p className="text-base font-semibold text-foreground">

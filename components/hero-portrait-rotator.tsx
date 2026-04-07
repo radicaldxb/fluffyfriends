@@ -16,23 +16,23 @@ const SLIDES = [
     id: "jimmy-fireman",
     mainSrc: "/images/pet-after.webp",
     beforeSrc: "/images/pet-before.webp",
-    nameLine: "Jimmy 🐾",
+    nameLine: "Jimmy",
     themeLabel: "🚒 Fireman",
     alt: "Golden Retriever — Fireman theme portrait",
   },
   {
     id: "misty-queen",
-    mainSrc: "/images/Misty-after.webp",
-    beforeSrc: "/images/Misty-before.webp",
-    nameLine: "Misty 🐾",
+    mainSrc: "/images/misty-after.webp",
+    beforeSrc: "/images/misty-before.webp",
+    nameLine: "Misty",
     themeLabel: "👑 Queen",
     alt: "Cat — Queen theme portrait",
   },
   {
-    id: "buddy-king",
+    id: "oscar-king",
     mainSrc: "/images/king-after.webp",
     beforeSrc: "/images/king-before.webp",
-    nameLine: "Buddy 🐾",
+    nameLine: "Oscar",
     themeLabel: "👑 King",
     alt: "Dachshund — King theme portrait",
   },
@@ -82,14 +82,17 @@ export function HeroPortraitRotator() {
                 priority={i === 0}
                 unoptimized={isRemote}
               />
+              {/* Theme label inside slide layer so it fades with the portrait (no double label during transition) */}
+              <div className="pointer-events-none absolute left-2 top-[28%] z-[5] rounded-organic border border-border bg-card px-4 py-3 shadow-lg sm:-left-5">
+                <p className="text-base font-bold text-foreground">{slide.themeLabel}</p>
+              </div>
             </div>
           )
         })}
 
         {/* Name badge */}
         <div className="absolute bottom-3 left-5 z-20 rounded-organic bg-background/90 px-4 py-2.5 shadow-lg backdrop-blur-sm">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Portrait for</p>
-          <div className="relative mt-1 min-h-[1.75rem] sm:min-h-[2rem]">
+          <div className="relative min-h-[1.75rem] sm:min-h-[2rem]">
             {SLIDES.map((slide, i) => (
               <p
                 key={slide.id}
@@ -109,7 +112,7 @@ export function HeroPortraitRotator() {
         </div>
 
         <div className="absolute right-4 top-4 z-20 rounded-organic-sm bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow">
-          After ✨
+          After →
         </div>
       </div>
 
@@ -139,27 +142,6 @@ export function HeroPortraitRotator() {
               </div>
             )
           })}
-        </div>
-      </div>
-
-      {/* Theme badge — explicit z so it never sits under the portrait card */}
-      <div className="absolute left-2 top-[28%] z-[3] rounded-organic border border-border bg-card px-4 py-3 shadow-lg sm:-left-5">
-        <div className="relative min-h-[1.5rem]">
-          {SLIDES.map((slide, i) => (
-            <p
-              key={slide.id}
-              className={cn(
-                "text-base font-bold text-foreground transition-opacity ease-in-out",
-                active === i
-                  ? "relative z-10 opacity-100"
-                  : "pointer-events-none absolute left-0 top-0 opacity-0",
-              )}
-              style={{ transitionDuration: `${FADE_MS}ms` }}
-              aria-hidden={active !== i}
-            >
-              {slide.themeLabel}
-            </p>
-          ))}
         </div>
       </div>
 

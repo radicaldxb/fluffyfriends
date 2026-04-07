@@ -1,7 +1,7 @@
 # Place hero and gallery images here.
 # Expected files (used by the site):
 #   pet-before.webp, pet-after.webp — hero Fireman (Golden Retriever)
-#   Misty-after.webp, Misty-before.webp — hero Queen (cat)
+#   misty-after.webp, misty-before.webp — hero Queen (cat)
 #   king-after.webp, king-before.webp — hero King (Dachshund)
 #   gallery-fireman.jpg
 #   gallery-samurai.jpg
@@ -9,3 +9,4 @@
 #   gallery-astronaut.jpg
 #   gallery-pirate.jpg
 #   gallery-wizard.jpg
+#   oscar-portrait.webp, mochi-landscape.webp, Willy-frame.webp — how-it-works section

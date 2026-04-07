@@ -73,30 +73,42 @@ export function ReviewsSection() {
           Loved by pet owners across the US, Canada, Australia and beyond
         </p>
 
-        <div className="relative mx-auto mt-8 max-w-6xl px-10 sm:px-12 md:px-14">
-          <Carousel
-            opts={{ align: "start", loop: true }}
-            setApi={setApi}
-            className="w-full"
-          >
-            <CarouselPrevious
-              variant="outline"
-              className="left-0 size-9 rounded-organic-sm border-border hover:bg-secondary/50 md:-left-1"
-              aria-label="Previous reviews"
-            />
-            <CarouselContent className="-ml-4">
-              {reviews.map((review, index) => (
-                <CarouselItem
-                  key={index}
-                  className="basis-full pl-4 md:basis-1/2 lg:basis-1/3"
-                >
-                  <article className="flex h-full flex-col rounded-2xl bg-card p-8 shadow-lg">
-                    <p className="text-primary" aria-hidden>
-                      {STAR_ROW}
-                    </p>
-                    <blockquote className="mt-4 flex-1 text-pretty text-base leading-relaxed text-foreground lg:text-lg">
-                      &ldquo;{review.quote}&rdquo;
-                    </blockquote>
+        <div className="relative mx-auto mt-8 w-full max-w-6xl px-4 sm:px-10 md:px-14">
+          <div className="mx-auto w-full max-w-sm sm:max-w-none">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+                dragFree: false,
+                containScroll: "trimSnaps",
+              }}
+              setApi={setApi}
+              className="w-full"
+            >
+              <CarouselPrevious
+                variant="outline"
+                className="left-0 hidden size-9 rounded-organic-sm border-border hover:bg-secondary/50 lg:flex md:-left-1"
+                aria-label="Previous reviews"
+              />
+              <CarouselContent className="-ml-4">
+                {reviews.map((review, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="basis-full pl-4 md:basis-1/2 lg:basis-1/3"
+                  >
+                    <article className="flex h-full w-full flex-col rounded-2xl bg-card p-8 shadow-lg">
+                      <p className="text-primary" aria-hidden>
+                        {STAR_ROW}
+                      </p>
+                      <blockquote className="mt-4 flex-1 text-pretty text-base leading-relaxed text-foreground">
+                        <span className="text-lg font-semibold text-primary" aria-hidden>
+                          &ldquo;
+                        </span>
+                        {review.quote}
+                        <span className="text-lg font-semibold text-primary" aria-hidden>
+                          &rdquo;
+                        </span>
+                      </blockquote>
                     <div className="mt-6 border-t border-border pt-6">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-sm font-bold text-foreground">{review.reviewer}</p>
@@ -106,31 +118,39 @@ export function ReviewsSection() {
                       </div>
                     </div>
                   </article>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselNext
-              variant="outline"
-              className="right-0 size-9 rounded-organic-sm border-border hover:bg-secondary/50 md:-right-1"
-              aria-label="Next reviews"
-            />
-          </Carousel>
-
-          <div className="mt-6 flex justify-center gap-2" role="tablist" aria-label="Review slides">
-            {reviews.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                role="tab"
-                aria-selected={current === i}
-                aria-label={`Go to review ${i + 1}`}
-                className={cn(
-                  "h-2.5 w-2.5 rounded-organic-sm transition-colors",
-                  current === i ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
-                )}
-                onClick={() => api?.scrollTo(i)}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselNext
+                variant="outline"
+                className="right-0 hidden size-9 rounded-organic-sm border-border hover:bg-secondary/50 lg:flex md:-right-1"
+                aria-label="Next reviews"
               />
-            ))}
+            </Carousel>
+
+            <div
+              className={cn(
+                "mt-6 flex justify-center gap-2",
+                reviews.length < 4 && "lg:hidden",
+              )}
+              role="tablist"
+              aria-label="Review slides"
+            >
+              {reviews.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  role="tab"
+                  aria-selected={current === i}
+                  aria-label={`Go to review ${i + 1}`}
+                  className={cn(
+                    "h-2.5 w-2.5 rounded-organic-sm transition-colors",
+                    current === i ? "bg-primary" : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
+                  )}
+                  onClick={() => api?.scrollTo(i)}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
