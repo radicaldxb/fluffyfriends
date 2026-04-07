@@ -42,7 +42,8 @@ export function ReviewsSection() {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
 
-  const onSelect = useCallback((carousel: CarouselApi) => {
+  const onSelect = useCallback((carousel: CarouselApi | undefined) => {
+    if (!carousel) return
     setCurrent(carousel.selectedScrollSnap())
   }, [])
 
@@ -52,6 +53,7 @@ export function ReviewsSection() {
     api.on("reInit", onSelect)
     api.on("select", onSelect)
     return () => {
+      api.off("reInit", onSelect)
       api.off("select", onSelect)
     }
   }, [api, onSelect])
