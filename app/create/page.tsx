@@ -492,6 +492,7 @@ function CreatePortraitContent() {
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                       <Button
                         type="button"
+                        data-gtm="create-step1-next"
                         onClick={goNext}
                         disabled={!theme}
                         className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
@@ -608,6 +609,7 @@ function CreatePortraitContent() {
                       </Button>
                       <Button
                         type="button"
+                        data-gtm="create-step2-next"
                         onClick={handleCheckImage}
                         disabled={!file}
                         className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
@@ -896,6 +898,7 @@ function CreatePortraitContent() {
 
                   <div className="mt-6 flex flex-col items-center gap-3">
                     <Button
+                      data-gtm="create-step3-checkout"
                       onClick={async () => {
                         if (!resultPortraitId) return
                         setCheckoutStatus("submitting")
