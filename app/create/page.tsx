@@ -231,6 +231,8 @@ function CreatePortraitContent() {
 
   // Trigger image validation / n8n workflow without going through the step 3 form submit.
   function handleCheckImage() {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: "create_step2_complete" })
     void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent)
   }
 
@@ -926,6 +928,8 @@ function CreatePortraitContent() {
                             package: selectedProductId,
                           })
                           initiateCheckout()
+                          window.dataLayer = window.dataLayer || []
+                          window.dataLayer.push({ event: "create_step3_checkout" })
                           window.location.href = data.url as string
                         } catch (err) {
                           setCheckoutStatus("error")
