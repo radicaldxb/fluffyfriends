@@ -122,16 +122,20 @@ export function PricingSection() {
           1 portrait = 1 artwork · Mix and match any way you like
         </p>
 
-        {/* Cards */}
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+        {/* Cards — single column on mobile; Portrait Pack first on small screens; three columns md+ */}
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative overflow-hidden rounded-organic border border-border bg-card p-8 shadow-md transition-all ${
+              className={cn(
+                "relative overflow-hidden rounded-organic border border-border bg-card p-8 shadow-md transition-all",
+                plan.name === "Starter" && "order-2 md:order-1",
+                plan.name === "Portrait Pack" && "order-1 md:order-2",
+                plan.name === "Family Pack" && "order-3 md:order-3",
                 plan.featured
                   ? "ring-2 ring-primary/30 shadow-lg"
-                  : "hover:shadow-lg"
-              }`}
+                  : "hover:shadow-lg",
+              )}
             >
               {(plan.badge === "Most Popular" || plan.badge === "Best Value") && (
                 <div className="absolute top-0 right-0 rounded-bl-organic bg-primary px-4 py-1">

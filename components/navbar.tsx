@@ -5,14 +5,18 @@ import { Menu, X } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
-/** Matches homepage section order (see app/page.tsx). */
+/**
+ * Home anchors must match section ids: gallery-section (#gallery), how-it-works (#process),
+ * reviews-section (#reviews), pricing-section (#pricing), about-section (#about).
+ * See app/page.tsx.
+ */
 const navLinks = [
   { label: "Gallery", href: "/#gallery" },
   { label: "How it works", href: "/#process" },
   { label: "Reviews", href: "/#reviews" },
   { label: "Pricing", href: "/#pricing" },
   { label: "About", href: "/#about" },
-  { label: "Get started", href: "/#final-cta" },
+  { label: "Create Portrait", href: "/create" },
   { label: "My Portraits", href: "/my-portraits" },
 ]
 

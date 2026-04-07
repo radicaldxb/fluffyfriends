@@ -4,7 +4,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
 import { isValidDownloadUrl } from "@/lib/utils"
 
 const staticPortraits = [
@@ -18,7 +17,7 @@ const staticPortraits = [
 
 type Portrait = { src: string; theme: string; pet: string; city?: string | null; country?: string | null }
 
-const GALLERY_LIMIT = 12
+const GALLERY_LIMIT = 8
 
 export function GallerySection() {
   const [fromDb, setFromDb] = useState<Portrait[]>([])
@@ -31,11 +30,11 @@ export function GallerySection() {
         .select("image_url, original_image_url, pet_name, status, showcase_consent, users(city, country)")
         .not("image_url", "is", null)
         .neq("status", "rejected")
+        .eq("showcase_consent", true)
         .order("created_at", { ascending: false })
-        .limit(GALLERY_LIMIT * 3)
+        .limit(GALLERY_LIMIT)
       if (data?.length) {
-        const filtered = data.filter((row) => row.showcase_consent === true)
-        const withValidSrc = filtered
+        const withValidSrc = data
           .map((row) => {
             const imageUrl = (row.image_url as string)?.trim()
             const originalUrl = (row.original_image_url as string)?.trim()
@@ -100,6 +99,7 @@ export function GallerySection() {
                     src={portrait.src}
                     alt={`${portrait.pet} – ${portrait.theme}`}
                     fill
+                    loading="lazy"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     unoptimized={portrait.src.startsWith("http")}
@@ -119,14 +119,12 @@ export function GallerySection() {
         )}
 
         <div className="mt-10 flex justify-center">
-          <Button
-            size="lg"
-            variant="default"
-            className="inline-flex items-center gap-2 rounded-organic-sm bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 h-auto"
-            asChild
+          <Link
+            href="/gallery"
+            className="text-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/90 hover:underline"
           >
-            <Link href="/gallery">See your pet here</Link>
-          </Button>
+            See all portraits →
+          </Link>
         </div>
       </div>
     </section>

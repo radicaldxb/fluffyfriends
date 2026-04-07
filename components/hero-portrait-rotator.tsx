@@ -57,9 +57,9 @@ export function HeroPortraitRotator() {
   }, [])
 
   return (
-    <div className="relative z-0 w-full max-w-md">
+    <div className="relative z-0 mx-auto w-full max-w-none lg:max-w-md">
       {/* Main portrait card — single stacking context so inactive layers cannot show through */}
-      <div className="relative z-[1] isolate aspect-[4/5] overflow-hidden rounded-organic bg-foreground shadow-2xl shadow-foreground/20">
+      <div className="relative z-[1] isolate aspect-[3/4] overflow-hidden rounded-organic bg-muted shadow-2xl shadow-black/10 ring-1 ring-border/50 lg:aspect-[4/5]">
         {SLIDES.map((slide, i) => {
           const isRemote = slide.mainSrc.startsWith("http")
           const on = active === i
@@ -108,7 +108,7 @@ export function HeroPortraitRotator() {
           </div>
         </div>
 
-        <div className="absolute right-4 top-4 z-20 rounded-organic-pill bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow">
+        <div className="absolute right-4 top-4 z-20 rounded-organic-sm bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow">
           After ✨
         </div>
       </div>
@@ -139,21 +139,17 @@ export function HeroPortraitRotator() {
               </div>
             )
           })}
-          <div className="absolute left-2 top-2 z-20 rounded-organic-pill bg-background/90 px-2 py-1 text-[10px] font-semibold text-muted-foreground shadow">
-            Before
-          </div>
         </div>
       </div>
 
       {/* Theme badge — explicit z so it never sits under the portrait card */}
-      <div className="absolute left-2 top-[28%] z-[3] rounded-organic border border-border bg-card px-3 py-2.5 shadow-lg sm:-left-5 sm:px-4 sm:py-3">
-        <p className="mb-1 text-xs text-muted-foreground">Theme</p>
-        <div className="relative min-h-[1.25rem]">
+      <div className="absolute left-2 top-[28%] z-[3] rounded-organic border border-border bg-card px-4 py-3 shadow-lg sm:-left-5">
+        <div className="relative min-h-[1.5rem]">
           {SLIDES.map((slide, i) => (
             <p
               key={slide.id}
               className={cn(
-                "text-sm font-bold text-foreground transition-opacity ease-in-out",
+                "text-base font-bold text-foreground transition-opacity ease-in-out",
                 active === i
                   ? "relative z-10 opacity-100"
                   : "pointer-events-none absolute left-0 top-0 opacity-0",
@@ -167,9 +163,9 @@ export function HeroPortraitRotator() {
         </div>
       </div>
 
-      <div className="absolute -right-2 bottom-[30%] z-[3] rounded-organic bg-primary px-3 py-2.5 text-primary-foreground shadow-xl sm:-right-4 sm:px-4 sm:py-3">
-        <p className="text-xs font-medium opacity-80">Print ready</p>
-        <p className="text-sm font-bold">Up to A1 ↑</p>
+      <div className="absolute -right-2 bottom-[30%] z-[3] rounded-organic bg-primary px-4 py-3 text-primary-foreground shadow-xl sm:-right-4">
+        <p className="text-xs font-medium opacity-90">Print ready</p>
+        <p className="text-base font-bold">Up to A1 ↑</p>
       </div>
     </div>
   )

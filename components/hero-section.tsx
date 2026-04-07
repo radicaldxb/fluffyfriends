@@ -16,9 +16,15 @@ export function HeroSection() {
       />
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-16">
-          {/* Left – Copy */}
-          <div className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left order-2 lg:order-1">
+        {/* Portrait first in DOM so mobile stacks image above headline; lg:flex-row-reverse keeps copy left + portrait right on desktop */}
+        <div className="flex flex-col items-center gap-12 lg:flex-row-reverse lg:items-center lg:gap-16">
+          {/* Right on desktop — portrait (first in DOM = top on mobile) */}
+          <div className="relative flex min-w-0 flex-1 justify-center -mx-6 w-[calc(100%+3rem)] max-w-[100vw] sm:mx-0 sm:w-full sm:max-w-none lg:mx-0 lg:justify-end">
+            <HeroPortraitRotator />
+          </div>
+
+          {/* Left on desktop — Copy */}
+          <div className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left">
             {/* Eyebrow – emotional, not pushy */}
             <p className="mb-6 text-sm font-medium uppercase tracking-widest text-primary">
               Made with love. Made to last.
@@ -53,10 +59,10 @@ export function HeroSection() {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:justify-start">
               <Button
                 size="lg"
-                className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] sm:w-auto h-auto"
                 asChild
               >
                 <Link href="/create">See What Your Pet Would Look Like →</Link>
@@ -64,7 +70,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold h-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-organic-sm border-2 border-foreground/20 px-7 py-3.5 text-base font-semibold sm:w-auto h-auto hover:border-foreground/30"
                 asChild
               >
                 <Link href="#gallery">Browse the gallery</Link>
@@ -76,11 +82,6 @@ export function HeroSection() {
                 Access my portraits →
               </Link>
             </p>
-          </div>
-
-          {/* Right – Before / After card, styled like redesign */}
-          <div className="relative flex w-full min-w-0 flex-1 justify-center px-2 sm:px-0 lg:justify-end order-1 lg:order-2">
-            <HeroPortraitRotator />
           </div>
         </div>
       </div>
