@@ -19,7 +19,7 @@ export function HeroSection() {
         {/* Portrait first in DOM so mobile stacks image above headline; lg:flex-row-reverse keeps copy left + portrait right on desktop */}
         <div className="flex flex-col items-center gap-12 lg:flex-row-reverse lg:items-center lg:gap-16">
           {/* Right on desktop — portrait (first in DOM = top on mobile) */}
-          <div className="relative flex min-w-0 flex-1 justify-center -mx-6 w-[calc(100%+3rem)] max-w-[100vw] sm:mx-0 sm:w-full sm:max-w-none lg:mx-0 lg:justify-end">
+          <div className="relative flex w-full min-w-0 max-w-md flex-1 justify-center px-2 sm:max-w-none sm:px-0 lg:justify-end">
             <HeroPortraitRotator />
           </div>
 
@@ -43,20 +43,25 @@ export function HeroSection() {
             </p>
 
             {/* Trust signals — above CTAs */}
-            <div className="mt-8 grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2 max-w-xl">
-              {[
-                "Their name crafted into the artwork",
-                "Print-ready at poster size",
-                "Two formats — portrait and landscape",
-                "Delivered to your inbox in minutes",
-              ].map((t) => (
-                <div key={t} className="inline-flex items-center gap-1.5">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
-                    ✓
-                  </span>
-                  <span className="font-semibold text-foreground">{t}</span>
-                </div>
-              ))}
+            <div className="mt-8 w-full max-w-xl text-left">
+              <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary">
+                Features
+              </p>
+              <div className="grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2">
+                {[
+                  "Their name crafted into the artwork",
+                  "Print-ready at poster size",
+                  "Two formats — portrait and landscape",
+                  "Delivered to your inbox in minutes",
+                ].map((t) => (
+                  <div key={t} className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
+                      ✓
+                    </span>
+                    <span className="font-semibold text-foreground">{t}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:justify-start">
