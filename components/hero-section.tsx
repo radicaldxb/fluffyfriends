@@ -44,9 +44,6 @@ export function HeroSection() {
 
             {/* Trust signals — above CTAs */}
             <div className="mt-8 w-full max-w-xl text-left">
-              <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary">
-                Features
-              </p>
               <div className="grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2">
                 {[
                   "Their name crafted into the artwork",

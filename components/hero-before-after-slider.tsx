@@ -5,7 +5,7 @@ import Image from "next/image"
 import { ChevronsLeftRight } from "lucide-react"
 
 export default function HeroBeforeAfterSlider() {
-  const [position, setPosition] = useState(62)
+  const [position, setPosition] = useState(65)
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
 
@@ -32,57 +32,59 @@ export default function HeroBeforeAfterSlider() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-organic ring-1 ring-border/50"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
-      role="presentation"
-    >
-      <Image
-        src="/images/pet-after.webp"
-        alt="Jimmy as a Fireman — AI pet portrait by FluffyFriends"
-        fill
-        className="object-cover"
-        sizes="(max-width: 1024px) 100vw, 28rem"
-        priority
-        draggable={false}
-      />
-
+    <div className="-mx-6 sm:mx-0 rounded-none sm:rounded-2xl overflow-hidden shadow-xl shadow-foreground/10 ring-0 sm:ring-1 sm:ring-border/50">
       <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+        ref={containerRef}
+        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none sm:rounded-2xl"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
+        role="presentation"
       >
         <Image
-          src="/images/pet-before.webp"
-          alt="Jimmy the golden retriever — original photo"
+          src="/images/pet-after.webp"
+          alt="Jimmy as a Fireman — AI pet portrait by FluffyFriends"
           fill
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 28rem"
           priority
           draggable={false}
         />
-        <div className="absolute bottom-4 left-4 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
-          Your photo
+
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+        >
+          <Image
+            src="/images/pet-before.webp"
+            alt="Jimmy the golden retriever — original photo"
+            fill
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 28rem"
+            priority
+            draggable={false}
+          />
+          <div className="absolute bottom-4 left-4 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
+            Your photo
+          </div>
         </div>
-      </div>
 
-      <div
-        className="pointer-events-none absolute top-0 bottom-0 z-20 w-0.5 bg-background shadow-lg"
-        style={{ left: `${position}%`, transform: "translateX(-50%)" }}
-      />
+        <div
+          className="pointer-events-none absolute top-0 bottom-0 z-20 w-0.5 bg-primary shadow-md shadow-primary/40"
+          style={{ left: `${position}%`, transform: "translateX(-50%)" }}
+        />
 
-      <div
-        className="pointer-events-none absolute top-1/2 z-30 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-organic-sm bg-card shadow-lg ring-1 ring-border"
-        style={{ left: `${position}%` }}
-      >
-        <ChevronsLeftRight className="h-5 w-5 text-foreground" strokeWidth={2} aria-hidden />
-      </div>
+        <div
+          className="pointer-events-none absolute top-1/2 z-30 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-organic-sm bg-card shadow-lg ring-1 ring-border"
+          style={{ left: `${position}%` }}
+        >
+          <ChevronsLeftRight className="h-5 w-5 text-primary" strokeWidth={2} aria-hidden />
+        </div>
 
-      <div className="absolute bottom-4 right-4 z-10 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
-        Your portrait
+        <div className="absolute bottom-4 right-4 z-10 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
+          Your portrait
+        </div>
       </div>
     </div>
   )
