@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -16,18 +15,30 @@ type Portrait = {
   country?: string | null
 }
 
+const GALLERY_LIMIT = 100
+
 export default function GalleryPage() {
   const [portraits, setPortraits] = useState<Portrait[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchAll() {
-      const { data } = await supabase
+      setFetchError(null)
+      const { data, error } = await supabase
         .from("pet_portraits")
         .select("image_url, original_image_url, pet_name, showcase_consent, user_id, users(city, country)")
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
+        .limit(GALLERY_LIMIT)
+
+      if (error) {
+        setFetchError(error.message || "Could not load gallery.")
+        setLoading(false)
+        return
+      }
+
       if (data?.length) {
         const filtered = data.filter((row) => row.showcase_consent === true)
         const withValidSrc = filtered
@@ -79,7 +90,15 @@ export default function GalleryPage() {
             </Button>
           </div>
 
-          {loading ? (
+          {fetchError ? (
+            <div className="rounded-organic border border-destructive/30 bg-destructive/5 px-4 py-8 text-center">
+              <p className="font-medium text-foreground">Gallery couldn&apos;t load</p>
+              <p className="mt-2 text-sm text-muted-foreground">{fetchError}</p>
+              <Button className="mt-4 rounded-organic-sm" type="button" onClick={() => window.location.reload()}>
+                Try again
+              </Button>
+            </div>
+          ) : loading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
               {[...Array(12)].map((_, i) => (
                 <div
@@ -103,13 +122,13 @@ export default function GalleryPage() {
                   key={`${portrait.src}-${index}`}
                   className="group relative aspect-[4/5] overflow-hidden rounded-organic border border-border/50"
                 >
-                  <Image
+                  {/* Native img: portrait URLs come from Supabase (or other hosts); avoids Next/Image remotePatterns mismatches and matches unoptimized delivery */}
+                  <img
                     src={portrait.src}
                     alt={portrait.pet}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-                    unoptimized={portrait.src.startsWith("http")}
+                    loading={index < 10 ? "eager" : "lazy"}
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
                     <p className="text-white text-sm font-semibold drop-shadow-sm">
