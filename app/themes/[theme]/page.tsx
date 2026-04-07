@@ -26,6 +26,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
     description: `${theme.tagline} ${theme.story.slice(0, 140)}…`,
+    alternates: {
+      canonical: `${BASE}/themes/${slug}`,
+    },
   }
 }
 

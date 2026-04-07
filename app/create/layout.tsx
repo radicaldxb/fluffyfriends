@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "Create Your Pet Portrait | FluffyFriends",
   description:
     "Upload one photo of your pet, choose a theme, and receive two print-ready portrait files in minutes. Named and personalised.",
+  alternates: {
+    canonical: "https://fluffyfriends.online/create",
+  },
 }
 
 const CREATE_URL = "https://fluffyfriends.online/create"
