@@ -15,7 +15,7 @@ const SLIDES = [
   {
     id: "jimmy-fireman",
     mainSrc: "/images/pet-after.webp",
-    beforeSrc: "/images/pet-before.webp",
+    beforeSrc: "/images/pet-before-new.webp",
     nameLine: "Jimmy",
     themeLabel: "🚒 Fireman",
     alt: "Golden Retriever — Fireman theme portrait",

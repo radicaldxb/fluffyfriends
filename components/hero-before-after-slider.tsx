@@ -57,7 +57,7 @@ export default function HeroBeforeAfterSlider() {
           style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
         >
           <Image
-            src="/images/pet-before.webp"
+            src="/images/pet-before-new.webp"
             alt="Jimmy the golden retriever — original photo"
             fill
             className="object-cover"
