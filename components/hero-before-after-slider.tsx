@@ -1,0 +1,89 @@
+"use client"
+
+import { useCallback, useRef, useState } from "react"
+import Image from "next/image"
+import { ChevronsLeftRight } from "lucide-react"
+
+export default function HeroBeforeAfterSlider() {
+  const [position, setPosition] = useState(62)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+
+  const updatePosition = useCallback((clientX: number) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width))
+    setPosition((x / rect.width) * 100)
+  }, [])
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    updatePosition(e.clientX)
+  }
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return
+    updatePosition(e.clientX)
+  }
+
+  const onPointerUp = () => {
+    isDragging.current = false
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-organic ring-1 ring-border/50"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+      role="presentation"
+    >
+      <Image
+        src="/images/pet-after.webp"
+        alt="Jimmy as a Fireman — AI pet portrait by FluffyFriends"
+        fill
+        className="object-cover"
+        sizes="(max-width: 1024px) 100vw, 28rem"
+        priority
+        draggable={false}
+      />
+
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+      >
+        <Image
+          src="/images/pet-before.webp"
+          alt="Jimmy the golden retriever — original photo"
+          fill
+          className="object-cover"
+          sizes="(max-width: 1024px) 100vw, 28rem"
+          priority
+          draggable={false}
+        />
+        <div className="absolute bottom-4 left-4 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
+          Your photo
+        </div>
+      </div>
+
+      <div
+        className="pointer-events-none absolute top-0 bottom-0 z-20 w-0.5 bg-background shadow-lg"
+        style={{ left: `${position}%`, transform: "translateX(-50%)" }}
+      />
+
+      <div
+        className="pointer-events-none absolute top-1/2 z-30 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-organic-sm bg-card shadow-lg ring-1 ring-border"
+        style={{ left: `${position}%` }}
+      >
+        <ChevronsLeftRight className="h-5 w-5 text-foreground" strokeWidth={2} aria-hidden />
+      </div>
+
+      <div className="absolute bottom-4 right-4 z-10 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
+        Your portrait
+      </div>
+    </div>
+  )
+}

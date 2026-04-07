@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { HeroPortraitRotator } from "@/components/hero-portrait-rotator"
+import HeroBeforeAfterSlider from "@/components/hero-before-after-slider"
 
 export function HeroSection() {
   return (
@@ -20,7 +20,7 @@ export function HeroSection() {
         <div className="flex flex-col items-center gap-12 lg:flex-row-reverse lg:items-center lg:gap-16">
           {/* Right on desktop — portrait (first in DOM = top on mobile) */}
           <div className="relative flex w-full min-w-0 max-w-md flex-1 justify-center px-2 sm:max-w-none sm:px-0 lg:justify-end">
-            <HeroPortraitRotator />
+            <HeroBeforeAfterSlider />
           </div>
 
           {/* Left on desktop — Copy */}
