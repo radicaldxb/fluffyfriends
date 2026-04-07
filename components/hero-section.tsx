@@ -4,7 +4,7 @@ import HeroBeforeAfterSlider from "@/components/hero-before-after-slider"
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-x-clip bg-background pt-16 pb-16 md:pt-24 md:pb-24">
+    <section className="relative overflow-x-visible bg-background pt-16 pb-16 md:pt-24 md:pb-24">
       {/* Subtle radial glow behind hero, inspired by redesign */}
       <div
         aria-hidden="true"
@@ -19,7 +19,7 @@ export function HeroSection() {
         {/* Portrait first in DOM so mobile stacks image above headline; lg:flex-row-reverse keeps copy left + portrait right on desktop */}
         <div className="flex flex-col items-center gap-12 lg:flex-row-reverse lg:items-center lg:gap-16">
           {/* Right on desktop — portrait (first in DOM = top on mobile) */}
-          <div className="relative flex w-full min-w-0 max-w-md flex-1 justify-center px-2 sm:max-w-none sm:px-0 lg:justify-end">
+          <div className="relative flex w-full min-w-0 max-w-md shrink-0 justify-center px-2 sm:max-w-none sm:px-0 lg:flex-1 lg:justify-end">
             <HeroBeforeAfterSlider />
           </div>
 
