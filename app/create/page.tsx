@@ -219,6 +219,9 @@ function CreatePortraitContent() {
       const rawId = typeof data.portrait_id === "string" ? data.portrait_id.trim() : ""
       setResultPortraitId(rawId.startsWith("=") ? rawId.slice(1) : rawId)
       setResultPetName(resolvedPetName)
+      window.gtag?.("event", "create_step2_complete", {
+        theme: theme ?? "",
+      })
       setStatus("success")
     } catch (err) {
       setStatus("error")
@@ -266,6 +269,12 @@ function CreatePortraitContent() {
   }
 
   function goNext() {
+    if (wizardStep === 1 && theme) {
+      window.gtag?.("event", "create_step1_complete", {
+        theme,
+        pet_name: petName.trim(),
+      })
+    }
     setSlideDirection("next")
     setWizardStep((s) => Math.min(3, s + 1))
   }
@@ -909,6 +918,10 @@ function CreatePortraitContent() {
                             setCheckoutError(data.error || "We couldn't start checkout. Please try again in a moment.")
                             return
                           }
+                          window.gtag?.("event", "create_step3_view", {
+                            theme: theme ?? "",
+                            package: selectedProductId,
+                          })
                           initiateCheckout()
                           window.location.href = data.url as string
                         } catch (err) {
