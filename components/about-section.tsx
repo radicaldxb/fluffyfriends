@@ -29,7 +29,7 @@ export function AboutSection() {
               Everything here is what I&apos;d want for myself. The personalisation, the print quality, the two formats, the free guide. Made with care. Built to last.
             </p>
             <p className="mt-6 text-sm italic text-muted-foreground">
-              — Stephan, Founder · Dubai
+              Stephan, Founder
             </p>
           </div>
         </div>

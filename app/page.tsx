@@ -10,10 +10,27 @@ import { FinalCTASection } from "@/components/final-cta-section"
 import { Footer } from "@/components/footer"
 import { SketchDivider } from "@/components/sketch-divider"
 
+const SITE = "https://fluffyfriends.online"
+
 export const metadata: Metadata = {
   title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
   description:
     "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+  openGraph: {
+    title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
+    description:
+      "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+    url: SITE,
+    siteName: "FluffyFriends",
+    images: [{ url: `${SITE}/images/og/OG-Home.webp`, alt: "FluffyFriends — AI pet portraits" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
+    description:
+      "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+    images: [`${SITE}/images/og/OG-Home.webp`],
+  },
 }
 
 const organizationSchema = {

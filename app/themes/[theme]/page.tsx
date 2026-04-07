@@ -11,6 +11,18 @@ import { getTheme, themeIds, themes, type Theme } from "@/lib/themes"
 
 const BASE = "https://fluffyfriends.online"
 
+/** OG assets in /public/images/og — filename per theme id (Vet = Veterinarian theme) */
+const OG_IMAGE_BY_THEME_ID: Record<string, string> = {
+  pilot: "OG-Pilot.webp",
+  king: "OG-King.webp",
+  queen: "OG-Queen.webp",
+  fireman: "OG-Fireman.webp",
+  police: "OG-Police.webp",
+  admiral: "OG-Admiral.webp",
+  veterinarian: "OG-Vet.webp",
+  samurai: "OG-Samurai.webp",
+}
+
 type PageProps = { params: Promise<{ theme: string }> }
 
 export function generateStaticParams() {
@@ -23,12 +35,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { theme: slug } = await params
   const theme = getTheme(slug)
   if (!theme) return {}
+  const ogFile = OG_IMAGE_BY_THEME_ID[slug]
+  const description = `${theme.tagline} ${theme.story.slice(0, 140)}…`
+  const pageUrl = `${BASE}/themes/${slug}`
+  const ogImageUrl = ogFile ? `${BASE}/images/og/${ogFile}` : undefined
   return {
     title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
-    description: `${theme.tagline} ${theme.story.slice(0, 140)}…`,
+    description,
     alternates: {
-      canonical: `${BASE}/themes/${slug}`,
+      canonical: pageUrl,
     },
+    ...(ogImageUrl && {
+      openGraph: {
+        title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
+        description,
+        url: pageUrl,
+        siteName: "FluffyFriends",
+        images: [
+          {
+            url: ogImageUrl,
+            alt: `FluffyFriends ${theme.name} pet portrait theme`,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image" as const,
+        title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
+        description,
+        images: [ogImageUrl],
+      },
+    }),
   }
 }
 
