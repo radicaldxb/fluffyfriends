@@ -13,7 +13,7 @@ import { SketchDivider } from "@/components/sketch-divider"
 export const metadata: Metadata = {
   title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
   description:
-    "Transform your pet photo into fine art with their name in the artwork. Print-ready in minutes. From $17. Use FLUFFY15 for 15% off.",
+    "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
 }
 
 const organizationSchema = {

@@ -5,7 +5,7 @@ import Image from "next/image"
 import { ChevronsLeftRight } from "lucide-react"
 
 export default function HeroBeforeAfterSlider() {
-  const [position, setPosition] = useState(65)
+  const [position, setPosition] = useState(50)
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
 
@@ -32,10 +32,10 @@ export default function HeroBeforeAfterSlider() {
   }
 
   return (
-    <div className="relative w-full max-w-full -mx-6 sm:mx-0 rounded-none sm:rounded-organic overflow-hidden shadow-xl shadow-foreground/10 ring-0 sm:ring-1 sm:ring-border/50">
+    <div className="relative w-full max-w-full -mx-6 sm:mx-0 overflow-hidden rounded-none shadow-xl shadow-foreground/10 ring-0 sm:rounded-[20px] sm:ring-1 sm:ring-border/50">
       <div
         ref={containerRef}
-        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none sm:rounded-organic"
+        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none sm:rounded-[20px]"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -65,7 +65,7 @@ export default function HeroBeforeAfterSlider() {
             priority
             draggable={false}
           />
-          <div className="absolute bottom-4 left-4 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
+          <div className="absolute bottom-4 left-4 rounded-[20px] bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-md ring-1 ring-border/60">
             Your photo
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function HeroBeforeAfterSlider() {
           <ChevronsLeftRight className="h-5 w-5 text-primary" strokeWidth={2} aria-hidden />
         </div>
 
-        <div className="absolute bottom-4 right-4 z-10 rounded-organic-sm bg-foreground/55 px-2.5 py-1 text-xs font-medium text-background backdrop-blur-sm">
+        <div className="absolute bottom-4 right-4 z-10 rounded-[20px] bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-md ring-1 ring-border/60">
           Your portrait
         </div>
       </div>

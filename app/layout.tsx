@@ -15,7 +15,10 @@ const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", weight: [
 export const metadata: Metadata = {
   title: "FluffyFriends — AI Pet Portraits",
   description:
-    "AI pet portraits with your pet’s name in the artwork. Print-ready files in minutes. From $17.",
+    "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+  alternates: {
+    canonical: "https://fluffyfriends.online",
+  },
   generator: "v0.app",
   icons: {
     icon: [{ url: '/image/favicon.svg', type: 'image/svg+xml' }],
