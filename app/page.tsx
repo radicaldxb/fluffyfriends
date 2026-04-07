@@ -50,6 +50,42 @@ const websiteSchema = {
   },
 }
 
+const productSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: "AI Pet Portrait",
+  description:
+    "Transform your pet photo into a personalised, print-ready portrait with their name in the artwork. Choose from 8 themes. From $17.",
+  url: "https://fluffyfriends.online/create",
+  brand: { "@type": "Brand", name: "FluffyFriends" },
+  offers: [
+    {
+      "@type": "Offer",
+      name: "Starter",
+      price: "17.00",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: "https://fluffyfriends.online/create",
+    },
+    {
+      "@type": "Offer",
+      name: "Portrait Pack",
+      price: "49.00",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: "https://fluffyfriends.online/create",
+    },
+    {
+      "@type": "Offer",
+      name: "Family Pack",
+      price: "79.00",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: "https://fluffyfriends.online/create",
+    },
+  ],
+}
+
 export default function Home() {
   return (
     <>
@@ -60,6 +96,10 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
       <main className="min-h-screen bg-background flex flex-col">
         <div className="flex flex-1 flex-col">

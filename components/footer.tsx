@@ -10,7 +10,7 @@ export function Footer() {
         <a href="/" className="shrink-0">
           <Image
             src="/logos/FluffyFriends-logo.webp"
-            alt="FluffyFriends.online"
+            alt="FluffyFriends — AI Pet Portraits"
             width={80}
             height={80}
             className="h-[4.6rem] w-[4.6rem] object-contain sm:h-[5.75rem] sm:w-[5.75rem]"

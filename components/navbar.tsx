@@ -29,7 +29,7 @@ export function Navbar() {
         <a href="/" className="flex shrink-0 items-center" aria-label="FluffyFriends home">
           <Image
             src="/logos/FluffyFriends-Footer-Logo.webp"
-            alt=""
+            alt="FluffyFriends — AI Pet Portraits"
             width={180}
             height={48}
             sizes="(max-width: 640px) 180px, 220px"
