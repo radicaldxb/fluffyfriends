@@ -1,3 +1,4 @@
+/** Optional: run `npm run generate:print-guide` to write a minimal placeholder PDF. Not run on `npm run build` — the real asset is `public/print-guide.pdf` in git. */
 import { writeFileSync, mkdirSync } from "fs"
 import { dirname, join } from "path"
 import { fileURLToPath } from "url"
