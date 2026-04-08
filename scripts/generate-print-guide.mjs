@@ -1,11 +1,24 @@
-/** Optional: run `npm run generate:print-guide` to write a minimal placeholder PDF. Not run on `npm run build` — the real asset is `public/print-guide.pdf` in git. */
-import { writeFileSync, mkdirSync } from "fs"
+/**
+ * Optional: `npm run generate:print-guide` writes a minimal placeholder PDF.
+ * Does NOT run on `npm run build`.
+ *
+ * Never overwrites an existing `public/print-guide.pdf` unless you set
+ * `FORCE_GENERATE_PRINT_GUIDE=1` (so CI, old Netlify commands, or accidental runs cannot clobber the real asset).
+ */
+import { writeFileSync, mkdirSync, existsSync } from "fs"
 import { dirname, join } from "path"
 import { fileURLToPath } from "url"
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const out = join(__dirname, "..", "public", "print-guide.pdf")
+
+if (existsSync(out) && process.env.FORCE_GENERATE_PRINT_GUIDE !== "1") {
+  console.log(
+    "Skipping: public/print-guide.pdf already exists. Remove the file or set FORCE_GENERATE_PRINT_GUIDE=1 to regenerate the placeholder.",
+  )
+  process.exit(0)
+}
 
 const pdfDoc = await PDFDocument.create()
 const page = pdfDoc.addPage([612, 792])

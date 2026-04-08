@@ -2,6 +2,7 @@
 # The built-in OpenNext adapter provides SSR, ISR, Edge Functions, and image optimization
 
 [build]
+  # Must be plain `npm run build` — do not prepend `node scripts/generate-print-guide.mjs` in the Netlify UI (it would overwrite public/print-guide.pdf unless FORCE_GENERATE_PRINT_GUIDE=1).
   command = "npm run build"
   publish = ".next"
 
