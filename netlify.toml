@@ -23,6 +23,17 @@
 # Site settings → Build & deploy → Environment variables
 # UI vars override netlify.toml and are more reliable
 
+# Stricter than /* so PDF updates aren’t stuck behind CDN/browser caches (sync ?v= with lib/print-guide.ts).
+[[headers]]
+  for = "/print-guide.pdf"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate, no-cache"
+
+[[headers]]
+  for = "/print-guide"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate, no-cache"
+
 [[headers]]
   for = "/*"
   [headers.values]

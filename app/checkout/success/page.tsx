@@ -11,6 +11,7 @@ import { AlertCircle, Check, Mail, Palette, Ruler, Frame, Paperclip, Send, Inbox
 import { useSearchParams, useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
+import { PRINT_GUIDE_PDF_HREF } from "@/lib/print-guide"
 import { trackGa4Purchase } from "@/lib/ga4"
 import { purchase } from "@/lib/fpixel"
 
@@ -459,7 +460,7 @@ function SuccessContent() {
                   <strong>{preview.amountDisplay} {preview.currency}</strong>
                   . You’ll receive wide and portrait print‑ready files plus a{" "}
                   <a
-                    href="/print-guide.pdf"
+                    href={PRINT_GUIDE_PDF_HREF}
                     className="text-primary underline hover:no-underline"
                   >
                     print guide
@@ -470,7 +471,7 @@ function SuccessContent() {
                 <p className="mt-3 text-sm text-muted-foreground">
                   Using 1 of your portrait pack credits. You’ll receive wide and portrait print‑ready files plus a{" "}
                   <a
-                    href="/print-guide.pdf"
+                    href={PRINT_GUIDE_PDF_HREF}
                     className="text-primary underline hover:no-underline"
                   >
                     print guide
