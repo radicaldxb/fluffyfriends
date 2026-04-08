@@ -11,8 +11,8 @@ import { isValidDownloadUrl } from "@/lib/utils"
 type Portrait = {
   src: string
   pet: string
-  city?: string | null
-  country?: string | null
+  location?: string | null
+  users?: { city?: string | null; country?: string | null } | null
 }
 
 const GALLERY_LIMIT = 100
@@ -27,7 +27,7 @@ export default function GalleryPage() {
       setFetchError(null)
       const { data, error } = await supabase
         .from("pet_portraits")
-        .select("image_url, original_image_url, pet_name, showcase_consent, user_id, users(city, country)")
+        .select("image_url, original_image_url, pet_name, showcase_consent, user_id, location, users(city, country)")
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -52,11 +52,12 @@ export default function GalleryPage() {
                 : null
             if (!src) return null
             const users = row.users as { city?: string; country?: string } | null
+            const locRaw = row.location
             return {
               src,
               pet: row.pet_name || "Pet",
-              city: users?.city ?? null,
-              country: users?.country ?? null,
+              location: typeof locRaw === "string" && locRaw.trim() ? locRaw.trim() : null,
+              users: users ?? null,
             }
           })
           .filter(
@@ -133,8 +134,18 @@ export default function GalleryPage() {
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
                     <p className="text-white text-sm font-semibold drop-shadow-sm">
                       {portrait.pet}
-                      {portrait.city && portrait.country && (
-                        <span className="font-normal text-white/90"> · {portrait.city}, {portrait.country}</span>
+                      {(portrait.location ||
+                        (portrait.users?.city && portrait.users?.country
+                          ? `${portrait.users.city}, ${portrait.users.country}`
+                          : null)) && (
+                        <span className="font-normal text-white/90">
+                          {" "}
+                          ·{" "}
+                          {portrait.location ||
+                            (portrait.users?.city && portrait.users?.country
+                              ? `${portrait.users.city}, ${portrait.users.country}`
+                              : null)}
+                        </span>
                       )}
                     </p>
                   </div>
