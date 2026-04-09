@@ -6,14 +6,14 @@ import { cn } from "@/lib/utils"
 
 const featureColumns = [
   {
-    src: "/images/oscar-portrait.webp",
+    src: "/images/Oscar-portrait.webp",
     alt: "Portrait format pet portrait mockup",
     title: "Portrait design",
     body: "Tall and gallery-ready. Perfect for staircases, hallways, and feature walls.",
     imageClassName: "object-cover object-top",
   },
   {
-    src: "/images/mochi-landscape.webp",
+    src: "/images/Mochi-Landscape.webp",
     alt: "Landscape format pet portrait mockup",
     title: "Landscape design",
     body: "Wide and cinematic. Ideal for mantels, shelves, and wide frames.",

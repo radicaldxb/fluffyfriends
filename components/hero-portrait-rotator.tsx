@@ -22,8 +22,8 @@ const SLIDES = [
   },
   {
     id: "misty-queen",
-    mainSrc: "/images/misty-after.webp",
-    beforeSrc: "/images/misty-before.webp",
+    mainSrc: "/images/Misty-after.webp",
+    beforeSrc: "/images/Misty-before.webp",
     nameLine: "Misty",
     themeLabel: "👑 Queen",
     alt: "Cat — Queen theme portrait",

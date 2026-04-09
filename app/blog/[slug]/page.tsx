@@ -6,6 +6,7 @@ import { MDXRemote } from "next-mdx-remote/rsc"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { getAllPosts, getPostBySlug } from "@/lib/blog"
+import { cn } from "@/lib/utils"
 
 export const dynamic = "force-static"
 
@@ -45,6 +46,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 const mdxComponents = {
+  img: ({ className, ...props }: ComponentPropsWithoutRef<"img">) => (
+    // eslint-disable-next-line @next/next/no-img-element -- MDX body assets from /public
+    <img
+      {...props}
+      className={cn(
+        "my-6 h-auto w-full max-w-full rounded-organic border border-border",
+        className,
+      )}
+    />
+  ),
   h2: (props: ComponentPropsWithoutRef<"h2">) => (
     <h2
       className="mt-10 mb-4 scroll-mt-24 border-b border-border pb-2 font-heading text-2xl font-bold tracking-tight text-foreground first:mt-0"
