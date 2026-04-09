@@ -276,6 +276,8 @@ function CreatePortraitContent() {
         theme,
         pet_name: petName.trim(),
       })
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ event: 'create_step1_complete' })
     }
     setSlideDirection("next")
     setWizardStep((s) => Math.min(3, s + 1))

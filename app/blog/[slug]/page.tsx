@@ -87,7 +87,7 @@ const mdxComponents = {
     <img
       {...props}
       className={cn(
-        "my-6 h-auto w-full max-w-full rounded-organic border border-border",
+        "my-6 mx-auto block h-auto w-full max-w-full rounded-organic border border-border object-contain object-center",
         className,
       )}
     />
@@ -135,7 +135,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
                 <img
                   src={frontmatter.coverImage}
                   alt={frontmatter.coverImageAlt || frontmatter.title}
-                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  className="absolute inset-0 h-full w-full object-contain object-center"
                   sizes="(max-width: 680px) calc(100vw - 2rem), 680px"
                   loading="eager"
                   fetchPriority="high"
