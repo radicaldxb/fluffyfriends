@@ -128,14 +128,18 @@ export default async function BlogArticlePage({ params }: PageProps) {
             </Link>
           </p>
 
-          <header className="mx-auto max-w-[680px]">
+          <header className="mx-auto w-full min-w-0 max-w-[680px]">
             {frontmatter.coverImage ? (
-              <div className="mb-8 overflow-hidden rounded-organic border border-border bg-muted">
+              <div className="relative mb-8 w-full overflow-hidden rounded-organic border border-border bg-muted aspect-[16/10]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={frontmatter.coverImage}
                   alt={frontmatter.coverImageAlt || frontmatter.title}
-                  className="h-auto w-full object-cover"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  sizes="(max-width: 680px) calc(100vw - 2rem), 680px"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                 />
               </div>
             ) : null}
