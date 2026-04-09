@@ -16,7 +16,6 @@ const navLinks = [
   { label: "Reviews", href: "/#reviews" },
   { label: "Pricing", href: "/#pricing" },
   { label: "About", href: "/#about" },
-  { label: "Create Portrait", href: "/create" },
   { label: "My Portraits", href: "/my-portraits" },
 ]
 
