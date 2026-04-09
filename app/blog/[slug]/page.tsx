@@ -5,10 +5,20 @@ import { notFound } from "next/navigation"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { BlogArticleShareButtons } from "@/components/blog-article-share-buttons"
 import { getAllPosts, getPostBySlug } from "@/lib/blog"
 import { cn } from "@/lib/utils"
 
 export const dynamic = "force-static"
+
+const SITE = "https://fluffyfriends.online"
+
+function absoluteAsset(path: string | undefined): string | undefined {
+  if (!path?.trim()) return undefined
+  const p = path.trim()
+  if (p.startsWith("http://") || p.startsWith("https://")) return p
+  return `${SITE}${p.startsWith("/") ? "" : "/"}${p}`
+}
 
 type PageProps = { params: Promise<{ slug: string }> }
 
@@ -39,9 +49,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     frontmatter.excerpt?.trim() ||
     ""
   ).trim()
+
+  const ogImageUrl = absoluteAsset(frontmatter.ogImage)
+  const coverUrl = absoluteAsset(frontmatter.coverImage)
+  const openGraphImages = ogImageUrl
+    ? [{ url: ogImageUrl, width: 1200, height: 630 }]
+    : coverUrl
+      ? [{ url: coverUrl, width: 1200, height: 630 }]
+      : []
+
+  const twitterImages = frontmatter.ogImage?.trim() ? [absoluteAsset(frontmatter.ogImage)!] : []
+
   return {
     title: `${title} | FluffyFriends`,
     description: description || undefined,
+    openGraph: {
+      title: frontmatter.seoTitle ?? frontmatter.title,
+      description: frontmatter.seoDescription ?? frontmatter.excerpt,
+      url: `${SITE}/blog/${slug}`,
+      siteName: "FluffyFriends",
+      images: openGraphImages,
+      type: "article",
+      publishedTime: frontmatter.publishedAt,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: frontmatter.seoTitle ?? frontmatter.title,
+      description: frontmatter.seoDescription ?? frontmatter.excerpt,
+      images: twitterImages,
+    },
   }
 }
 
@@ -75,6 +111,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
   }
 
   const { frontmatter, content } = result
+  const shareUrl = `${SITE}/blog/${slug}`
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -111,11 +148,19 @@ export default async function BlogArticlePage({ params }: PageProps) {
               ) : null}
               <span className="font-medium text-primary">{frontmatter.readingTime}</span>
             </div>
+            <BlogArticleShareButtons url={shareUrl} title={frontmatter.title} placement="below-header" />
           </header>
 
           <div className="prose-blog mx-auto mt-12 max-w-[680px] leading-[1.8] text-foreground [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_a]:transition-colors [&_a]:hover:text-primary/90 [&_li]:my-1 [&_p]:my-4 [&_strong]:text-foreground [&_ul]:my-4">
             {await MDXRemote({ source: content, components: mdxComponents })}
           </div>
+
+          <BlogArticleShareButtons
+            url={shareUrl}
+            title={frontmatter.title}
+            placement="below-content"
+            className="mx-auto max-w-[680px]"
+          />
         </div>
       </article>
 

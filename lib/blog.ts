@@ -12,6 +12,8 @@ export type Post = {
   excerpt: string
   coverImage?: string
   coverImageAlt?: string
+  /** Optional 1200×630 (or similar) asset for OG / Twitter when cover is not ideal */
+  ogImage?: string
   seoTitle?: string
   seoDescription?: string
   readingTime: string
@@ -46,6 +48,7 @@ function matterDataToPost(
     excerpt: typeof data.excerpt === "string" ? data.excerpt : "",
     coverImage: typeof data.coverImage === "string" ? data.coverImage : undefined,
     coverImageAlt: typeof data.coverImageAlt === "string" ? data.coverImageAlt : undefined,
+    ogImage: typeof data.ogImage === "string" ? data.ogImage : undefined,
     seoTitle: typeof data.seoTitle === "string" ? data.seoTitle : undefined,
     seoDescription: typeof data.seoDescription === "string" ? data.seoDescription : undefined,
     readingTime: rt.text,
