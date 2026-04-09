@@ -74,28 +74,41 @@ function SuccessContent() {
   useEffect(() => {
     if (purchaseTracked.current) return
     if (preview.status !== "ready") return
-    if (preview.amountCents <= 0) return
-    purchaseTracked.current = true
-    const value = preview.amountCents / 100
-    const currency = (preview.currency || "USD").toUpperCase()
-    purchase(value, currency)
 
-    const transactionId = sessionId.trim() || `portrait_${preview.portraitId}`
-    trackGa4Purchase({
-      transaction_id: transactionId,
-      value,
-      currency,
-      items: [
-        {
-          item_id: preview.portraitId,
-          item_name: `AI pet portrait — ${preview.petName}`,
-          item_category: "pet_portrait",
-          ...(preview.theme ? { item_variant: preview.theme } : {}),
-          price: value,
-          quantity: 1,
-        },
-      ],
-    })
+    window.dataLayer = window.dataLayer || []
+
+    if (preview.amountCents > 0) {
+      purchaseTracked.current = true
+      const value = preview.amountCents / 100
+      const currency = (preview.currency || "USD").toUpperCase()
+      purchase(value, currency)
+
+      const transactionId = sessionId.trim() || `portrait_${preview.portraitId}`
+      trackGa4Purchase({
+        transaction_id: transactionId,
+        value,
+        currency,
+        items: [
+          {
+            item_id: preview.portraitId,
+            item_name: `AI pet portrait — ${preview.petName}`,
+            item_category: "pet_portrait",
+            ...(preview.theme ? { item_variant: preview.theme } : {}),
+            price: value,
+            quantity: 1,
+          },
+        ],
+      })
+      window.dataLayer.push({
+        event: "purchase",
+        transaction_id: transactionId,
+        value,
+        currency,
+      })
+    } else {
+      purchaseTracked.current = true
+      window.dataLayer.push({ event: "purchase" })
+    }
   }, [preview, sessionId])
 
   useEffect(() => {
