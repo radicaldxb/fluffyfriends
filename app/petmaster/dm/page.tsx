@@ -101,9 +101,11 @@ export default function PetmasterDmPage() {
           observation: observation.trim(),
         }),
       })
-      const j = await res.json().catch(() => ({}))
+      const j = (await res.json().catch(() => ({}))) as { error?: string; detail?: string; dm?: string }
       if (!res.ok) {
-        setGenError(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
+        const base = typeof j.error === "string" ? j.error : `HTTP ${res.status}`
+        const detail = typeof j.detail === "string" && j.detail.trim() ? j.detail.trim() : ""
+        setGenError(detail ? `${base} — ${detail}` : base)
         return
       }
       const dm = typeof j.dm === "string" ? j.dm : ""

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { petmasterUnauthorizedResponse } from "@/lib/petmaster-api-guard"
 
-const MODEL = "claude-sonnet-4-20250514"
+/** Override via ANTHROPIC_DM_MODEL in env; default is current Sonnet (see Anthropic models docs). */
+const MODEL = process.env.ANTHROPIC_DM_MODEL?.trim() || "claude-sonnet-4-6"
 
 function assembleInitialDm(name: string, pet: string, compliment: string): string {
   const line = compliment.trim().replace(/^[\s"'“”]+|[\s"'“”]+$/g, "").replace(/\.$/, "")
@@ -23,7 +24,11 @@ function assembleInitialDm(name: string, pet: string, compliment: string): strin
   ].join("\n")
 }
 
-async function anthropicText(prompt: string, maxTokens: number, apiKey: string): Promise<string | null> {
+async function anthropicText(
+  prompt: string,
+  maxTokens: number,
+  apiKey: string,
+): Promise<{ text: string | null; httpStatus?: number }> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -41,13 +46,14 @@ async function anthropicText(prompt: string, maxTokens: number, apiKey: string):
   if (!res.ok) {
     const errText = await res.text()
     console.error("Anthropic error:", res.status, errText)
-    return null
+    return { text: null, httpStatus: res.status }
   }
 
   const json = (await res.json()) as {
     content?: Array<{ type: string; text?: string }>
   }
-  return json.content?.find((c) => c.type === "text")?.text?.trim() ?? null
+  const text = json.content?.find((c) => c.type === "text")?.text?.trim() ?? null
+  return { text }
 }
 
 export async function POST(request: Request) {
@@ -99,9 +105,16 @@ export async function POST(request: Request) {
 Observation:
 ${observation}`
 
-  const compliment = await anthropicText(complimentPrompt, 1000, apiKey)
+  const { text: compliment, httpStatus } = await anthropicText(complimentPrompt, 1000, apiKey)
   if (!compliment) {
-    return NextResponse.json({ error: "Failed to generate DM" }, { status: 502 })
+    let detail = "Anthropic returned an empty or invalid response."
+    if (httpStatus === 401)
+      detail = "Invalid API key — check ANTHROPIC_API_KEY in your environment (e.g. Netlify)."
+    else if (httpStatus === 404)
+      detail = `Model not found — try ANTHROPIC_DM_MODEL=claude-sonnet-4-6 (current: ${MODEL}).`
+    else if (httpStatus === 429) detail = "Rate limited — try again in a moment."
+    else if (httpStatus) detail = `Anthropic API HTTP ${httpStatus}. See server logs for the response body.`
+    return NextResponse.json({ error: "Failed to generate DM", detail }, { status: 502 })
   }
 
   const dm = assembleInitialDm(name, pet, compliment)
