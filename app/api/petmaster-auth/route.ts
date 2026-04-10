@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
+import { getPetmasterPassword } from "@/lib/petmaster-env"
 
 export async function POST(request: Request) {
-  const secret = process.env.PETMASTER_PASSWORD
-  if (!secret?.trim()) {
+  const secret = getPetmasterPassword()
+  if (!secret) {
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
   }
 
