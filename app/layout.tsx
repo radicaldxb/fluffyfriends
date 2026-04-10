@@ -6,7 +6,6 @@ import "./globals.css"
 import { Ga4PageView } from "@/components/ga4-pageview"
 import { MetaPixelPageView } from "@/components/meta-pixel-pageview"
 import { ScrollToTop } from "@/components/scroll-to-top"
-import EnvBanner from "@/components/env-banner"
 import { GTM_CONSENT_DEFAULT_SCRIPT, GTM_HEAD_SCRIPT, GTM_NS_IFRAME_SRC } from "@/lib/gtm"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -120,7 +119,6 @@ export default async function RootLayout({
         ) : null}
         <ScrollToTop />
         {children}
-        <EnvBanner />
       </body>
     </html>
   )

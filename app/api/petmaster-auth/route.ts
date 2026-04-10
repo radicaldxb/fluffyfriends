@@ -14,13 +14,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
 
-  const password =
+  const raw =
     typeof body === "object" &&
     body !== null &&
     "password" in body &&
     typeof (body as { password: unknown }).password === "string"
       ? (body as { password: string }).password
       : ""
+  const password = raw.trim()
 
   if (password !== secret) {
     return NextResponse.json({ error: "Incorrect password" }, { status: 401 })
