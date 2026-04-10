@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabase"
 
 type BacklogRow = {
   id: string
@@ -52,18 +51,14 @@ export default function PetmasterBacklogPage() {
   const load = useCallback(async () => {
     setError(null)
     setLoading(true)
-    const { data, error: qError } = await supabase
-      .from("ff_backlog")
-      .select("id, title, status, type, priority, area")
-      .neq("status", "done")
-      .order("area", { ascending: true })
-      .order("priority", { ascending: true })
-
-    if (qError) {
-      setError(qError.message)
+    const res = await fetch("/api/petmaster-backlog", { credentials: "same-origin" })
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}))
+      setError(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
       setRows([])
     } else {
-      setRows((data as BacklogRow[]) ?? [])
+      const json = (await res.json()) as { rows?: BacklogRow[] }
+      setRows(json.rows ?? [])
     }
     setLoading(false)
   }, [])
@@ -88,6 +83,7 @@ export default function PetmasterBacklogPage() {
     try {
       const res = await fetch("/api/petmaster-backlog-done", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       })

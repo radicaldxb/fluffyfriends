@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { supabase } from "@/lib/supabase"
 
 type AnalyticsDailyRow = {
   date: string
@@ -101,19 +100,16 @@ export default function PetmasterDashboardPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const { data, error } = await supabase
-          .from("ff_analytics_daily")
-          .select("*")
-          .order("date", { ascending: false })
-          .limit(7)
-
+        const res = await fetch("/api/petmaster-analytics", { credentials: "same-origin" })
         if (cancelled) return
-        if (error) {
-          setLoadError(error.message)
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}))
+          setLoadError(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
           setRows([])
           return
         }
-        setRows((data as AnalyticsDailyRow[]) ?? [])
+        const json = (await res.json()) as { rows?: AnalyticsDailyRow[] }
+        setRows(json.rows ?? [])
       } catch (e) {
         if (!cancelled) {
           setLoadError(e instanceof Error ? e.message : "Failed to load")

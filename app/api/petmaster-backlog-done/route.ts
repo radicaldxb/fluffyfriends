@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { getPetmasterPassword } from "@/lib/petmaster-env"
+import { petmasterUnauthorizedResponse } from "@/lib/petmaster-api-guard"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 
 export async function POST(request: Request) {
-  const secret = getPetmasterPassword()
-  const cookieStore = await cookies()
-  const auth = cookieStore.get("petmaster_auth")
-  if (!secret || !auth || auth.value !== secret) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const denied = await petmasterUnauthorizedResponse()
+  if (denied) return denied
 
   let body: unknown
   try {
