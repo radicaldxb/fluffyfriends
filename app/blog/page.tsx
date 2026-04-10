@@ -53,14 +53,14 @@ export default function BlogIndexPage() {
                     href={`/blog/${post.slug}`}
                     className="group block h-full rounded-organic border border-border bg-card overflow-hidden transition-shadow hover:shadow-md hover:border-primary/30"
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                    <div className="relative overflow-hidden bg-muted">
                       {post.coverImage ? (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={post.coverImage}
                             alt={post.coverImageAlt || post.title}
-                            className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.02]"
+                            className="block h-auto w-full transition-transform duration-300 group-hover:scale-[1.02]"
                           />
                         </>
                       ) : (
