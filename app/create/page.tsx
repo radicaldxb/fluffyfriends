@@ -143,6 +143,8 @@ function CreatePortraitContent() {
     setPreviewUrl(URL.createObjectURL(selected))
     setStatus("idle")
     setMessage("")
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: "create_step2_upload" })
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
