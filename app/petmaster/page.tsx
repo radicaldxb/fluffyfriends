@@ -30,9 +30,23 @@ function formatMetaPinterest(
   return String(v)
 }
 
+function coalesceNumber(raw: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    if (!(key in raw)) continue
+    const v = raw[key]
+    if (v === null || v === undefined) continue
+    if (typeof v === "string" && v.trim() === "") continue
+    const n = typeof v === "number" ? v : Number(v)
+    if (Number.isFinite(n)) return n
+  }
+  return null
+}
+
 function formatSessions(v: number | null | undefined): string {
   if (v === null || v === undefined) return "—"
-  return Number(v).toLocaleString()
+  const n = Number(v)
+  if (!Number.isFinite(n)) return "—"
+  return n.toLocaleString()
 }
 
 function formatEngagement(v: number | null | undefined): string {
@@ -108,8 +122,34 @@ export default function PetmasterDashboardPage() {
           setRows([])
           return
         }
-        const json = (await res.json()) as { rows?: AnalyticsDailyRow[] }
-        setRows(json.rows ?? [])
+        const json = (await res.json()) as { rows?: Record<string, unknown>[] }
+        const rawList = json.rows ?? []
+        setRows(
+          rawList.map((raw) => {
+            const base = { ...(raw as unknown as AnalyticsDailyRow) }
+            const sessions =
+              coalesceNumber(raw, ["ga_sessions", "gaSessions", "ga_session", "sessions"]) ??
+              (base.ga_sessions != null && Number.isFinite(Number(base.ga_sessions))
+                ? Number(base.ga_sessions)
+                : null)
+            const igFollowers =
+              coalesceNumber(raw, [
+                "ig_followers_count",
+                "igFollowersCount",
+                "ig_followers",
+                "ig_follower_count",
+                "instagram_followers_count",
+              ]) ??
+              (base.ig_followers_count != null && Number.isFinite(Number(base.ig_followers_count))
+                ? Number(base.ig_followers_count)
+                : null)
+            return {
+              ...base,
+              ga_sessions: sessions,
+              ig_followers_count: igFollowers,
+            }
+          }),
+        )
       } catch (e) {
         if (!cancelled) {
           setLoadError(e instanceof Error ? e.message : "Failed to load")
@@ -150,9 +190,10 @@ export default function PetmasterDashboardPage() {
             ? r.date
             : d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
         })
-        const values = chartSeries.map((r) =>
-          r.ga_sessions === null || r.ga_sessions === undefined ? 0 : Number(r.ga_sessions),
-        )
+        const values = chartSeries.map((r) => {
+          const n = r.ga_sessions === null || r.ga_sessions === undefined ? NaN : Number(r.ga_sessions)
+          return Number.isFinite(n) ? n : 0
+        })
 
         chartRef.current = new Chart(ctx, {
           type: "bar",
@@ -233,7 +274,14 @@ export default function PetmasterDashboardPage() {
           Today
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="GA Sessions" value={formatSessions(latest?.ga_sessions)} />
+          <StatCard
+            label="GA Sessions"
+            value={
+              !latest || latest.ga_sessions === null || latest.ga_sessions === undefined
+                ? "—"
+                : formatSessions(latest.ga_sessions)
+            }
+          />
           <StatCard label="Engagement Rate" value={formatEngagement(latest?.ga_engagement_rate)} />
           <StatCard
             label="Meta Spend"
@@ -243,7 +291,16 @@ export default function PetmasterDashboardPage() {
                 : formatSpendAed(latest?.meta_spend)
             }
           />
-          <StatCard label="IG Followers" value={formatSessions(latest?.ig_followers_count)} />
+          <StatCard
+            label="IG Followers"
+            value={
+              !latest ||
+              latest.ig_followers_count === null ||
+              latest.ig_followers_count === undefined
+                ? "—"
+                : formatSessions(latest.ig_followers_count)
+            }
+          />
         </div>
       </section>
 
