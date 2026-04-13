@@ -180,6 +180,9 @@ function CreatePortraitContent() {
     e.preventDefault()
     if (!file || !theme) return
 
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: "create_step2_image_checked" })
+
     setIsValidationReject(false)
     setStatus("processing")
     setMessage("Taking a look at their photo…")
