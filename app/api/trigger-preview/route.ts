@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
 
     const { data: portrait } = await supabase
       .from("pet_portraits")
-      .select("pet_image_url, validation_text")
+      .select("original_image_url, validation_text")
       .eq("id", portrait_id)
       .single()
 
-    const storedPetImageUrl = portrait?.pet_image_url ?? ""
+    const storedPetImageUrl = portrait?.original_image_url ?? ""
 
     if (!storedPetImageUrl) {
       return NextResponse.json(
