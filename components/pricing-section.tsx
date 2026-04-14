@@ -37,7 +37,7 @@ const plans = [
     price: "$17",
     priceNote: "one-time",
     credits: "1 portrait",
-    tagline: "Try it once. We think you'll come back.",
+    tagline: "One pet. One theme. See exactly what yours will look like.",
     badge: null as string | null,
     saving: null as string | null,
     features: [
@@ -56,7 +56,7 @@ const plans = [
     price: "$49",
     priceNote: "one-time",
     credits: "4 portraits",
-    tagline: "Four portraits. Your choice of pets, your choice of themes.",
+    tagline: "Multiple pets, multiple themes. Or four different looks for the same pet.",
     badge: "Most Popular",
     saving: "Worth $68 — you save $19",
     features: [
@@ -76,7 +76,7 @@ const plans = [
     price: "$79",
     priceNote: "one-time",
     credits: "8 portraits",
-    tagline: "Eight portraits for the whole family. Every pet. Every theme.",
+    tagline: "The whole household. Or the perfect gift set for someone who has everything except this.",
     badge: "Best Value",
     saving: "Worth $136 — you save $57",
     features: [
@@ -104,10 +104,10 @@ export function PricingSection() {
             Pricing
           </p>
           <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Transparent pricing. No surprises. Ever.
+            One portrait. One payment. Yours forever.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            One credit, one portrait. Use them however you like — one pet, many themes, or one theme for all your pets.
+            Start the process first. You choose your package at step 3, after you have uploaded your photo and picked a theme. No commitment until you are ready.
           </p>
           <p className="mt-2 text-sm font-medium text-foreground">
             Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
