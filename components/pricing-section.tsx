@@ -117,6 +117,15 @@ export function PricingSection() {
           </p>
         </div>
 
+        <div className="text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-organic-sm bg-primary px-4 py-1.5 text-[13px] font-mono text-primary-foreground">
+            <span aria-hidden>{"\u{1F3F7}\u{FE0F}"}</span>
+            <span>
+              Use <strong>FLUFFY15</strong> for 15% off your first order
+            </span>
+          </div>
+        </div>
+
         {/* Credit explainer — above cards */}
         <p className="mt-10 text-center text-sm text-muted-foreground">
           1 portrait = 1 artwork · Mix and match any way you like
