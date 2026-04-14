@@ -37,7 +37,7 @@ export function HeroSection() {
             </h1>
 
             <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg">
-              Not a filter. Not a caption. Your pet&apos;s name is crafted into the portrait itself — a badge, a crest, a name tag. Upload one photo. Print-ready in minutes.
+              Not a filter. Not a caption. Your pet&apos;s name is crafted into the portrait itself: a badge, a crest, a name tag. Upload one photo. Print-ready in minutes.
             </p>
 
             {/* Trust signals — above CTAs */}

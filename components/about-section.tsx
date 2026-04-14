@@ -23,7 +23,7 @@ export function AboutSection() {
               Built for pet people, by a pet person.
             </h2>
             <p className="mt-6 text-pretty text-base leading-relaxed text-muted-foreground">
-              FluffyFriends started because I wanted a portrait of my own pet that was actually worth keeping. Not a filter. Not a novelty. Something I&apos;d be proud to hang on my wall for decades — and pass down.
+              FluffyFriends started because I wanted a portrait of my own pet that was actually worth keeping. Not a filter. Not a novelty. Something I&apos;d be proud to hang on my wall for decades, and pass down.
             </p>
             <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
               Everything here is what I&apos;d want for myself. The personalisation, the print quality, the two formats, the free guide. Made with care. Built to last.

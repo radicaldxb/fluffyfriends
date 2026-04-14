@@ -23,7 +23,7 @@ const featureColumns = [
     src: "/images/Willy-frame.webp",
     alt: "Pet name crafted into the portrait artwork",
     title: "Pet name and unique characteristics",
-    body: "Not a caption. Not a watermark. Their name is crafted into the costume itself — a badge, a crest, a name tag. Uniquely theirs.",
+    body: "Not a caption. Not a watermark. Their name is crafted into the costume itself, a badge, a crest, a name tag. Uniquely theirs.",
     imageClassName: "object-cover",
   },
 ] as const
@@ -41,14 +41,14 @@ const steps = [
     Icon: Upload,
     title: "Upload one photo",
     description:
-      "One clear photo is all we need. We check it works before you pay — no surprises, no wasted money.",
+      "One clear photo is all we need. We check it works before you pay, no surprises, no wasted money.",
   },
   {
     step: "03",
     Icon: Frame,
     title: "Receive your portrait",
     description:
-      "Within minutes, two print-ready files land in your inbox — portrait format and landscape format — plus a free guide for printing and framing.",
+      "Within minutes, two print-ready files land in your inbox, portrait format and landscape format, and a free guide for printing and framing.",
   },
 ] as const
 
