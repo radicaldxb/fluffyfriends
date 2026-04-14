@@ -187,8 +187,23 @@ export function PricingSection() {
               >
                 <a href="/create">{plan.cta} →</a>
               </Button>
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Satisfaction guaranteed. Recreate or refund.
+              </p>
             </div>
           ))}
+        </div>
+
+        <div
+          className="my-6 flex items-center gap-2.5 rounded-organic-sm border border-border bg-secondary/60 px-5 py-3.5 text-sm text-foreground"
+          role="note"
+        >
+          <span className="text-lg leading-none" aria-hidden>
+            {"\u{1F6E1}\u{FE0F}"}
+          </span>
+          <span className="text-pretty">
+            Not happy with your portrait? We will recreate it or refund your credit. No questions asked.
+          </span>
         </div>
 
         {/* Comparison table — light card + CTA */}
