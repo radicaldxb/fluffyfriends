@@ -38,16 +38,13 @@ const plans = [
     price: "$17",
     priceNote: "one-time",
     credits: "1 portrait",
-    tagline: "One pet. One theme. See exactly what yours will look like.",
+    tagline: "One pet. One theme. See what yours looks like.",
     badge: null as string | null,
     saving: null as string | null,
     features: [
-      "1 personalised portrait",
-      "Name worked into the portrait",
-      "Wide + portrait format included",
+      "Portrait and landscape format included",
       "A1 print quality",
-      "Free print guide",
-      "Personal print rights — print as many times as you like",
+      "Print as many times as you like",
     ],
     cta: "Start For $17",
     featured: false,
@@ -57,17 +54,13 @@ const plans = [
     price: "$49",
     priceNote: "one-time",
     credits: "4 portraits",
-    tagline: "Multiple pets, multiple themes. Or four different looks for the same pet.",
+    tagline: "Multiple pets or themes. Total flexibility.",
     badge: "Most Popular",
-    saving: "Worth $68 — you save $19",
+    saving: null as string | null,
     features: [
-      "4 personalised portraits",
-      "Mix themes or pets — completely flexible",
-      "Name worked into every portrait",
-      "Wide + portrait format on every portrait",
+      "4 portraits. Mix pets or themes freely",
+      "Portrait and landscape on every order",
       "A1 print quality",
-      "Free print guide",
-      "Personal print rights",
     ],
     cta: "Get 4 Portraits — Save $19",
     featured: true,
@@ -77,18 +70,13 @@ const plans = [
     price: "$79",
     priceNote: "one-time",
     credits: "8 portraits",
-    tagline: "The whole household. Or the perfect gift set for someone who has everything except this.",
+    tagline: "The whole household. Or one great gift.",
     badge: "Best Value",
-    saving: "Worth $136 — you save $57",
+    saving: null as string | null,
     features: [
-      "8 personalised portraits",
-      "Perfect for multiple pets",
-      "Name worked into every portrait",
-      "Wide + portrait format on every portrait",
-      "A1 print quality",
-      "Free print guide",
-      "Personal print rights",
-      "Beautiful as a gift set",
+      "8 portraits for multiple pets or themes",
+      "Portrait and landscape on every order",
+      "Perfect as a gift set",
     ],
     cta: "Best Value — 8 Portraits",
     featured: false,
@@ -108,13 +96,7 @@ export function PricingSection() {
             One portrait. One payment. Yours forever.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Start the process first. You choose your package at step 3, after you have uploaded your photo and picked a theme. No commitment until you are ready.
-          </p>
-          <p className="mt-2 text-sm font-medium text-foreground">
-            Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            No subscription • No hidden fees • Price shown is final (ex. local tax)
+            No subscription. No hidden fees. Yours to keep forever.
           </p>
         </div>
 
@@ -126,11 +108,6 @@ export function PricingSection() {
             </span>
           </div>
         </div>
-
-        {/* Credit explainer — above cards */}
-        <p className="mt-10 text-center text-sm text-muted-foreground">
-          1 portrait = 1 artwork · Mix and match any way you like
-        </p>
 
         {/* Cards — single column on mobile; Portrait Pack first on small screens; three columns md+ */}
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
