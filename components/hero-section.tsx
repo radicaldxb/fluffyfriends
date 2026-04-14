@@ -31,15 +31,13 @@ export function HeroSection() {
             </p>
 
             <h1 className="text-balance text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Your Pet,
+              Their name.
               <br />
-              <span className="text-primary">Reimagined</span>
-              <br />
-              as Fine Art.
+              <span className="text-primary">In the artwork.</span>
             </h1>
 
             <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground lg:text-lg">
-              Upload one photo. We turn your pet into a stunning, personalised portrait — with their name worked into the artwork itself. Print-ready. Delivered in minutes. Yours forever.
+              Not a filter. Not a caption. Your pet&apos;s name is crafted into the portrait itself — a badge, a crest, a name tag. Upload one photo. Print-ready in minutes.
             </p>
 
             {/* Trust signals — above CTAs */}
