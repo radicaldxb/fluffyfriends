@@ -7,6 +7,7 @@ import {
   Check,
   Clock,
   LayoutTemplate,
+  ShieldCheck,
   Shuffle,
   Tag,
   X,
@@ -117,9 +118,9 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-organic-sm bg-primary px-4 py-1.5 text-[13px] font-mono text-primary-foreground">
-            <span aria-hidden>{"\u{1F3F7}\u{FE0F}"}</span>
+        <div className="mb-6 flex justify-center">
+          <div className="inline-flex items-center gap-2 rounded-organic-sm bg-primary px-4 py-1.5 text-[13px] font-mono text-primary-foreground">
+            <Tag className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
             <span>
               Use <strong>FLUFFY15</strong> for 15% off your first order
             </span>
@@ -213,16 +214,11 @@ export function PricingSection() {
           ))}
         </div>
 
-        <div
-          className="my-6 flex items-center gap-2.5 rounded-organic-sm border border-border bg-secondary/60 px-5 py-3.5 text-sm text-foreground"
-          role="note"
-        >
-          <span className="text-lg leading-none" aria-hidden>
-            {"\u{1F6E1}\u{FE0F}"}
-          </span>
-          <span className="text-pretty">
+        <div className="mt-8 flex flex-col items-center justify-center gap-2 text-center">
+          <ShieldCheck className="h-6 w-6 text-primary" strokeWidth={1.5} aria-hidden />
+          <p className="text-sm font-semibold text-foreground">
             Not happy with your portrait? We will recreate it or refund your credit. No questions asked.
-          </span>
+          </p>
         </div>
 
         {/* Comparison table — light card + CTA */}
