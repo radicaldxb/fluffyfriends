@@ -251,7 +251,7 @@ export function PricingSection() {
                     className="hidden px-4 py-4 text-center text-sm font-medium text-muted-foreground md:table-cell sm:px-6"
                     scope="col"
                   >
-                    Everyone else
+                    Other AI portrait apps
                   </th>
                 </tr>
               </thead>
@@ -302,6 +302,33 @@ export function PricingSection() {
                   </tr>
                   )
                 })}
+                <tr
+                  className={cn(
+                    "border-b border-border/50 last:border-0",
+                    comparisonRows.length % 2 === 1 && "bg-secondary/35",
+                  )}
+                >
+                  <td className="w-[70%] px-3 py-3.5 align-middle sm:px-6 md:w-auto">
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck
+                        className="h-4 w-4 shrink-0 text-primary"
+                        strokeWidth={1.5}
+                        aria-hidden
+                      />
+                      <span className="text-muted-foreground">
+                        Satisfaction guarantee — recreate or refund
+                      </span>
+                    </span>
+                  </td>
+                  <td className="w-[30%] px-2 py-3.5 text-center align-middle sm:px-6 md:w-auto">
+                    <div className="flex justify-center">
+                      <Check className="h-5 w-5 text-primary stroke-[3]" aria-hidden />
+                    </div>
+                  </td>
+                  <td className="hidden px-4 py-3.5 text-center text-muted-foreground/90 md:table-cell sm:px-6">
+                    <span className="text-sm text-muted-foreground/90">Rarely</span>
+                  </td>
+                </tr>
               </tbody>
             </table>
 
