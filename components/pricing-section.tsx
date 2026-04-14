@@ -100,7 +100,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="mb-6 flex justify-center">
+        <div className="my-8 flex justify-center">
           <div className="inline-flex items-center gap-2 rounded-organic-sm bg-primary px-4 py-1.5 text-[13px] font-mono text-primary-foreground">
             <Tag className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden />
             <span>
