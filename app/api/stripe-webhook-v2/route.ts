@@ -85,10 +85,14 @@ export async function POST(request: NextRequest) {
       pet_image_url?: string | null
     }
 
-    const original_image_url =
-      (typeof portraitRow.gemini_image_url === "string" && portraitRow.gemini_image_url.trim()) ||
-      (typeof portraitRow.image_url === "string" && portraitRow.image_url.trim()) ||
-      ""
+    // gemini_image_url is the clean Gemini output stored by WF2
+    // image_url is the AVIF preview — valid fallback for upscaling
+    const original_image_url = portrait.gemini_image_url || portrait.image_url
+
+    if (!original_image_url) {
+      console.error("No image URL available for portrait:", portrait_id)
+      return NextResponse.json({ error: "Portrait has no image yet" }, { status: 400 })
+    }
 
     const productIdRaw = (session.metadata?.product_id as string) || ""
     const packageFromMeta = (session.metadata?.package as string) || ""
@@ -131,6 +135,7 @@ export async function POST(request: NextRequest) {
 
     const firstName = user_email.split("@")[0] || "there"
 
+    console.log("Firing WF3-NEW for portrait:", portrait_id, "image:", original_image_url)
     fetch(N8N_UPSCALE_WEBHOOK, {
       method: "POST",
       headers: {
@@ -149,7 +154,10 @@ export async function POST(request: NextRequest) {
         currency,
         avif_url: portraitRow.image_url,
       }),
-    }).catch((err) => console.error("[stripe-webhook-v2] WF3-NEW trigger failed:", err))
+    }).catch((err) => {
+      console.error("WF3-NEW trigger failed:", err)
+    })
+    console.log("WF3-NEW fired successfully for portrait:", portrait_id)
 
     return NextResponse.json({ received: true })
   } catch (err) {
