@@ -24,6 +24,7 @@ type Status =
   | "generating"
   | "preview"
   | "success"
+  | "delivered"
   | "error"
 
 const WIZARD_STEPS = [
@@ -151,6 +152,17 @@ function CreatePortraitContent() {
     if (paymentStatus === "success" && portraitIdFromUrl) {
       setResultPortraitId(portraitIdFromUrl)
       setStatus("success")
+    }
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paymentStatus = params.get("payment")
+    const portraitIdFromUrl = params.get("portrait_id")
+    if (paymentStatus === "success" && portraitIdFromUrl) {
+      setResultPortraitId(portraitIdFromUrl)
+      setGenerationPortraitId(portraitIdFromUrl)
+      setStatus("delivered")
     }
   }, [])
 
@@ -990,6 +1002,46 @@ function CreatePortraitContent() {
                     ? `Unlock my portrait — ${selectedProduct.priceDisplay}`
                     : "Unlock my portrait"}
               </Button>
+            </div>
+          )}
+
+          {status === "delivered" && resultPortraitId && (
+            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-organic-sm bg-emerald-500/15">
+                <Check className="h-8 w-8 text-emerald-600" />
+              </div>
+              <h2 className="font-heading mb-2 text-2xl font-bold text-foreground">Payment confirmed.</h2>
+              <p className="mb-8 max-w-sm text-sm text-muted-foreground">
+                Your portrait is being upscaled to full resolution. You will receive an email with your
+                download links within a few minutes.
+              </p>
+              <p className="mb-6 text-xs text-muted-foreground">Portrait ID: {resultPortraitId}</p>
+              <Link
+                href="/my-portraits"
+                className="inline-flex items-center gap-2 rounded-organic-sm bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
+              >
+                View my portraits
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  if (previewUrl) URL.revokeObjectURL(previewUrl)
+                  previewCloudinaryRawRef.current = null
+                  setStatus("idle")
+                  setWizardStep(1)
+                  setTheme(null)
+                  setPetName("")
+                  setFile(null)
+                  setPreviewUrl(null)
+                  setResultPortraitId(null)
+                  setGenerationPortraitId(null)
+                  setPreviewImageUrl(null)
+                  window.history.replaceState({}, "", "/create")
+                }}
+                className="mt-4 text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              >
+                Create another portrait
+              </button>
             </div>
           )}
 
