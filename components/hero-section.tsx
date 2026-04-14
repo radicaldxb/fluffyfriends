@@ -44,9 +44,9 @@ export function HeroSection() {
             <div className="mt-8 w-full max-w-xl text-left">
               <div className="grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2">
                 {[
-                  "Their name is part of the art — not a caption",
+                  "Their name is part of the art. Not a caption.",
                   "Looks like a real painting, not an AI filter",
-                  "Two print-ready formats — portrait & landscape",
+                  "Two print-ready formats: portrait and landscape",
                   "In your inbox in minutes",
                 ].map((t) => (
                   <div key={t} className="inline-flex items-center gap-1.5">
