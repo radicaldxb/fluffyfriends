@@ -141,6 +141,17 @@ function CreatePortraitContent() {
     return () => { cancelled = true }
   }, [emailFromQuery])
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paymentStatus = params.get("payment")
+    const portraitIdFromUrl = params.get("portrait_id")
+
+    if (paymentStatus === "success" && portraitIdFromUrl) {
+      setResultPortraitId(portraitIdFromUrl)
+      setStatus("success")
+    }
+  }, [])
+
   function applyFile(selected: File | null) {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)

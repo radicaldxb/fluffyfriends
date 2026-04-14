@@ -16,7 +16,7 @@ const PORTRAITS_MAP: Record<string, number> = {
 export async function POST(request: NextRequest) {
   try {
     const stripeSecret = process.env.STRIPE_SECRET_KEY
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_V2
 
     if (!stripeSecret) {
       console.error("[stripe-webhook-v2] STRIPE_SECRET_KEY not configured")
@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!webhookSecret) {
-      console.error("[stripe-webhook-v2] STRIPE_WEBHOOK_SECRET not configured")
+      console.error("[stripe-webhook-v2] STRIPE_WEBHOOK_SECRET_V2 not configured")
       return NextResponse.json(
-        { error: "Server configuration error: STRIPE_WEBHOOK_SECRET is missing." },
+        { error: "Server configuration error: STRIPE_WEBHOOK_SECRET_V2 is missing." },
         { status: 500 },
       )
     }
