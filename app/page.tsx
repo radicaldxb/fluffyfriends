@@ -9,6 +9,7 @@ import { ReviewsSection } from "@/components/reviews-section"
 import { FinalCTASection } from "@/components/final-cta-section"
 import { Footer } from "@/components/footer"
 import { SketchDivider } from "@/components/sketch-divider"
+import MobileStickyBar from "@/components/mobile-sticky-bar"
 
 const SITE = "https://fluffyfriends.online"
 
@@ -136,6 +137,7 @@ export default function Home() {
         </div>
         <Footer />
       </main>
+      <MobileStickyBar />
     </>
   )
 }
