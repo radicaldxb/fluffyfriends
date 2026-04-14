@@ -13,10 +13,18 @@ import { Check, Camera, AlertCircle, ChevronRight, ChevronLeft } from "lucide-re
 import { PRODUCTS, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
+import { supabase } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
 
-type Status = "idle" | "uploading" | "processing" | "success" | "error"
+type Status =
+  | "idle"
+  | "uploading"
+  | "processing"
+  | "generating"
+  | "preview"
+  | "success"
+  | "error"
 
 const WIZARD_STEPS = [
   { id: 1, label: "Choose a theme", short: "1" },
@@ -89,7 +97,10 @@ function CreatePortraitContent() {
   const [voucherMessage, setVoucherMessage] = useState("")
   const [promotionCodeId, setPromotionCodeId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
+  const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -101,6 +112,15 @@ function CreatePortraitContent() {
     if (!themeFromQuery || !themeIds.includes(themeFromQuery)) return
     setTheme(themeFromQuery)
   }, [themeFromQuery])
+
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!emailFromQuery) return
@@ -222,14 +242,21 @@ function CreatePortraitContent() {
       }
 
       const rawId = typeof data.portrait_id === "string" ? data.portrait_id.trim() : ""
-      setResultPortraitId(rawId.startsWith("=") ? rawId.slice(1) : rawId)
+      const normalizedId = rawId.startsWith("=") ? rawId.slice(1) : rawId
+      setResultPortraitId(normalizedId)
       setResultPetName(resolvedPetName)
       window.gtag?.("event", "create_step2_complete", {
         theme: theme ?? "",
       })
       window.dataLayer = window.dataLayer || []
       window.dataLayer.push({ event: 'create_step2_complete' })
-      setStatus("success")
+      const packCustomer =
+        portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery.trim().length > 0
+      if (packCustomer) {
+        setStatus("success")
+      } else {
+        void handleTriggerPreview(normalizedId)
+      }
     } catch (err) {
       setStatus("error")
       setMessage(err instanceof Error ? err.message : "Something went wrong.")
@@ -239,6 +266,66 @@ function CreatePortraitContent() {
   // Trigger image validation / n8n workflow without going through the step 3 form submit.
   function handleCheckImage() {
     void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent)
+  }
+
+  async function handleTriggerPreview(portraitId: string) {
+    setStatus("generating")
+    try {
+      const res = await fetch("/api/trigger-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          portrait_id: portraitId,
+          pet_name: petName.trim(),
+          theme: theme ?? "",
+          pet_image_url: previewUrl ?? "",
+          user_email: "",
+          showcase_consent: false,
+        }),
+      })
+      if (!res.ok) {
+        setStatus("error")
+        setMessage("Something went wrong starting your portrait. Please try again.")
+        return
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+      const pollStart = Date.now()
+      pollIntervalRef.current = setInterval(async () => {
+        if (Date.now() - pollStart > 180000) {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current)
+            pollIntervalRef.current = null
+          }
+          setStatus("error")
+          setMessage("Portrait generation is taking longer than expected. Please try again.")
+          return
+        }
+        try {
+          const { data } = await supabase
+            .from("pet_portraits")
+            .select("status, image_url")
+            .eq("id", portraitId)
+            .single()
+          if (data?.status === "preview" && data?.image_url) {
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current)
+              pollIntervalRef.current = null
+            }
+            setPreviewImageUrl(applyWatermark(data.image_url as string))
+            setGenerationPortraitId(portraitId)
+            setStatus("preview")
+          }
+        } catch {
+          // keep polling on fetch errors
+        }
+      }, 4000)
+    } catch {
+      setStatus("error")
+      setMessage("Something went wrong. Please try again.")
+    }
   }
 
   function handleReset() {
@@ -255,6 +342,12 @@ function CreatePortraitContent() {
     setMessage("")
     setResultPetName(null)
     setResultPortraitId(null)
+    setPreviewImageUrl(null)
+    setGenerationPortraitId(null)
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current)
+      pollIntervalRef.current = null
+    }
     setPreviewError(false)
     setAgreeTerms(false)
     setAgeConfirm(false)
@@ -273,6 +366,19 @@ function CreatePortraitContent() {
     setWizardStep(2)
     fileInputRef.current && (fileInputRef.current.value = "")
     setTimeout(() => fileInputRef.current?.click(), 100)
+  }
+
+  // NOTE on which URL to use for the preview: The image_url stored by WF2B is the
+  // AVIF preview generated from the Gemini output. This is always in landscape ratio.
+  // Use image_url directly — do not attempt to derive a portrait crop URL. One image, one reveal.
+  function applyWatermark(cloudinaryUrl: string): string {
+    const watermarkTransform =
+      "l_text:Arial_55_bold:FluffyFriends,co_white,o_60,g_center/" +
+      "e_pixelate_region:15,x_0,y_0,w_1.0,h_1.0/"
+    return cloudinaryUrl.replace(
+      "/image/upload/",
+      `/image/upload/${watermarkTransform}`,
+    )
   }
 
   function goNext() {
@@ -681,6 +787,137 @@ function CreatePortraitContent() {
                     style={{ animationDelay: `${i * 150}ms` }}
                   />
                 ))}
+              </div>
+            </div>
+          )}
+
+          {status === "generating" && (
+            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-organic-sm bg-primary/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logos/FluffyFriends-logo.webp"
+                  alt="Creating your portrait"
+                  className="h-14 w-14 animate-spin"
+                  style={{ animationDuration: "3s" }}
+                />
+              </div>
+              <h2 className="font-heading text-xl font-bold text-foreground">
+                Creating {petNameDisplay ? `${petNameDisplay}'s` : "their"} portrait...
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                This takes about a minute. Stay with us.
+              </p>
+            </div>
+          )}
+
+          {status === "preview" && previewImageUrl && (
+            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">
+                Step 3 — Preview &amp; Details
+              </p>
+              <h2 className="font-heading mb-6 text-2xl font-bold text-foreground">
+                {petNameDisplay ? `${petNameDisplay}'s` : "Your pet's"} portrait is ready.
+              </h2>
+              <div className="relative w-full max-w-md overflow-hidden rounded-organic shadow-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewImageUrl}
+                  alt={`${petName.trim() || "Pet"} — landscape preview`}
+                  className="w-full select-none"
+                  onContextMenu={(e) => e.preventDefault()}
+                  draggable={false}
+                />
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="rotate-[-25deg] text-lg font-bold text-white/30 select-none">
+                    FluffyFriends Preview
+                  </span>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">Watermark removed after purchase</p>
+              <div className="mt-8 w-full max-w-md">
+                <p className="mb-3 text-sm font-semibold text-foreground">Choose your package</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {PRODUCTS.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedProductId(p.id)}
+                      className={cn(
+                        "rounded-organic-sm border-2 p-4 text-left transition-all",
+                        selectedProductId === p.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:border-primary/50",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-foreground">{p.name}</span>
+                        {selectedProductId === p.id && <Check className="h-4 w-4 text-primary" />}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                      <div className="mt-2 flex items-baseline gap-2">
+                        <span className="text-lg font-bold text-foreground">{p.priceDisplay}</span>
+                        {p.savePercent != null && (
+                          <span className="text-xs font-medium text-primary">Save {p.savePercent}%</span>
+                        )}
+                      </div>
+                      {p.badge && (
+                        <span className="mt-2 inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
+                          {p.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-6 text-center text-xs text-muted-foreground">
+                  Not happy with your portrait? We will recreate it or refund your credit.
+                </p>
+                {checkoutError && (
+                  <p className="mt-4 text-sm text-destructive text-center">{checkoutError}</p>
+                )}
+                <Button
+                  className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
+                  onClick={async () => {
+                    if (!generationPortraitId) return
+                    setCheckoutStatus("submitting")
+                    setCheckoutError("")
+                    try {
+                      const res = await fetch("/api/create-checkout-v2", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          product_id: selectedProductId,
+                          portrait_id: generationPortraitId,
+                          ...(theme && { theme }),
+                          ...(promotionCodeId && { promotionCodeId }),
+                        }),
+                      })
+                      const data = await res.json().catch(() => ({}))
+                      if (!res.ok || !data.url) {
+                        setCheckoutStatus("error")
+                        setCheckoutError(
+                          typeof data.error === "string" && data.error
+                            ? data.error
+                            : "We could not start checkout. Please try again.",
+                        )
+                        return
+                      }
+                      window.dataLayer = window.dataLayer || []
+                      window.dataLayer.push({ event: "create_step3_checkout" })
+                      window.location.href = data.url as string
+                    } catch {
+                      setCheckoutStatus("error")
+                      setCheckoutError("We could not start checkout. Please try again.")
+                    }
+                  }}
+                  disabled={checkoutStatus === "submitting"}
+                >
+                  {checkoutStatus === "submitting"
+                    ? "Connecting to Stripe..."
+                    : selectedProduct
+                      ? `Unlock my portrait — ${selectedProduct.priceDisplay}`
+                      : "Unlock my portrait"}
+                </Button>
               </div>
             </div>
           )}
