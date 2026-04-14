@@ -433,30 +433,32 @@ function CreatePortraitContent() {
                     <p className="mt-1 text-sm text-muted-foreground">
                       Browse our collection and pick the one that feels most like them. Their name will be worked into every portrait — whatever you choose.
                     </p>
-                    <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
                       {themes.length === 0 ? (
-                        <div className="col-span-full flex gap-2">
-                          {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="aspect-square w-full max-w-[140px] animate-pulse rounded-organic bg-muted" />
+                        <div className="col-span-full grid grid-cols-2 gap-3 md:grid-cols-4">
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                            <div
+                              key={i}
+                              className="h-[196px] animate-pulse overflow-hidden rounded-[10px] border border-border bg-muted"
+                            />
                           ))}
                         </div>
                       ) : (
                         themes.map((t, index) => {
                           const { id, name, previewUrl } = t
+                          const selected = theme === id
                           return (
                             <button
                               key={id}
                               type="button"
                               onClick={() => setTheme(id)}
                               className={cn(
-                                "group relative overflow-hidden rounded-organic border-2 text-left transition-all duration-200 hover:border-primary/60 hover:shadow-md",
-                                theme === id
-                                  ? "border-primary bg-primary/10 shadow-sm"
-                                  : "border-border bg-card"
+                                "group relative overflow-hidden rounded-[10px] bg-card text-center transition-all duration-200 hover:border-primary/60",
+                                selected ? "border-[3px] border-primary shadow-sm" : "border border-border",
                               )}
                               style={{ animationDelay: `${index * 30}ms` }}
                             >
-                              <div className="relative w-full h-40 overflow-hidden rounded-organic-sm bg-muted">
+                              <div className="relative h-[140px] w-full overflow-hidden bg-muted">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={previewUrl}
@@ -464,16 +466,17 @@ function CreatePortraitContent() {
                                   className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                                   loading="lazy"
                                 />
-                                {theme === id && (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                                    <span className="flex h-8 w-8 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground">
-                                      <Check className="h-4 w-4" />
-                                    </span>
-                                  </div>
+                                {selected && (
+                                  <span
+                                    className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground shadow-md"
+                                    aria-hidden
+                                  >
+                                    <Check className="h-4 w-4" strokeWidth={3} />
+                                  </span>
                                 )}
                               </div>
-                              <div className="p-2.5">
-                                <span className="font-heading font-semibold text-foreground">{name}</span>
+                              <div className="px-2 py-2.5">
+                                <span className="font-heading text-sm font-semibold text-foreground">{name}</span>
                               </div>
                             </button>
                           )
@@ -821,6 +824,9 @@ function CreatePortraitContent() {
                         </button>
                       ))}
                     </div>
+                    <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[13px] text-muted-foreground">
+                      Not happy with your portrait? We will recreate it or refund your credit.
+                    </p>
                   </div>
 
                   {checkoutError && (
