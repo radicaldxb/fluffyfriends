@@ -196,6 +196,16 @@ export function PricingSection() {
               >
                 <a href="/create">{plan.cta} →</a>
               </Button>
+              {plan.name === "Starter" && (
+                <p className="mt-2.5 text-center">
+                  <Link
+                    href="/create"
+                    className="text-[13px] text-primary underline underline-offset-2 hover:text-primary/90"
+                  >
+                    Buying as a gift? This works perfectly.
+                  </Link>
+                </p>
+              )}
               <p className="mt-2 text-center text-xs text-muted-foreground">
                 Satisfaction guaranteed. Recreate or refund.
               </p>
