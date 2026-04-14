@@ -101,6 +101,8 @@ function CreatePortraitContent() {
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
+  /** Raw Cloudinary `image_url` from DB — used if watermarked URL fails to load */
+  const previewCloudinaryRawRef = useRef<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -325,7 +327,9 @@ function CreatePortraitContent() {
               clearInterval(pollIntervalRef.current)
               pollIntervalRef.current = null
             }
-            setPreviewImageUrl(applyWatermark(data.image_url as string))
+            const raw = String(data.image_url).trim()
+            previewCloudinaryRawRef.current = raw
+            setPreviewImageUrl(applyWatermark(raw))
             setGenerationPortraitId(portraitId)
             setStatus("preview")
           }
@@ -354,6 +358,7 @@ function CreatePortraitContent() {
     setResultPetName(null)
     setResultPortraitId(null)
     setPreviewImageUrl(null)
+    previewCloudinaryRawRef.current = null
     setGenerationPortraitId(null)
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current)
@@ -383,13 +388,12 @@ function CreatePortraitContent() {
   // AVIF preview generated from the Gemini output. This is always in landscape ratio.
   // Use image_url directly — do not attempt to derive a portrait crop URL. One image, one reveal.
   function applyWatermark(cloudinaryUrl: string): string {
-    const watermarkTransform =
-      "l_text:Arial_36_bold:FluffyFriends,co_white,o_25,g_center,angle_-20/" +
-      "e_pixelate_region:15,x_0,y_0,w_1.0,h_1.0/"
-    return cloudinaryUrl.replace(
-      "/image/upload/",
-      `/image/upload/${watermarkTransform}`,
-    )
+    const trimmed = cloudinaryUrl.trim()
+    const needle = "/image/upload/"
+    if (!trimmed.includes(needle)) return trimmed
+    // Text overlay only — pixelate + angle chains often break AVIF delivery URLs.
+    const watermarkTransform = "l_text:Arial_36_bold:FluffyFriends,co_white,o_25,g_center/"
+    return trimmed.replace(needle, `${needle}${watermarkTransform}`)
   }
 
   function goNext() {
@@ -837,6 +841,11 @@ function CreatePortraitContent() {
                   className="w-full select-none"
                   onContextMenu={(e) => e.preventDefault()}
                   draggable={false}
+                  onError={() => {
+                    const raw = previewCloudinaryRawRef.current
+                    if (!raw) return
+                    setPreviewImageUrl((current) => (current === raw ? current : raw))
+                  }}
                 />
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <span className="rotate-[-25deg] text-lg font-bold text-white/30 select-none">
