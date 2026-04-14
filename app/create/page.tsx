@@ -384,7 +384,7 @@ function CreatePortraitContent() {
   // Use image_url directly — do not attempt to derive a portrait crop URL. One image, one reveal.
   function applyWatermark(cloudinaryUrl: string): string {
     const watermarkTransform =
-      "l_text:Arial_55_bold:FluffyFriends,co_white,o_60,g_center/" +
+      "l_text:Arial_36_bold:FluffyFriends,co_white,o_25,g_center,angle_-20/" +
       "e_pixelate_region:15,x_0,y_0,w_1.0,h_1.0/"
     return cloudinaryUrl.replace(
       "/image/upload/",
@@ -809,12 +809,11 @@ function CreatePortraitContent() {
                 <img
                   src="/logos/FluffyFriends-logo.webp"
                   alt="Creating your portrait"
-                  className="h-14 w-14 animate-spin"
-                  style={{ animationDuration: "3s" }}
+                  className="h-14 w-14 animate-pulse"
                 />
               </div>
               <h2 className="font-heading text-xl font-bold text-foreground">
-                Creating {petNameDisplay ? `${petNameDisplay}'s` : "their"} portrait...
+                {petName.trim() || "Your pet"}&apos;s photo looks perfect! Creating the preview now.
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 This takes about a minute. Stay with us.
@@ -846,8 +845,10 @@ function CreatePortraitContent() {
                 </div>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">Watermark removed after purchase</p>
-              <div className="mt-8 w-full max-w-md">
-                <p className="mb-3 text-sm font-semibold text-foreground">Choose your package</p>
+              <div className="mt-8 w-full max-w-xl text-left">
+                <p className="text-sm font-medium text-foreground mb-3 text-center sm:text-left">
+                  Choose your package
+                </p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {PRODUCTS.map((p) => (
                     <button
@@ -880,56 +881,106 @@ function CreatePortraitContent() {
                     </button>
                   ))}
                 </div>
-                <p className="mt-6 text-center text-xs text-muted-foreground">
+                <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[13px] text-muted-foreground">
                   Not happy with your portrait? We will recreate it or refund your credit.
                 </p>
-                {checkoutError && (
-                  <p className="mt-4 text-sm text-destructive text-center">{checkoutError}</p>
-                )}
-                <Button
-                  className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
-                  onClick={async () => {
-                    if (!generationPortraitId) return
-                    setCheckoutStatus("submitting")
-                    setCheckoutError("")
-                    try {
-                      const res = await fetch("/api/create-checkout-v2", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          product_id: selectedProductId,
-                          portrait_id: generationPortraitId,
-                          ...(theme && { theme }),
-                          ...(promotionCodeId && { promotionCodeId }),
-                        }),
-                      })
-                      const data = await res.json().catch(() => ({}))
-                      if (!res.ok || !data.url) {
-                        setCheckoutStatus("error")
-                        setCheckoutError(
-                          typeof data.error === "string" && data.error
-                            ? data.error
-                            : "We could not start checkout. Please try again.",
-                        )
-                        return
-                      }
-                      window.dataLayer = window.dataLayer || []
-                      window.dataLayer.push({ event: "create_step3_checkout" })
-                      window.location.href = data.url as string
-                    } catch {
-                      setCheckoutStatus("error")
-                      setCheckoutError("We could not start checkout. Please try again.")
-                    }
-                  }}
-                  disabled={checkoutStatus === "submitting"}
-                >
-                  {checkoutStatus === "submitting"
-                    ? "Connecting to Stripe..."
-                    : selectedProduct
-                      ? `Unlock my portrait — ${selectedProduct.priceDisplay}`
-                      : "Unlock my portrait"}
-                </Button>
               </div>
+              {checkoutError && (
+                <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
+              )}
+
+              {/* Voucher code input */}
+              <div className="mt-6 w-full max-w-xl text-left">
+                <div className="rounded-organic-sm border border-border bg-muted/30 px-4 py-3">
+                  <p className="text-sm font-medium text-foreground">Have a discount code?</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Enter it here before continuing to payment.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <input
+                      type="text"
+                      value={voucherCode}
+                      onChange={(e) => {
+                        setVoucherCode(e.target.value)
+                        if (voucherStatus !== "idle") {
+                          setVoucherStatus("idle")
+                          setVoucherMessage("")
+                          setPromotionCodeId(null)
+                        }
+                      }}
+                      placeholder="Enter discount code"
+                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={voucherStatus === "loading"}
+                      onClick={handleApplyVoucher}
+                      className="mt-1 inline-flex items-center justify-center rounded-organic-sm px-4 py-2 text-sm font-semibold sm:mt-0"
+                    >
+                      {voucherStatus === "loading" ? "Checking…" : "Apply"}
+                    </Button>
+                  </div>
+                  {voucherMessage && (
+                    <p
+                      className={cn(
+                        "mt-2 text-xs",
+                        voucherStatus === "valid"
+                          ? "text-emerald-600"
+                          : voucherStatus === "invalid"
+                            ? "text-destructive"
+                            : "text-muted-foreground",
+                      )}
+                    >
+                      {voucherMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                className="mt-4 w-full max-w-xl inline-flex items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto mx-auto"
+                onClick={async () => {
+                  if (!generationPortraitId) return
+                  setCheckoutStatus("submitting")
+                  setCheckoutError("")
+                  try {
+                    const res = await fetch("/api/create-checkout-v2", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        product_id: selectedProductId,
+                        portrait_id: generationPortraitId,
+                        ...(theme && { theme }),
+                        ...(promotionCodeId && { promotionCodeId }),
+                      }),
+                    })
+                    const data = await res.json().catch(() => ({}))
+                    if (!res.ok || !data.url) {
+                      setCheckoutStatus("error")
+                      setCheckoutError(
+                        typeof data.error === "string" && data.error
+                          ? data.error
+                          : "We could not start checkout. Please try again.",
+                      )
+                      return
+                    }
+                    window.dataLayer = window.dataLayer || []
+                    window.dataLayer.push({ event: "create_step3_checkout" })
+                    window.location.href = data.url as string
+                  } catch {
+                    setCheckoutStatus("error")
+                    setCheckoutError("We could not start checkout. Please try again.")
+                  }
+                }}
+                disabled={checkoutStatus === "submitting"}
+              >
+                {checkoutStatus === "submitting"
+                  ? "Connecting to Stripe..."
+                  : selectedProduct
+                    ? `Unlock my portrait — ${selectedProduct.priceDisplay}`
+                    : "Unlock my portrait"}
+              </Button>
             </div>
           )}
 
