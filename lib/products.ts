@@ -21,7 +21,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "starter",
     name: "Starter",
-    description: "Try it once. We think you'll come back.",
+    description: "One pet. One theme. See exactly what yours looks like.",
     priceCents: 1700,
     priceDisplay: "$17",
     perPortrait: 1,

@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
       promotionCodeId: promotionCode.id,
       discountText,
       code: promotionCode.code,
+      percent_off: coupon.percent_off ?? null,
+      amount_off: coupon.amount_off ?? null,
     })
   } catch (error) {
     console.error("[validate-voucher] Unexpected error:", error)

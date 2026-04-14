@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, Suspense } from "react"
+import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
@@ -40,6 +40,11 @@ function cleanValidatorMessage(raw: string | null): string {
   const stripped = raw.replace(/^valid:\s*no\s*[-–]\s*/i, "").trim()
   if (!stripped) return ""
   return stripped.charAt(0).toUpperCase() + stripped.slice(1)
+}
+
+function formatCheckoutPriceFromCents(cents: number): string {
+  if (cents % 100 === 0) return `$${cents / 100}`
+  return `$${(cents / 100).toFixed(2)}`
 }
 
 function CreatePageFallback() {
@@ -97,6 +102,8 @@ function CreatePortraitContent() {
   const [voucherStatus, setVoucherStatus] = useState<"idle" | "valid" | "invalid" | "loading">("idle")
   const [voucherMessage, setVoucherMessage] = useState("")
   const [promotionCodeId, setPromotionCodeId] = useState<string | null>(null)
+  const [voucherPercentOff, setVoucherPercentOff] = useState<number | null>(null)
+  const [voucherAmountOffCents, setVoucherAmountOffCents] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
@@ -143,17 +150,6 @@ function CreatePortraitContent() {
     fetchBalance()
     return () => { cancelled = true }
   }, [emailFromQuery])
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const paymentStatus = params.get("payment")
-    const portraitIdFromUrl = params.get("portrait_id")
-
-    if (paymentStatus === "success" && portraitIdFromUrl) {
-      setResultPortraitId(portraitIdFromUrl)
-      setStatus("success")
-    }
-  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -400,12 +396,13 @@ function CreatePortraitContent() {
   // AVIF preview generated from the Gemini output. This is always in landscape ratio.
   // Use image_url directly — do not attempt to derive a portrait crop URL. One image, one reveal.
   function applyWatermark(cloudinaryUrl: string): string {
-    const trimmed = cloudinaryUrl.trim()
-    const needle = "/image/upload/"
-    if (!trimmed.includes(needle)) return trimmed
-    // Text overlay only — pixelate + angle chains often break AVIF delivery URLs.
-    const watermarkTransform = "l_text:Arial_36_bold:FluffyFriends,co_white,o_25,g_center/"
-    return trimmed.replace(needle, `${needle}${watermarkTransform}`)
+    const tile =
+      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_north_west,x_30,y_40/" +
+      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_north_east,x_30,y_40/" +
+      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_south_west,x_30,y_40/" +
+      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_south_east,x_30,y_40/" +
+      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_center,angle_-20/"
+    return cloudinaryUrl.replace("/image/upload/", `/image/upload/${tile}`)
   }
 
   function goNext() {
@@ -430,6 +427,19 @@ function CreatePortraitContent() {
   const selectedTheme = themes.find((t) => t.id === theme)
   const selectedProduct = PRODUCTS.find((p) => p.id === selectedProductId)
 
+  const previewCheckoutPriceDisplay = useMemo(() => {
+    if (!selectedProduct) return null
+    if (voucherStatus !== "valid" || !promotionCodeId) return selectedProduct.priceDisplay
+    let cents = selectedProduct.priceCents
+    if (typeof voucherPercentOff === "number") {
+      cents = Math.round((cents * (100 - voucherPercentOff)) / 100)
+    }
+    if (typeof voucherAmountOffCents === "number") {
+      cents = Math.max(0, cents - voucherAmountOffCents)
+    }
+    return formatCheckoutPriceFromCents(cents)
+  }, [selectedProduct, voucherStatus, promotionCodeId, voucherPercentOff, voucherAmountOffCents])
+
   const effectivePackEmail = emailFromQuery
   const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
 
@@ -445,11 +455,15 @@ function CreatePortraitContent() {
       setVoucherStatus("invalid")
       setVoucherMessage("Please enter a code.")
       setPromotionCodeId(null)
+      setVoucherPercentOff(null)
+      setVoucherAmountOffCents(null)
       return
     }
     setVoucherStatus("loading")
     setVoucherMessage("")
     setPromotionCodeId(null)
+    setVoucherPercentOff(null)
+    setVoucherAmountOffCents(null)
     try {
       const res = await fetch("/api/validate-voucher", {
         method: "POST",
@@ -463,10 +477,14 @@ function CreatePortraitContent() {
           typeof data.error === "string" && data.error ? data.error : "This code is not valid",
         )
         setPromotionCodeId(null)
+        setVoucherPercentOff(null)
+        setVoucherAmountOffCents(null)
         return
       }
       setVoucherStatus("valid")
       setPromotionCodeId(typeof data.promotionCodeId === "string" ? data.promotionCodeId : null)
+      setVoucherPercentOff(typeof data.percent_off === "number" ? data.percent_off : null)
+      setVoucherAmountOffCents(typeof data.amount_off === "number" ? data.amount_off : null)
       const appliedCode = (data.code as string | undefined) ?? code.toUpperCase()
       const discountText =
         typeof data.discountText === "string" && data.discountText
@@ -477,6 +495,8 @@ function CreatePortraitContent() {
       setVoucherStatus("invalid")
       setVoucherMessage("We couldn't validate this code. Please try again.")
       setPromotionCodeId(null)
+      setVoucherPercentOff(null)
+      setVoucherAmountOffCents(null)
     }
   }
 
@@ -902,9 +922,6 @@ function CreatePortraitContent() {
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[13px] text-muted-foreground">
-                  Not happy with your portrait? We will recreate it or refund your credit.
-                </p>
               </div>
               {checkoutError && (
                 <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
@@ -927,6 +944,8 @@ function CreatePortraitContent() {
                           setVoucherStatus("idle")
                           setVoucherMessage("")
                           setPromotionCodeId(null)
+                          setVoucherPercentOff(null)
+                          setVoucherAmountOffCents(null)
                         }
                       }}
                       placeholder="Enter discount code"
@@ -998,8 +1017,8 @@ function CreatePortraitContent() {
               >
                 {checkoutStatus === "submitting"
                   ? "Connecting to Stripe..."
-                  : selectedProduct
-                    ? `Unlock my portrait — ${selectedProduct.priceDisplay}`
+                  : selectedProduct && previewCheckoutPriceDisplay
+                    ? `Unlock my portrait — ${previewCheckoutPriceDisplay}`
                     : "Unlock my portrait"}
               </Button>
             </div>
