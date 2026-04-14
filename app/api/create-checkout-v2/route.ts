@@ -1,0 +1,154 @@
+import { NextRequest, NextResponse } from "next/server"
+import { getProduct, type ProductId } from "@/lib/products"
+import { getStripeClient } from "@/lib/stripe"
+import { supabase } from "@/lib/supabase"
+
+const VALID_IDS: ProductId[] = ["starter", "portrait_pack", "family_pack"]
+
+function getSiteUrl(fromEnv: string) {
+  return fromEnv.replace(/\/+$/, "")
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const stripeSecret = process.env.STRIPE_SECRET_KEY
+    const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL
+
+    if (!stripeSecret) {
+      console.error("[create-checkout] STRIPE_SECRET_KEY not configured")
+      return NextResponse.json(
+        { error: "Server configuration error: STRIPE_SECRET_KEY is missing." },
+        { status: 500 },
+      )
+    }
+
+    if (!rawSiteUrl) {
+      console.error("[create-checkout] NEXT_PUBLIC_SITE_URL (or SITE_URL) not configured")
+      return NextResponse.json(
+        { error: "Server configuration error: NEXT_PUBLIC_SITE_URL (or SITE_URL) is missing." },
+        { status: 500 },
+      )
+    }
+
+    const body = await request.json()
+
+    const productId: ProductId | null = VALID_IDS.includes(body.product_id)
+      ? body.product_id
+      : null
+
+    // Normalise portrait ID (defensive: some flows were sending a leading "=")
+    const portraitIdRaw =
+      typeof body.portrait_id === "string" ? body.portrait_id.trim() : ""
+    const portraitId = portraitIdRaw.startsWith("=")
+      ? portraitIdRaw.slice(1)
+      : portraitIdRaw
+    const themeFromBody =
+      typeof body.theme === "string" ? body.theme.trim().toLowerCase() : ""
+    const promotionCodeId =
+      typeof body.promotionCodeId === "string" ? body.promotionCodeId.trim() : ""
+
+    if (!productId || !portraitId) {
+      return NextResponse.json(
+        { error: "Missing product_id or portrait_id" },
+        { status: 400 },
+      )
+    }
+
+    const product = getProduct(productId)
+    if (!product) {
+      return NextResponse.json(
+        { error: "Invalid product" },
+        { status: 400 },
+      )
+    }
+
+    const { data: portrait, error: portraitError } = await supabase
+      .from("pet_portraits")
+      .select("original_image_url")
+      .eq("id", portraitId)
+      .single()
+
+    if (portraitError || !portrait) {
+      return NextResponse.json({ error: "Portrait not found" }, { status: 404 })
+    }
+
+    const petImageUrl =
+      typeof portrait.original_image_url === "string"
+        ? portrait.original_image_url.trim()
+        : ""
+
+    const amountCents = product.priceCents
+    const packageName = productId
+
+    // Create Stripe Checkout Session only – orders are created in the Stripe webhook
+    const stripe = getStripeClient(stripeSecret)
+    const siteUrl = getSiteUrl(rawSiteUrl)
+
+    if (!/^https?:\/\//.test(siteUrl)) {
+      console.error("[create-checkout] Invalid SITE URL configuration:", { rawSiteUrl, siteUrl })
+      return NextResponse.json(
+        {
+          error:
+            "Server configuration error: NEXT_PUBLIC_SITE_URL (or SITE_URL) must include http(s):// and a domain.",
+        },
+        { status: 500 },
+      )
+    }
+
+    const successUrl = `${siteUrl}/create?portrait_id=${encodeURIComponent(portraitId)}&payment=success`
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            unit_amount: amountCents,
+            product_data: {
+              name: product.name,
+              description: product.description,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        portrait_id: portraitId,
+        product_id: productId,
+        package: packageName,
+        ...(themeFromBody && { theme: themeFromBody }),
+        ...(petImageUrl ? { pet_image_url: petImageUrl } : {}),
+      },
+      success_url: successUrl,
+      cancel_url: `${siteUrl}/create`,
+      // If a validated promotion code is provided from our own UI, attach it as an explicit discount
+      // and disable arbitrary codes inside Stripe Checkout. Otherwise, allow promotion codes there.
+      ...(promotionCodeId
+        ? { discounts: [{ promotion_code: promotionCodeId }] }
+        : { allow_promotion_codes: true }),
+    })
+
+    if (!session.url) {
+      console.error("[create-checkout] Stripe session has no URL")
+      return NextResponse.json(
+        { error: "Failed to create checkout session" },
+        { status: 500 },
+      )
+    }
+
+    return NextResponse.json(
+      {
+        url: session.url,
+      },
+      { status: 200 },
+    )
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error"
+    console.error("[create-checkout] Unexpected error:", err)
+    return NextResponse.json(
+      { error: `Request failed: ${message}` },
+      { status: 500 },
+    )
+  }
+}
