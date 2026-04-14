@@ -67,21 +67,7 @@ export function HeroSection() {
               >
                 <Link href="/create">See What Your Pet Would Look Like →</Link>
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-organic-sm border-2 border-foreground/20 px-7 py-3.5 text-base font-semibold sm:w-auto h-auto hover:border-foreground/30"
-                asChild
-              >
-                <Link href="#gallery">Browse the gallery</Link>
-              </Button>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground text-center lg:text-left">
-              Already have a portrait pack?{" "}
-              <Link href="/my-portraits" className="underline hover:text-foreground">
-                Access my portraits →
-              </Link>
-            </p>
           </div>
         </div>
       </div>
