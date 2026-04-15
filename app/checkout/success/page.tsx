@@ -106,9 +106,13 @@ function SuccessContent() {
         value,
         currency,
       })
+      if (typeof window.fbq !== "undefined")
+        window.fbq("track", "Purchase", { currency: "USD", value: 0 })
     } else {
       purchaseTracked.current = true
       window.dataLayer.push({ event: "purchase" })
+      if (typeof window.fbq !== "undefined")
+        window.fbq("track", "Purchase", { currency: "USD", value: 0 })
     }
   }, [preview, sessionId])
 
@@ -119,6 +123,8 @@ function SuccessContent() {
       transaction_id: sessionId,
       currency: "USD",
     })
+    if (typeof window.fbq !== "undefined")
+      window.fbq("track", "Purchase", { currency: "USD", value: 0 })
 
     if (!sessionId && !portraitFromQuery) {
       setPreview({
