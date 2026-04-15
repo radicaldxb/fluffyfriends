@@ -859,13 +859,13 @@ function CreatePortraitContent() {
 
           {status === "preview" && previewImageUrl && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10">
-              <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">
-                Step 3 — Preview &amp; Details
-              </p>
-              <h2 className="font-heading mb-6 text-2xl font-bold text-foreground">
+              <h2 className="font-heading mb-2 text-center text-3xl font-extrabold tracking-tight text-foreground">
                 {petNameDisplay ? `${petNameDisplay}'s` : "Your pet's"} portrait is ready.
               </h2>
-              <div className="relative w-full max-w-md overflow-hidden rounded-organic shadow-lg">
+              <p className="mb-8 text-center text-sm text-muted-foreground">
+                This is your preview. Unlock the full resolution below.
+              </p>
+              <div className="relative w-full max-w-lg overflow-hidden rounded-[16px] border-4 border-primary/80 shadow-2xl ring-4 ring-primary/20">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewImageUrl}
@@ -879,15 +879,64 @@ function CreatePortraitContent() {
                     setPreviewImageUrl((current) => (current === raw ? current : raw))
                   }}
                 />
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className="rotate-[-25deg] text-lg font-bold text-white/30 select-none">
-                    FluffyFriends Preview
-                  </span>
+                <div
+                  className="pointer-events-none absolute inset-0 select-none"
+                  style={{
+                    background: `repeating-linear-gradient(
+                      -35deg,
+                      transparent,
+                      transparent 60px,
+                      rgba(255,255,255,0.07) 60px,
+                      rgba(255,255,255,0.07) 61px
+                    )`,
+                  }}
+                >
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                    <span
+                      key={i}
+                      className="pointer-events-none absolute select-none text-sm font-bold tracking-widest text-white/20"
+                      style={{
+                        top: `${10 + i * 11}%`,
+                        left: i % 2 === 0 ? "8%" : "35%",
+                        transform: "rotate(-25deg)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      FluffyFriends
+                    </span>
+                  ))}
                 </div>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">Watermark removed after purchase</p>
-              <div className="mt-8 w-full max-w-xl text-left">
-                <p className="text-sm font-medium text-foreground mb-3 text-center sm:text-left">
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Full resolution · Both formats included · Watermark removed after purchase
+              </p>
+              <div className="mt-8 w-full max-w-xl">
+                <div className="mb-5 flex items-start gap-3 rounded-[12px] border border-primary/30 bg-primary/5 px-4 py-3">
+                  <span className="mt-0.5 text-primary">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Free print guide included with every order</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Covers paper types, frame sizes, and the best local and online print shops. Yours at any
+                      package level.
+                    </p>
+                  </div>
+                </div>
+                <p className="mb-3 text-center text-sm font-medium text-foreground sm:text-left">
                   Choose your package
                 </p>
                 <div className="grid gap-3 sm:grid-cols-3">
