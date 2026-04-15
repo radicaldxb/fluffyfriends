@@ -1174,7 +1174,7 @@ function CreatePortraitContent() {
                       package: selectedProductId,
                       theme_name: theme ?? "",
                     })
-                    if (typeof window.fbq !== "undefined") window.fbq("track", "InitiateCheckout")
+                    initiateCheckout()
                     const res = await fetch("/api/create-checkout-v2", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -1499,7 +1499,7 @@ function CreatePortraitContent() {
                             package: selectedProductId,
                             theme_name: theme ?? "",
                           })
-                          if (typeof window.fbq !== "undefined") window.fbq("track", "InitiateCheckout")
+                          initiateCheckout()
                           const res = await fetch("/api/create-checkout", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },

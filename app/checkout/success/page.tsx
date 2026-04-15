@@ -123,8 +123,7 @@ function SuccessContent() {
       transaction_id: sessionId,
       currency: "USD",
     })
-    if (typeof window.fbq !== "undefined")
-      window.fbq("track", "Purchase", { currency: "USD", value: 0 })
+    purchase(0)
 
     if (!sessionId && !portraitFromQuery) {
       setPreview({
