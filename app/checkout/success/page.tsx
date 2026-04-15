@@ -358,6 +358,55 @@ function SuccessContent() {
   const isStep4Completed = approveStatus === "success"
   const isError = preview.status === "error"
 
+  const successPageStepStrip = (
+    <div className="mb-6 flex w-full items-center justify-center gap-0 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1.5">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </span>
+        <span className="text-muted-foreground">Pick a theme</span>
+      </div>
+      <div className="mx-3 h-px w-6 flex-shrink-0 bg-primary" />
+      <div className="flex items-center gap-1.5">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </span>
+        <span className="text-muted-foreground">Your preview</span>
+      </div>
+      <div className="mx-3 h-px w-6 flex-shrink-0 bg-primary" />
+      <div className="flex items-center gap-1.5">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
+          3
+        </span>
+        <span className="font-medium text-foreground">Get your portrait</span>
+      </div>
+    </div>
+  )
+
   if (isStep4Completed) {
     return (
       <main className="min-h-screen bg-background flex flex-col">
@@ -367,6 +416,7 @@ function SuccessContent() {
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-4">
               <Mail className="h-7 w-7" />
             </div>
+            {successPageStepStrip}
             <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
               Your portrait is on its way 🐾
             </h2>
@@ -382,14 +432,16 @@ function SuccessContent() {
                 >
                   <a
                     href={downloadLinks.landscapeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault()
                       window.dataLayer = window.dataLayer || []
                       window.dataLayer.push({
                         event: "portrait_downloaded",
                         format: "landscape",
                       })
+                      setTimeout(() => {
+                        window.open(downloadLinks.landscapeUrl, "_blank")
+                      }, 300)
                     }}
                   >
                     Download Wide Format →
@@ -402,14 +454,16 @@ function SuccessContent() {
                 >
                   <a
                     href={downloadLinks.portraitUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault()
                       window.dataLayer = window.dataLayer || []
                       window.dataLayer.push({
                         event: "portrait_downloaded",
                         format: "portrait",
                       })
+                      setTimeout(() => {
+                        window.open(downloadLinks.portraitUrl, "_blank")
+                      }, 300)
                     }}
                   >
                     Download Portrait Format →
@@ -501,6 +555,7 @@ function SuccessContent() {
             <p className="text-sm font-medium uppercase tracking-widest text-primary mb-1">
               Step 3 · Preview & details
             </p>
+            {successPageStepStrip}
             <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
               Does this look like {preview.petName}?
             </h2>
@@ -822,6 +877,7 @@ function SuccessContent() {
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-organic-sm bg-primary/20 text-primary mb-4">
             <Check className="h-7 w-7" />
           </div>
+          {successPageStepStrip}
           <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             {sessionId ? "Payment received" : "Portrait started!"}
           </h1>
