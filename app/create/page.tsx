@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { Check, Camera, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
-import { PRODUCTS, type ProductId } from "@/lib/products"
+import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
 import { supabase } from "@/lib/supabase"
@@ -111,6 +111,9 @@ function CreatePortraitContent() {
   const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
   /** Raw Cloudinary `image_url` from DB — used if watermarked URL fails to load */
   const previewCloudinaryRawRef = useRef<string | null>(null)
+  const portraitPreviewShownRef = useRef(false)
+  const packageViewedPreviewRef = useRef(false)
+  const packageViewedSuccessRef = useRef(false)
 
   useEffect(() => {
     return () => {
@@ -271,6 +274,7 @@ function CreatePortraitContent() {
       })
       window.dataLayer = window.dataLayer || []
       window.dataLayer.push({ event: 'create_step2_complete' })
+      window.dataLayer.push({ event: "photo_uploaded" })
       const packCustomer =
         portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery.trim().length > 0
       if (packCustomer) {
@@ -376,6 +380,9 @@ function CreatePortraitContent() {
     setAgreeTerms(false)
     setAgeConfirm(false)
     fileInputRef.current && (fileInputRef.current.value = "")
+    portraitPreviewShownRef.current = false
+    packageViewedPreviewRef.current = false
+    packageViewedSuccessRef.current = false
   }
 
   function handleTryAnotherPhoto() {
@@ -442,6 +449,50 @@ function CreatePortraitContent() {
 
   const effectivePackEmail = emailFromQuery
   const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
+
+  useEffect(() => {
+    if (status !== "preview" || !previewImageUrl) return
+    if (portraitPreviewShownRef.current) return
+    portraitPreviewShownRef.current = true
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: "portrait_preview_shown",
+      theme_name: theme ?? "",
+    })
+  }, [status, previewImageUrl, theme])
+
+  useEffect(() => {
+    if (status !== "preview" || !previewImageUrl) return
+    if (packageViewedPreviewRef.current) return
+    packageViewedPreviewRef.current = true
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: "package_viewed",
+      default_package: "portrait_pack",
+    })
+  }, [status, previewImageUrl])
+
+  useEffect(() => {
+    if (status !== "success" || !resultPortraitId || showPackFlow) return
+    if (packageViewedSuccessRef.current) return
+    packageViewedSuccessRef.current = true
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: "package_viewed",
+      default_package: "portrait_pack",
+    })
+  }, [status, resultPortraitId, showPackFlow])
+
+  function pushPackageSelected(product: Product) {
+    if (product.id === selectedProductId) return
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: "package_changed",
+      package_selected: product.id,
+      package_price: product.priceDisplay,
+    })
+    setSelectedProductId(product.id)
+  }
 
   // [Pet Name] for copy — "their" when no name
   const petNameDisplay = petName.trim()
@@ -604,7 +655,14 @@ function CreatePortraitContent() {
                             <button
                               key={id}
                               type="button"
-                              onClick={() => setTheme(id)}
+                              onClick={() => {
+                                setTheme(id)
+                                window.dataLayer = window.dataLayer || []
+                                window.dataLayer.push({
+                                  event: "theme_selected",
+                                  theme_name: id,
+                                })
+                              }}
                               className={cn(
                                 "group relative overflow-hidden rounded-[10px] bg-card text-center transition-all duration-200 hover:border-primary/60",
                                 selected ? "border-[3px] border-primary shadow-sm" : "border border-border",
@@ -647,6 +705,10 @@ function CreatePortraitContent() {
                         id="pet-name-step1"
                         type="text"
                         value={petName}
+                        onFocus={() => {
+                          window.dataLayer = window.dataLayer || []
+                          window.dataLayer.push({ event: "pet_name_entered" })
+                        }}
                         onChange={(e) => setPetName(e.target.value.slice(0, 12))}
                         maxLength={12}
                         placeholder="e.g. Jimmy"
@@ -1011,7 +1073,7 @@ function CreatePortraitContent() {
                     <button
                       key={p.id}
                       type="button"
-                      onClick={() => setSelectedProductId(p.id)}
+                      onClick={() => pushPackageSelected(p)}
                       className={cn(
                         "rounded-organic-sm border-2 p-4 text-left transition-all",
                         selectedProductId === p.id
@@ -1054,6 +1116,10 @@ function CreatePortraitContent() {
                     <input
                       type="text"
                       value={voucherCode}
+                      onFocus={() => {
+                        window.dataLayer = window.dataLayer || []
+                        window.dataLayer.push({ event: "discount_code_attempted" })
+                      }}
                       onChange={(e) => {
                         setVoucherCode(e.target.value)
                         if (voucherStatus !== "idle") {
@@ -1101,6 +1167,12 @@ function CreatePortraitContent() {
                   setCheckoutStatus("submitting")
                   setCheckoutError("")
                   try {
+                    window.dataLayer = window.dataLayer || []
+                    window.dataLayer.push({
+                      event: "checkout_initiated",
+                      package: selectedProductId,
+                      theme_name: theme ?? "",
+                    })
                     const res = await fetch("/api/create-checkout-v2", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -1292,7 +1364,7 @@ function CreatePortraitContent() {
                         <button
                           key={p.id}
                           type="button"
-                          onClick={() => setSelectedProductId(p.id)}
+                          onClick={() => pushPackageSelected(p)}
                           className={cn(
                             "rounded-organic-sm border-2 p-4 text-left transition-all",
                             selectedProductId === p.id
@@ -1339,6 +1411,10 @@ function CreatePortraitContent() {
                         <input
                           type="text"
                           value={voucherCode}
+                          onFocus={() => {
+                            window.dataLayer = window.dataLayer || []
+                            window.dataLayer.push({ event: "discount_code_attempted" })
+                          }}
                           onChange={(e) => {
                             setVoucherCode(e.target.value)
                             if (voucherStatus !== "idle") {
@@ -1415,6 +1491,12 @@ function CreatePortraitContent() {
                         setCheckoutError("")
 
                         try {
+                          window.dataLayer = window.dataLayer || []
+                          window.dataLayer.push({
+                            event: "checkout_initiated",
+                            package: selectedProductId,
+                            theme_name: theme ?? "",
+                          })
                           const res = await fetch("/api/create-checkout", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
