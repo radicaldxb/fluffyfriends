@@ -902,14 +902,24 @@ function CreatePortraitContent() {
                     )`,
                   }}
                 >
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  {[
+                    { top: "8%", left: "5%", rotate: -25 },
+                    { top: "8%", left: "55%", rotate: -25 },
+                    { top: "22%", left: "30%", rotate: -25 },
+                    { top: "36%", left: "5%", rotate: -25 },
+                    { top: "36%", left: "55%", rotate: -25 },
+                    { top: "50%", left: "30%", rotate: -25 },
+                    { top: "64%", left: "5%", rotate: -25 },
+                    { top: "64%", left: "55%", rotate: -25 },
+                    { top: "78%", left: "30%", rotate: -25 },
+                  ].map((pos, i) => (
                     <span
                       key={i}
                       className="pointer-events-none absolute select-none text-sm font-bold tracking-widest text-white/20"
                       style={{
-                        top: `${10 + i * 11}%`,
-                        left: i % 2 === 0 ? "8%" : "35%",
-                        transform: "rotate(-25deg)",
+                        top: pos.top,
+                        left: pos.left,
+                        transform: `rotate(${pos.rotate}deg)`,
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -920,6 +930,10 @@ function CreatePortraitContent() {
               </div>
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 Full resolution · Both formats included · Watermark removed after purchase
+              </p>
+              <p className="mt-1.5 max-w-md text-center text-xs text-muted-foreground/70">
+                The AI adapts each portrait to your pet&apos;s unique features. The final result may differ
+                slightly from this preview.
               </p>
               <div className="mt-8 w-full max-w-xl">
                 <div className="mb-5 flex items-start gap-3 rounded-[12px] border border-primary/30 bg-primary/5 px-4 py-3">
