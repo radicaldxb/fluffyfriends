@@ -584,7 +584,7 @@ function CreatePortraitContent() {
                   >
                     <h2 className="text-xl font-semibold text-foreground">What&apos;s their theme?</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Browse our collection and pick the one that feels most like them. Their name will be worked into every portrait — whatever you choose.
+                      Browse our collection and pick the one that feels most like them. Their name will be worked into every portrait. Whatever theme you pick.
                     </p>
                     <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
                       {themes.length === 0 ? (
@@ -870,6 +870,40 @@ function CreatePortraitContent() {
 
           {status === "preview" && previewImageUrl && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10">
+              <div className="mb-6 flex w-full items-center justify-center gap-0 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </span>
+                  <span className="text-muted-foreground">Pick a theme</span>
+                </div>
+                <div className="mx-3 h-px w-6 flex-shrink-0 bg-primary" />
+                <div className="flex items-center gap-1.5">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
+                    2
+                  </span>
+                  <span className="font-medium text-foreground">Your preview</span>
+                </div>
+                <div className="mx-3 h-px w-6 flex-shrink-0 bg-border" />
+                <div className="flex items-center gap-1.5">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-muted text-[10px] font-bold text-muted-foreground">
+                    3
+                  </span>
+                  <span className="text-muted-foreground">Get your portrait</span>
+                </div>
+              </div>
               <h2 className="font-heading mb-2 text-center text-3xl font-extrabold tracking-tight text-foreground">
                 {petNameDisplay ? `${petNameDisplay}'s` : "Your pet's"} portrait is ready.
               </h2>
@@ -904,13 +938,13 @@ function CreatePortraitContent() {
                 >
                   {[
                     { top: "8%", left: "5%", rotate: -25 },
-                    { top: "8%", left: "55%", rotate: -25 },
+                    { top: "8%", left: "58%", rotate: -25 },
                     { top: "22%", left: "30%", rotate: -25 },
                     { top: "36%", left: "5%", rotate: -25 },
-                    { top: "36%", left: "55%", rotate: -25 },
+                    { top: "36%", left: "58%", rotate: -25 },
                     { top: "50%", left: "30%", rotate: -25 },
                     { top: "64%", left: "5%", rotate: -25 },
-                    { top: "64%", left: "55%", rotate: -25 },
+                    { top: "64%", left: "58%", rotate: -25 },
                     { top: "78%", left: "30%", rotate: -25 },
                   ].map((pos, i) => (
                     <span
@@ -921,6 +955,8 @@ function CreatePortraitContent() {
                         left: pos.left,
                         transform: `rotate(${pos.rotate}deg)`,
                         whiteSpace: "nowrap",
+                        maxWidth: "none",
+                        overflow: "visible",
                       }}
                     >
                       FluffyFriends
