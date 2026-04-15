@@ -247,6 +247,32 @@ export default function PrivacyPage() {
               Dubai, United Arab Emirates
             </p>
           </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-foreground">
+              Analytics and Behaviour Tracking
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We partner with Microsoft Clarity to understand how visitors use our website. Microsoft Clarity
+              captures behavioural metrics, heatmaps, and session replays to help us improve our product and
+              experience. Website usage data is collected using first and third-party cookies and other
+              tracking technologies.
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We use this information solely for site optimisation and to improve the FluffyFriends experience.
+              We do not use it for advertising profiling. For more information about how Microsoft collects
+              and uses your data, visit the{" "}
+              <a
+                href="https://www.microsoft.com/privacy/privacystatement"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 hover:text-foreground"
+              >
+                Microsoft Privacy Statement
+              </a>
+              .
+            </p>
+          </section>
         </div>
       </section>
       <Footer />
