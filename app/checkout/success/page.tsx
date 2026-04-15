@@ -106,9 +106,6 @@ function SuccessContent() {
         value,
         currency,
       })
-      if (typeof window !== "undefined" && typeof window.fbq === "function") {
-        window.fbq("track", "Purchase", { value: 0, currency: "USD" })
-      }
     } else {
       purchaseTracked.current = true
       window.dataLayer.push({ event: "purchase" })
