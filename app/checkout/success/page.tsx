@@ -113,6 +113,13 @@ function SuccessContent() {
   }, [preview, sessionId])
 
   useEffect(() => {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: "purchase",
+      transaction_id: sessionId,
+      currency: "USD",
+    })
+
     if (!sessionId && !portraitFromQuery) {
       setPreview({
         status: "error",
@@ -373,7 +380,18 @@ function SuccessContent() {
                   asChild
                   className="w-full rounded-organic-sm sm:w-auto"
                 >
-                  <a href={downloadLinks.landscapeUrl} target="_blank" rel="noreferrer">
+                  <a
+                    href={downloadLinks.landscapeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => {
+                      window.dataLayer = window.dataLayer || []
+                      window.dataLayer.push({
+                        event: "portrait_downloaded",
+                        format: "landscape",
+                      })
+                    }}
+                  >
                     Download Wide Format →
                   </a>
                 </Button>
@@ -382,7 +400,18 @@ function SuccessContent() {
                   variant="outline"
                   className="w-full rounded-organic-sm sm:w-auto"
                 >
-                  <a href={downloadLinks.portraitUrl} target="_blank" rel="noreferrer">
+                  <a
+                    href={downloadLinks.portraitUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => {
+                      window.dataLayer = window.dataLayer || []
+                      window.dataLayer.push({
+                        event: "portrait_downloaded",
+                        format: "portrait",
+                      })
+                    }}
+                  >
                     Download Portrait Format →
                   </a>
                 </Button>
@@ -415,7 +444,13 @@ function SuccessContent() {
                   {portraitsRemaining !== 1 ? "s" : ""} remaining in your pack
                 </p>
                 <Button className="mt-3 rounded-organic-sm" asChild>
-                  <Link href={`/create?email=${encodeURIComponent(email)}`}>
+                  <Link
+                    href={`/create?email=${encodeURIComponent(email)}`}
+                    onClick={() => {
+                      window.dataLayer = window.dataLayer || []
+                      window.dataLayer.push({ event: "create_another_clicked" })
+                    }}
+                  >
                     Create your next portrait →
                   </Link>
                 </Button>
@@ -754,7 +789,15 @@ function SuccessContent() {
 
             <div className="mt-8 flex flex-col items-center gap-3">
               <Button variant="outline" className="rounded-organic-sm" asChild>
-                <Link href="/create">Create another portrait</Link>
+                <Link
+                  href="/create"
+                  onClick={() => {
+                    window.dataLayer = window.dataLayer || []
+                    window.dataLayer.push({ event: "create_another_clicked" })
+                  }}
+                >
+                  Create another portrait
+                </Link>
               </Button>
               <Link
                 href="/"
