@@ -743,13 +743,25 @@ function CreatePortraitContent() {
                         <span className="text-primary" aria-hidden>
                           ✓
                         </span>
-                        <span>Their face clearly visible</span>
+                        <span>Face clearly visible and front-facing</span>
                       </li>
                       <li className="flex gap-2">
                         <span className="text-primary" aria-hidden>
                           ✓
                         </span>
-                        <span>One pet per portrait</span>
+                        <span>One pet only in the photo</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="text-primary" aria-hidden>
+                          ✓
+                        </span>
+                        <span>No humans in the frame</span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="text-primary" aria-hidden>
+                          ✓
+                        </span>
+                        <span>Simple background works best</span>
                       </li>
                       <li className="flex gap-2">
                         <span className="text-primary" aria-hidden>
@@ -757,15 +769,9 @@ function CreatePortraitContent() {
                         </span>
                         <span>Natural light if possible</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="text-primary" aria-hidden>
-                          ✓
-                        </span>
-                        <span>Any background is fine — we handle the rest</span>
-                      </li>
                     </ul>
                     <p className="mt-4 text-sm text-muted-foreground">
-                      Not sure? Upload it anyway. We check it before you pay.
+                      These are tips, not rules. Upload your best photo and we will let you know if it works.
                     </p>
                     <div className="mt-6 flex justify-between">
                       <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">

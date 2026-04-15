@@ -59,6 +59,7 @@ function SuccessContent() {
   const [wf3Status, setWf3Status] = useState<"idle" | "waiting" | "ready">("idle")
   const [galleryShowcaseConsent, setGalleryShowcaseConsent] = useState(false)
   const purchaseTracked = useRef(false)
+  const loaderRef = useRef<HTMLDivElement | null>(null)
 
   const LOADER_STEPS = [
     { icon: Palette, text: "Preparing your portrait files…" },
@@ -232,6 +233,18 @@ function SuccessContent() {
     }, 6000)
     return () => clearInterval(interval)
   }, [approveStatus])
+
+  useEffect(() => {
+    if (
+      (approveStatus === "submitting" || wf3Status === "waiting") &&
+      loaderRef.current
+    ) {
+      loaderRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+    }
+  }, [approveStatus, wf3Status])
 
   async function persistGalleryShowcaseConsent(checked: boolean) {
     if (preview.status !== "ready") return
@@ -524,7 +537,10 @@ function SuccessContent() {
                     <p className="text-sm text-destructive">{approveError}</p>
                   )}
                   {approveStatus === "submitting" || wf3Status === "waiting" ? (
-                    <div className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
+                    <div
+                      ref={loaderRef}
+                      className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto"
+                    >
                       <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
                         <div className="flex justify-center mb-3 text-primary transition-all duration-500">
                           {(() => {
@@ -683,7 +699,10 @@ function SuccessContent() {
 
                 <div className="space-y-2">
                   {approveStatus === "submitting" || wf3Status === "waiting" ? (
-                    <div className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto">
+                    <div
+                      ref={loaderRef}
+                      className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto"
+                    >
                       <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
                         <div className="flex justify-center mb-3 text-primary transition-all duration-500">
                           {(() => {

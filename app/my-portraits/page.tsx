@@ -233,66 +233,6 @@ function MyPortraitsContent() {
           </div>
         )}
 
-        {purchases.length > 0 && (
-          <div className="mt-10 space-y-4">
-            <h2 className="text-sm font-semibold text-foreground">
-              Your portrait packs
-            </h2>
-            <div className="space-y-3">
-              {purchases.map((p) => {
-                const purchasedDate = new Date(p.created_at)
-                const displayDate = purchasedDate.toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                })
-                const label =
-                  p.package === "portrait_pack"
-                    ? "Portrait Pack"
-                    : p.package === "family_pack"
-                      ? "Family Pack"
-                      : "Starter"
-                const used = p.portraits_total - p.portraits_remaining
-                return (
-                  <div
-                    key={p.id}
-                    className="rounded-organic border border-border bg-card px-4 py-3 text-sm"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-medium text-foreground">
-                        {label} — {used}/{p.portraits_total} portraits used
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Purchased {displayDate} {purchasedDate.getFullYear()}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Order:{" "}
-                      <span className="font-mono">{orderDisplay(p.order_id)}</span>
-                    </p>
-                    {p.portraits_remaining > 0 && (
-                      <div className="mt-4 flex flex-col gap-2">
-                        <p className="text-sm font-semibold text-foreground">
-                          You have{" "}
-                          <span className="text-primary">
-                            {p.portraits_remaining} portrait
-                            {p.portraits_remaining !== 1 ? "s" : ""} remaining
-                          </span>{" "}
-                          in this pack.
-                        </p>
-                        <Button asChild className="rounded-organic-sm w-full sm:w-auto">
-                          <Link href={`/create?email=${encodeURIComponent(email)}`}>
-                            Create another portrait →
-                          </Link>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
         {portraits.length > 0 && (
           <div className="mt-10 space-y-4">
             <h2 className="text-sm font-semibold text-foreground">
@@ -443,6 +383,66 @@ function MyPortraitsContent() {
             </div>
           </div>
         )}
+        {purchases.length > 0 && (
+          <div className="mt-10 space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">
+              Your portrait packs
+            </h2>
+            <div className="space-y-3">
+              {purchases.map((p) => {
+                const purchasedDate = new Date(p.created_at)
+                const displayDate = purchasedDate.toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                })
+                const label =
+                  p.package === "portrait_pack"
+                    ? "Portrait Pack"
+                    : p.package === "family_pack"
+                      ? "Family Pack"
+                      : "Starter"
+                const used = p.portraits_total - p.portraits_remaining
+                return (
+                  <div
+                    key={p.id}
+                    className="rounded-organic border border-border bg-card px-4 py-3 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-medium text-foreground">
+                        {label} — {used}/{p.portraits_total} portraits used
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Purchased {displayDate} {purchasedDate.getFullYear()}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Order:{" "}
+                      <span className="font-mono">{orderDisplay(p.order_id)}</span>
+                    </p>
+                    {p.portraits_remaining > 0 && (
+                      <div className="mt-4 flex flex-col gap-2">
+                        <p className="text-sm font-semibold text-foreground">
+                          You have{" "}
+                          <span className="text-primary">
+                            {p.portraits_remaining} portrait
+                            {p.portraits_remaining !== 1 ? "s" : ""} remaining
+                          </span>{" "}
+                          in this pack.
+                        </p>
+                        <Button asChild className="rounded-organic-sm w-full sm:w-auto">
+                          <Link href={`/create?email=${encodeURIComponent(email)}`}>
+                            Create another portrait →
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
 
         {totalRemaining === 0 && hasResults && (
           <div className="mt-8 text-center">
