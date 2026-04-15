@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const successUrl = `${siteUrl}/create?portrait_id=${encodeURIComponent(portraitId)}&payment=success`
+    const successUrl = `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}&portrait=${portraitId}`
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
