@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     const { data: portrait, error: fetchError } = await supabase
       .from("pet_portraits")
-      .select("pet_name, gemini_image_url, image_url, theme, pet_image_url")
+      .select("pet_name, gemini_image_url, image_url, original_image_url, theme, pet_image_url")
       .eq("id", portrait_id)
       .single()
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     // gemini_image_url is the clean Gemini output stored by WF2
     // image_url is the AVIF preview — valid fallback for upscaling
-    const original_image_url = portrait.gemini_image_url || portrait.image_url
+    const original_image_url = portrait.original_image_url || portrait.gemini_image_url || portrait.image_url
 
     if (!original_image_url) {
       console.error("No image URL available for portrait:", portrait_id)
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         original_image_url,
         user_email,
         user_first_name: firstName,
-        pet_name: portraitRow.pet_name,
+        pet_name: portrait.pet_name,
         order_id: session.id,
         payment_intent_id,
         total_cents,
