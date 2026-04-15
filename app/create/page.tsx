@@ -840,20 +840,31 @@ function CreatePortraitContent() {
 
           {status === "generating" && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-organic-sm bg-primary/10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logos/FluffyFriends-logo.webp"
-                  alt="Creating your portrait"
-                  className="h-14 w-14 animate-pulse"
+              <div className="relative h-32 w-32 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5 shadow-sm">
+                <video
+                  src="/video/FF-Loader.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover scale-[1.05]"
                 />
               </div>
-              <h2 className="font-heading text-xl font-bold text-foreground">
-                {petName.trim() || "Your pet"}&apos;s photo looks perfect! Creating the preview now.
-              </h2>
+              <p className="mt-6 text-lg font-semibold text-foreground">
+                Creating {petName.trim() ? `${petName.trim()}'s` : "your"} portrait now...
+              </p>
               <p className="mt-2 text-sm text-muted-foreground">
                 This takes about a minute. Stay with us.
               </p>
+              <div className="mt-6 flex gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="h-2 w-2 rounded-organic-sm bg-primary animate-pulse"
+                    style={{ animationDelay: `${i * 150}ms` }}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
