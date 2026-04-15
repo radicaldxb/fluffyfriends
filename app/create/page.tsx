@@ -459,7 +459,9 @@ function CreatePortraitContent() {
       event: "portrait_preview_shown",
       theme_name: theme ?? "",
     })
-    if (typeof window.fbq !== "undefined") window.fbq("track", "ViewContent")
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      window.fbq("track", "ViewContent")
+    }
   }, [status, previewImageUrl, theme])
 
   useEffect(() => {
@@ -1174,7 +1176,9 @@ function CreatePortraitContent() {
                       package: selectedProductId,
                       theme_name: theme ?? "",
                     })
-                    initiateCheckout()
+                    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+                      window.fbq("track", "InitiateCheckout")
+                    }
                     const res = await fetch("/api/create-checkout-v2", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -1499,7 +1503,9 @@ function CreatePortraitContent() {
                             package: selectedProductId,
                             theme_name: theme ?? "",
                           })
-                          initiateCheckout()
+                          if (typeof window !== "undefined" && typeof window.fbq === "function") {
+                            window.fbq("track", "InitiateCheckout")
+                          }
                           const res = await fetch("/api/create-checkout", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },

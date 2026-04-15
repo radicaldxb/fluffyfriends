@@ -106,13 +106,15 @@ function SuccessContent() {
         value,
         currency,
       })
-      if (typeof window.fbq !== "undefined")
-        window.fbq("track", "Purchase", { currency: "USD", value: 0 })
+      if (typeof window !== "undefined" && typeof window.fbq === "function") {
+        window.fbq("track", "Purchase", { value: 0, currency: "USD" })
+      }
     } else {
       purchaseTracked.current = true
       window.dataLayer.push({ event: "purchase" })
-      if (typeof window.fbq !== "undefined")
-        window.fbq("track", "Purchase", { currency: "USD", value: 0 })
+      if (typeof window !== "undefined" && typeof window.fbq === "function") {
+        window.fbq("track", "Purchase", { value: 0, currency: "USD" })
+      }
     }
   }, [preview, sessionId])
 
@@ -123,7 +125,9 @@ function SuccessContent() {
       transaction_id: sessionId,
       currency: "USD",
     })
-    purchase(0)
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      window.fbq("track", "Purchase", { value: 0, currency: "USD" })
+    }
 
     if (!sessionId && !portraitFromQuery) {
       setPreview({
