@@ -363,6 +363,8 @@ function SuccessContent() {
     (sessionId.trim().length > 0 || (emailFromQuery || email).trim().length > 0)
   const isStep4Completed = approveStatus === "success"
   const isError = preview.status === "error"
+  const isSubmitLoading =
+    approveStatus === "submitting" || wf3Status === "waiting"
 
   const successPageStepStrip = (
     <div className="mb-6 flex w-full items-center justify-center gap-0 text-xs text-muted-foreground">
@@ -602,12 +604,13 @@ function SuccessContent() {
                 </p>
               )}
 
-              <label
-                className={cn(
-                  "mt-5 flex items-start gap-3 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3 text-left",
-                  canPersistGalleryConsent ? "cursor-pointer" : "cursor-not-allowed opacity-70",
-                )}
-              >
+              <div className={cn(isSubmitLoading && "hidden")}>
+                <label
+                  className={cn(
+                    "mt-5 flex items-start gap-3 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3 text-left",
+                    canPersistGalleryConsent ? "cursor-pointer" : "cursor-not-allowed opacity-70",
+                  )}
+                >
                 <Checkbox
                   checked={galleryShowcaseConsent}
                   disabled={!canPersistGalleryConsent}
@@ -622,63 +625,26 @@ function SuccessContent() {
                   I&apos;d love to be featured in the FluffyFriends gallery 🐾{" "}
                   <span className="text-xs text-muted-foreground">(optional)</span>
                 </span>
-              </label>
+                </label>
 
-              {!sessionId && userDetailsKnown ? (
-                <div className="mt-8 flex flex-col items-center gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    We'll send your print-ready files to <strong>{email}</strong>
-                  </p>
-                  {approveError && (
-                    <p className="text-sm text-destructive">{approveError}</p>
-                  )}
-                  {approveStatus === "submitting" || wf3Status === "waiting" ? (
-                    <div
-                      ref={loaderRef}
-                      className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto"
-                    >
-                      <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
-                        <div className="flex justify-center mb-3 text-primary transition-all duration-500">
-                          {(() => {
-                            const StepIcon = LOADER_STEPS[loaderStep].icon
-                            return <StepIcon className="h-10 w-10" aria-hidden />
-                          })()}
-                        </div>
-                        <p className="text-sm font-medium text-foreground">
-                          {LOADER_STEPS[loaderStep].text}
-                        </p>
-                        <div className="flex justify-center gap-1.5 mt-4">
-                          {LOADER_STEPS.map((_, i) => (
-                            <div
-                              key={i}
-                              className={`h-1.5 rounded-full transition-all duration-500 ${
-                                i <= loaderStep
-                                  ? "w-4 bg-primary"
-                                  : "w-1.5 bg-muted-foreground/30"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Please don&apos;t close this tab — we&apos;re getting everything ready for you.
-                      </p>
-                    </div>
-                  ) : (
+                {!sessionId && userDetailsKnown ? (
+                  <div className="mt-8 flex flex-col items-center gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      We&apos;ll send your print-ready files to <strong>{email}</strong>
+                    </p>
+                    {approveError && (
+                      <p className="text-sm text-destructive">{approveError}</p>
+                    )}
                     <Button
                       onClick={(e) => handleSubmitDetails(e as React.FormEvent)}
-                      disabled={
-                        approveStatus === ("submitting" as ApproveStatus) ||
-                        wf3Status === ("waiting" as typeof wf3Status)
-                      }
+                      disabled={isSubmitLoading}
                       className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 h-auto"
                     >
                       Email my portraits →
                     </Button>
-                  )}
-                </div>
-              ) : (
-              <form onSubmit={handleSubmitDetails} className="mt-6 space-y-4">
+                  </div>
+                ) : (
+                <form onSubmit={handleSubmitDetails} className="mt-6 space-y-4">
                 <div className="space-y-3">
                   <div>
                     <label
@@ -794,46 +760,11 @@ function SuccessContent() {
                 )}
 
                 <div className="space-y-2">
-                  {approveStatus === "submitting" || wf3Status === "waiting" ? (
-                    <div
-                      ref={loaderRef}
-                      className="mt-8 flex flex-col items-center gap-6 w-full max-w-sm mx-auto"
-                    >
-                      <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
-                        <div className="flex justify-center mb-3 text-primary transition-all duration-500">
-                          {(() => {
-                            const StepIcon = LOADER_STEPS[loaderStep].icon
-                            return <StepIcon className="h-10 w-10" aria-hidden />
-                          })()}
-                        </div>
-                        <p className="text-sm font-medium text-foreground">
-                          {LOADER_STEPS[loaderStep].text}
-                        </p>
-                        <div className="flex justify-center gap-1.5 mt-4">
-                          {LOADER_STEPS.map((_, i) => (
-                            <div
-                              key={i}
-                              className={`h-1.5 rounded-full transition-all duration-500 ${
-                                i <= loaderStep
-                                  ? "w-4 bg-primary"
-                                  : "w-1.5 bg-muted-foreground/30"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Please don&apos;t close this tab — we&apos;re getting everything ready for you.
-                      </p>
-                    </div>
-                  ) : (
+                  {!isSubmitLoading && (
                     <>
                       <Button
                         type="submit"
-                        disabled={
-                          approveStatus === ("submitting" as ApproveStatus) ||
-                          wf3Status === ("waiting" as typeof wf3Status)
-                        }
+                        disabled={isSubmitLoading}
                         className="w-full rounded-organic-sm"
                       >
                         Email my portraits →
@@ -845,6 +776,40 @@ function SuccessContent() {
                   )}
                 </div>
               </form>
+                )}
+              </div>
+              {isSubmitLoading && (
+                <div
+                  ref={loaderRef}
+                  className="flex flex-col items-center gap-6 w-full max-w-sm mx-auto py-16"
+                >
+                  <div className="w-full rounded-organic bg-muted/40 border border-border p-6 text-center">
+                    <div className="flex justify-center mb-3 text-primary transition-all duration-500">
+                      {(() => {
+                        const StepIcon = LOADER_STEPS[loaderStep].icon
+                        return <StepIcon className="h-10 w-10" aria-hidden />
+                      })()}
+                    </div>
+                    <p className="text-sm font-medium text-foreground">
+                      {LOADER_STEPS[loaderStep].text}
+                    </p>
+                    <div className="flex justify-center gap-1.5 mt-4">
+                      {LOADER_STEPS.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 rounded-full transition-all duration-500 ${
+                            i <= loaderStep
+                              ? "w-4 bg-primary"
+                              : "w-1.5 bg-muted-foreground/30"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Please don&apos;t close this tab — we&apos;re getting everything ready for you.
+                  </p>
+                </div>
               )}
             </div>
 
