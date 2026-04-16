@@ -35,7 +35,7 @@ export default function HeroBeforeAfterSlider() {
     <div className="relative w-full max-w-full -mx-6 sm:mx-0 overflow-hidden rounded-none shadow-xl shadow-foreground/10 ring-0 sm:rounded-[20px] sm:ring-1 sm:ring-border/50">
       <div
         ref={containerRef}
-        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none sm:rounded-[20px]"
+        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none max-md:aspect-auto max-md:h-[min(32vh,210px)] sm:rounded-[20px] md:aspect-square md:h-auto"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

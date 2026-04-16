@@ -4,7 +4,7 @@ import HeroBeforeAfterSlider from "@/components/hero-before-after-slider"
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-x-visible bg-background pt-16 pb-16 md:pt-24 md:pb-24">
+    <section className="relative overflow-x-visible bg-background max-md:pt-8 max-md:pb-10 md:pt-24 md:pb-24">
       {/* Subtle radial glow behind hero, inspired by redesign */}
       <div
         aria-hidden="true"
@@ -17,13 +17,13 @@ export function HeroSection() {
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Below md: flex order = eyebrow, headline, slider, CTA, subtext, bullets. md–lg: same stacked order as before (slider first). lg+: grid matches previous desktop (copy left, slider right). */}
-        <div className="flex flex-col items-center max-md:gap-12 md:max-lg:gap-0 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
+        <div className="flex flex-col items-center max-md:gap-2.5 md:max-lg:gap-0 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16">
           {/* Eyebrow – emotional, not pushy */}
-          <p className="order-1 mb-0 text-center text-sm font-medium uppercase tracking-widest text-primary md:order-2 lg:order-none lg:col-start-1 lg:row-start-1 lg:mb-6 lg:text-left">
+          <p className="order-1 mb-0 max-md:py-0 text-center text-sm font-medium uppercase tracking-widest text-primary md:order-2 lg:order-none lg:col-start-1 lg:row-start-1 lg:mb-6 lg:text-left">
             Made with love. Made to last.
           </p>
 
-          <h1 className="order-2 text-balance text-center text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl md:order-3 lg:order-none lg:col-start-1 lg:row-start-2 lg:text-left lg:text-6xl">
+          <h1 className="order-2 text-balance text-center text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:max-md:text-4xl md:order-3 md:text-5xl lg:order-none lg:col-start-1 lg:row-start-2 lg:text-left lg:text-6xl">
             Their name.
             <br />
             <span className="text-primary">In the artwork.</span>
@@ -37,7 +37,7 @@ export function HeroSection() {
           <div className="order-4 flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:justify-start md:order-6 lg:order-none lg:col-start-1 lg:row-start-5 lg:mt-8">
             <Button
               size="lg"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] sm:w-auto h-auto"
+              className="inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] max-md:px-5 max-md:py-2.5 max-md:text-sm sm:w-auto"
               asChild
             >
               <Link href="/create">
