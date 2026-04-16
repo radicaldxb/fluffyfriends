@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Menu, PawPrint, X } from "lucide-react"
 
 const navItems = [
+  { href: "/petmaster/tasks", label: "Tasks" },
   { href: "/petmaster", label: "Dashboard" },
   { href: "/petmaster/backlog", label: "Backlog" },
   { href: "/petmaster/dm", label: "DM Generator" },
