@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { petmasterUnauthorizedResponse } from "@/lib/petmaster-api-guard"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   const denied = await petmasterUnauthorizedResponse()
   if (denied) return denied
