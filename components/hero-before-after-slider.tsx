@@ -35,7 +35,7 @@ export default function HeroBeforeAfterSlider() {
     <div className="relative w-full max-w-full -mx-6 sm:mx-0 overflow-hidden rounded-none shadow-xl shadow-foreground/10 ring-0 sm:rounded-[20px] sm:ring-1 sm:ring-border/50">
       <div
         ref={containerRef}
-        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none max-md:aspect-auto max-md:h-[min(32vh,210px)] sm:rounded-[20px] md:aspect-square md:h-auto"
+        className="relative aspect-square w-full cursor-col-resize touch-none select-none overflow-hidden rounded-none bg-muted/40 max-md:aspect-auto max-md:h-[min(46vh,300px)] sm:rounded-[20px] md:aspect-square md:h-auto md:bg-transparent"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -46,7 +46,7 @@ export default function HeroBeforeAfterSlider() {
           src="/images/pet-after.webp"
           alt="Jimmy as a Fireman — AI pet portrait by FluffyFriends"
           fill
-          className="object-cover"
+          className="object-contain object-center md:object-cover"
           sizes="(max-width: 1024px) 100vw, 28rem"
           priority
           draggable={false}
@@ -60,7 +60,7 @@ export default function HeroBeforeAfterSlider() {
             src="/images/pet-before-new.webp"
             alt="Jimmy the golden retriever — original photo"
             fill
-            className="object-cover"
+            className="object-contain object-center md:object-cover"
             sizes="(max-width: 1024px) 100vw, 28rem"
             priority
             draggable={false}
