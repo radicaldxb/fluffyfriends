@@ -1,5 +1,6 @@
 "use client"
 
+import ReactDOM from "react-dom"
 import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -792,52 +793,51 @@ function CreatePortraitContent() {
                         })
                       )}
                     </div>
-                    {lightboxTheme ? (
-                      <div
-                        className="fixed inset-0 z-50 bg-black/80 max-lg:z-[100] max-lg:overflow-y-auto max-lg:overscroll-contain lg:flex lg:items-center lg:justify-center lg:overflow-hidden lg:p-4"
-                        onClick={() => setLightboxTheme(null)}
-                        role="presentation"
-                      >
-                        {/* pointer-events-none so backdrop clicks hit the overlay; modal re-enables pointer events */}
-                        <div className="flex min-h-[100dvh] w-full items-start justify-center px-4 pb-10 pt-[calc(1rem+env(safe-area-inset-top,0px))] pointer-events-none lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:p-0">
+                    {lightboxTheme ? ReactDOM.createPortal(
                           <div
-                            className="pointer-events-auto relative w-full max-w-lg overflow-hidden rounded-organic bg-background shadow-2xl max-lg:flex max-lg:max-h-[min(88dvh,calc(100dvh-2.5rem))] max-lg:flex-col lg:max-h-none"
-                            onClick={(e) => e.stopPropagation()}
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="lightbox-theme-title"
+                            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4"
+                            onClick={() => setLightboxTheme(null)}
+                            role="presentation"
                           >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={lightboxTheme.previewUrl}
-                              alt={lightboxTheme.name}
-                              className="h-auto w-full max-lg:max-h-[min(45dvh,360px)] max-lg:object-contain max-lg:object-top lg:object-cover"
-                            />
-                            <div className="bg-gradient-to-r from-primary to-orange-400 px-4 py-3">
-                              <p id="lightbox-theme-title" className="text-base font-bold text-white">
-                                {lightboxTheme.name}
-                              </p>
-                              <p className="text-sm text-white/90">
-                                {(() => {
-                                  const trimmed = petName.trim()
-                                  const p =
-                                    themePersonalisation[lightboxTheme.id] ?? themePersonalisation.fireman
-                                  return trimmed ? p.withName(trimmed) : p.fallback
-                                })()}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              aria-label="Close preview"
-                              onClick={() => setLightboxTheme(null)}
-                              className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                            <div
+                              className="relative flex w-full max-w-sm max-h-[85vh] flex-col overflow-hidden rounded-organic bg-background shadow-2xl"
+                              onClick={(e) => e.stopPropagation()}
+                              role="dialog"
+                              aria-modal="true"
+                              aria-labelledby="lightbox-theme-title"
                             >
-                              <X className="h-4 w-4" aria-hidden />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={lightboxTheme.previewUrl}
+                                alt={lightboxTheme.name}
+                                className="h-auto w-full max-h-[65vh] shrink-0 object-cover object-top"
+                              />
+                              <div className="shrink-0 bg-gradient-to-r from-primary to-orange-400 px-4 py-3">
+                                <p id="lightbox-theme-title" className="text-base font-bold text-white">
+                                  {lightboxTheme.name}
+                                </p>
+                                <p className="text-sm text-white/90">
+                                  {(() => {
+                                    const trimmed = petName.trim()
+                                    const p =
+                                      themePersonalisation[lightboxTheme.id] ?? themePersonalisation.fireman
+                                    return trimmed ? p.withName(trimmed) : p.fallback
+                                  })()}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                aria-label="Close preview"
+                                onClick={() => setLightboxTheme(null)}
+                                className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                              >
+                                <X className="h-4 w-4" aria-hidden />
+                              </button>
+                            </div>
+                          </div>,
+                          document.body,
+                        )
+                      : null}
                     {/* Primary CTA – match hero CTA layout and spacing */}
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                       <Button
