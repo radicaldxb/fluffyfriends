@@ -799,9 +799,9 @@ function CreatePortraitContent() {
                         role="presentation"
                       >
                         {/* pointer-events-none so backdrop clicks hit the overlay; modal re-enables pointer events */}
-                        <div className="flex min-h-[100dvh] w-full items-center justify-center px-4 py-6 pointer-events-none max-lg:min-h-[100dvh] lg:min-h-0 lg:flex-1 lg:p-0">
+                        <div className="flex min-h-[100dvh] w-full items-start justify-center px-4 pb-10 pt-[calc(1rem+env(safe-area-inset-top,0px))] pointer-events-none lg:min-h-0 lg:flex-1 lg:items-center lg:justify-center lg:p-0">
                           <div
-                            className="pointer-events-auto relative my-auto w-full max-w-lg overflow-hidden rounded-organic bg-background shadow-2xl max-lg:flex max-lg:max-h-[min(92dvh,calc(100dvh-3rem))] max-lg:flex-col lg:my-0 lg:max-h-none"
+                            className="pointer-events-auto relative w-full max-w-lg overflow-hidden rounded-organic bg-background shadow-2xl max-lg:flex max-lg:max-h-[min(88dvh,calc(100dvh-2.5rem))] max-lg:flex-col lg:max-h-none"
                             onClick={(e) => e.stopPropagation()}
                             role="dialog"
                             aria-modal="true"
@@ -811,7 +811,7 @@ function CreatePortraitContent() {
                             <img
                               src={lightboxTheme.previewUrl}
                               alt={lightboxTheme.name}
-                              className="h-auto w-full max-lg:max-h-[min(52dvh,420px)] max-lg:object-contain max-lg:object-top lg:object-cover"
+                              className="h-auto w-full max-lg:max-h-[min(45dvh,360px)] max-lg:object-contain max-lg:object-top lg:object-cover"
                             />
                             <div className="bg-gradient-to-r from-primary to-orange-400 px-4 py-3">
                               <p id="lightbox-theme-title" className="text-base font-bold text-white">
