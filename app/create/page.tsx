@@ -794,44 +794,47 @@ function CreatePortraitContent() {
                     </div>
                     {lightboxTheme ? (
                       <div
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+                        className="fixed inset-0 z-50 bg-black/80 max-lg:z-[100] max-lg:overflow-y-auto max-lg:overscroll-contain lg:flex lg:items-center lg:justify-center lg:overflow-hidden lg:p-4"
                         onClick={() => setLightboxTheme(null)}
                         role="presentation"
                       >
-                        <div
-                          className="relative w-full max-w-lg overflow-hidden rounded-organic bg-background shadow-2xl"
-                          onClick={(e) => e.stopPropagation()}
-                          role="dialog"
-                          aria-modal="true"
-                          aria-labelledby="lightbox-theme-title"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={lightboxTheme.previewUrl}
-                            alt={lightboxTheme.name}
-                            className="h-auto w-full object-cover"
-                          />
-                          <div className="bg-gradient-to-r from-primary to-orange-400 px-4 py-3">
-                            <p id="lightbox-theme-title" className="text-base font-bold text-white">
-                              {lightboxTheme.name}
-                            </p>
-                            <p className="text-sm text-white/90">
-                              {(() => {
-                                const trimmed = petName.trim()
-                                const p =
-                                  themePersonalisation[lightboxTheme.id] ?? themePersonalisation.fireman
-                                return trimmed ? p.withName(trimmed) : p.fallback
-                              })()}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            aria-label="Close preview"
-                            onClick={() => setLightboxTheme(null)}
-                            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                        {/* pointer-events-none so backdrop clicks hit the overlay; modal re-enables pointer events */}
+                        <div className="flex min-h-[100dvh] w-full items-center justify-center px-4 py-6 pointer-events-none max-lg:min-h-[100dvh] lg:min-h-0 lg:flex-1 lg:p-0">
+                          <div
+                            className="pointer-events-auto relative my-auto w-full max-w-lg overflow-hidden rounded-organic bg-background shadow-2xl max-lg:flex max-lg:max-h-[min(92dvh,calc(100dvh-3rem))] max-lg:flex-col lg:my-0 lg:max-h-none"
+                            onClick={(e) => e.stopPropagation()}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="lightbox-theme-title"
                           >
-                            <X className="h-4 w-4" aria-hidden />
-                          </button>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={lightboxTheme.previewUrl}
+                              alt={lightboxTheme.name}
+                              className="h-auto w-full max-lg:max-h-[min(52dvh,420px)] max-lg:object-contain max-lg:object-top lg:object-cover"
+                            />
+                            <div className="bg-gradient-to-r from-primary to-orange-400 px-4 py-3">
+                              <p id="lightbox-theme-title" className="text-base font-bold text-white">
+                                {lightboxTheme.name}
+                              </p>
+                              <p className="text-sm text-white/90">
+                                {(() => {
+                                  const trimmed = petName.trim()
+                                  const p =
+                                    themePersonalisation[lightboxTheme.id] ?? themePersonalisation.fireman
+                                  return trimmed ? p.withName(trimmed) : p.fallback
+                                })()}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              aria-label="Close preview"
+                              onClick={() => setLightboxTheme(null)}
+                              className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                            >
+                              <X className="h-4 w-4" aria-hidden />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ) : null}
