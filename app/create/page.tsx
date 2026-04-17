@@ -413,7 +413,8 @@ function CreatePortraitContent() {
   }
 
   function goNext() {
-    if (wizardStep === 1 && theme) {
+    if (wizardStep === 1) {
+      if (!petName.trim() || !theme) return
       window.gtag?.("event", "create_step1_complete", {
         theme,
         pet_name: petName.trim(),
@@ -636,7 +637,37 @@ function CreatePortraitContent() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    <h2 className="text-xl font-semibold text-foreground">What&apos;s their theme?</h2>
+                    <h2 className="text-xl font-semibold text-foreground">What&apos;s their name?</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Exactly as you&apos;d like it to appear in the portrait
+                    </p>
+                    <div className="mt-3">
+                      <label htmlFor="pet-name-step1" className="block text-sm font-medium text-foreground">
+                        Your pet&apos;s name (required)
+                      </label>
+                      <input
+                        id="pet-name-step1"
+                        type="text"
+                        required
+                        value={petName}
+                        onFocus={() => {
+                          window.dataLayer = window.dataLayer || []
+                          window.dataLayer.push({ event: "pet_name_entered" })
+                        }}
+                        onChange={(e) => setPetName(e.target.value.slice(0, 12))}
+                        maxLength={12}
+                        placeholder="Your pet's name (required)"
+                        className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                        aria-invalid={Boolean(theme && !petName.trim())}
+                        aria-describedby={theme && !petName.trim() ? "pet-name-step1-error" : undefined}
+                      />
+                      {theme && !petName.trim() ? (
+                        <p id="pet-name-step1-error" className="mt-1.5 text-sm text-destructive" role="alert">
+                          Please enter your pet&apos;s name
+                        </p>
+                      ) : null}
+                    </div>
+                    <h2 className="mt-8 text-xl font-semibold text-foreground">What&apos;s their theme?</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Browse our collection and pick the one that feels most like them. Their name will be worked into every portrait. Whatever theme you pick.
                     </p>
@@ -697,34 +728,13 @@ function CreatePortraitContent() {
                         })
                       )}
                     </div>
-                    <div className="mt-6">
-                      <label htmlFor="pet-name-step1" className="block text-sm font-medium text-foreground">
-                        What&apos;s their name?
-                      </label>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Exactly as you&apos;d like it to appear in the portrait
-                      </p>
-                      <input
-                        id="pet-name-step1"
-                        type="text"
-                        value={petName}
-                        onFocus={() => {
-                          window.dataLayer = window.dataLayer || []
-                          window.dataLayer.push({ event: "pet_name_entered" })
-                        }}
-                        onChange={(e) => setPetName(e.target.value.slice(0, 12))}
-                        maxLength={12}
-                        placeholder="e.g. Jimmy"
-                        className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                      />
-                    </div>
                     {/* Primary CTA – match hero CTA layout and spacing */}
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                       <Button
                         type="button"
                         data-gtm="create-step1-next"
                         onClick={goNext}
-                        disabled={!theme}
+                        disabled={!theme || !petName.trim()}
                         className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                       >
                         Next — upload their photo
