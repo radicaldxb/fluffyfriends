@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, Camera, AlertCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import { Check, Camera, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X } from "lucide-react"
 import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
@@ -34,6 +34,41 @@ const WIZARD_STEPS = [
 ] as const
 
 type ThemeItem = { id: string; name: string; previewUrl: string }
+
+const themePersonalisation: Record<string, { withName: (n: string) => string; fallback: string }> = {
+  fireman: {
+    withName: (n) => `${n}'s name on the chest patch`,
+    fallback: "Your pet's name on the chest patch",
+  },
+  police: {
+    withName: (n) => `${n}'s name on the badge`,
+    fallback: "Your pet's name on the badge",
+  },
+  admiral: {
+    withName: (n) => `${n}'s name on the breast plate`,
+    fallback: "Your pet's name on the breast plate",
+  },
+  vet: {
+    withName: (n) => `Dr. ${n} on the badge`,
+    fallback: "Your pet's name on the badge",
+  },
+  king: {
+    withName: (n) => `${n}'s initial on the royal chain`,
+    fallback: "Your pet's initial on the royal chain",
+  },
+  queen: {
+    withName: (n) => `${n}'s initial in the gold amulet`,
+    fallback: "Your pet's initial in the gold amulet",
+  },
+  samurai: {
+    withName: (n) => `${n}'s initial in the armour crest`,
+    fallback: "Your pet's initial in the armour crest",
+  },
+  pilot: {
+    withName: (n) => `${n}'s name on the tag`,
+    fallback: "Your pet's name on the tag",
+  },
+}
 
 function cleanValidatorMessage(raw: string | null): string {
   if (!raw) return ""
@@ -114,6 +149,7 @@ function CreatePortraitContent() {
   const portraitPreviewShownRef = useRef(false)
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
+  const [lightboxTheme, setLightboxTheme] = useState<ThemeItem | null>(null)
 
   useEffect(() => {
     return () => {
@@ -685,22 +721,20 @@ function CreatePortraitContent() {
                         themes.map((t, index) => {
                           const { id, name, previewUrl } = t
                           const selected = theme === id
+                          const trimmedName = petName.trim()
+                          const personalisation = themePersonalisation[id] ?? themePersonalisation.fireman
+                          const personalisationLine = trimmedName
+                            ? personalisation.withName(trimmedName)
+                            : personalisation.fallback
+
                           return (
-                            <button
+                            <div
                               key={id}
-                              type="button"
-                              onClick={() => {
-                                setTheme(id)
-                                window.dataLayer = window.dataLayer || []
-                                window.dataLayer.push({
-                                  event: "theme_selected",
-                                  theme_name: id,
-                                })
-                              }}
-                              className={cn(
-                                "group relative overflow-hidden rounded-[10px] bg-card text-center transition-all duration-200 hover:border-primary/60",
-                                selected ? "border-[3px] border-primary shadow-sm" : "border border-border",
-                              )}
+                              className={`relative flex flex-col overflow-hidden rounded-organic border bg-card transition-all duration-200 ${
+                                selected
+                                  ? "border-[3px] border-primary opacity-100 shadow-sm"
+                                  : "border border-border opacity-80"
+                              }`}
                               style={{ animationDelay: `${index * 30}ms` }}
                             >
                               <div className="relative h-[140px] w-full overflow-hidden bg-muted">
@@ -708,9 +742,17 @@ function CreatePortraitContent() {
                                 <img
                                   src={previewUrl}
                                   alt={name}
-                                  className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                                  className="h-full w-full object-cover object-top transition-transform duration-300"
                                   loading="lazy"
                                 />
+                                <button
+                                  type="button"
+                                  aria-label={`Preview ${name}`}
+                                  onClick={() => setLightboxTheme({ id, name, previewUrl })}
+                                  className="absolute top-2 left-2 flex h-7 w-7 items-center justify-center rounded-organic-sm bg-black/50 text-white transition-colors hover:bg-black/70"
+                                >
+                                  <ZoomIn className="h-4 w-4" aria-hidden />
+                                </button>
                                 {selected && (
                                   <span
                                     className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-organic-sm bg-primary text-primary-foreground shadow-md"
@@ -720,14 +762,79 @@ function CreatePortraitContent() {
                                   </span>
                                 )}
                               </div>
-                              <div className="px-2 py-2.5">
+                              <div className="flex flex-col gap-1 p-2">
                                 <span className="font-heading text-sm font-semibold text-foreground">{name}</span>
+                                <span className="text-xs leading-snug text-primary">{personalisationLine}</span>
                               </div>
-                            </button>
+                              <div className="px-2 pb-2">
+                                <button
+                                  type="button"
+                                  disabled={selected}
+                                  onClick={() => {
+                                    setTheme(id)
+                                    window.dataLayer = window.dataLayer || []
+                                    window.dataLayer.push({
+                                      event: "theme_selected",
+                                      theme_name: id,
+                                    })
+                                  }}
+                                  className={`w-full rounded-organic py-1.5 text-sm font-semibold text-white transition-all duration-200 ${
+                                    selected
+                                      ? "cursor-default bg-primary"
+                                      : "bg-gradient-to-r from-primary to-orange-400 hover:opacity-90"
+                                  }`}
+                                >
+                                  {selected ? "Selected \u2713" : "Select"}
+                                </button>
+                              </div>
+                            </div>
                           )
                         })
                       )}
                     </div>
+                    {lightboxTheme ? (
+                      <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+                        onClick={() => setLightboxTheme(null)}
+                        role="presentation"
+                      >
+                        <div
+                          className="relative w-full max-w-lg overflow-hidden rounded-organic bg-background shadow-2xl"
+                          onClick={(e) => e.stopPropagation()}
+                          role="dialog"
+                          aria-modal="true"
+                          aria-labelledby="lightbox-theme-title"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={lightboxTheme.previewUrl}
+                            alt={lightboxTheme.name}
+                            className="h-auto w-full object-cover"
+                          />
+                          <div className="bg-gradient-to-r from-primary to-orange-400 px-4 py-3">
+                            <p id="lightbox-theme-title" className="text-base font-bold text-white">
+                              {lightboxTheme.name}
+                            </p>
+                            <p className="text-sm text-white/90">
+                              {(() => {
+                                const trimmed = petName.trim()
+                                const p =
+                                  themePersonalisation[lightboxTheme.id] ?? themePersonalisation.fireman
+                                return trimmed ? p.withName(trimmed) : p.fallback
+                              })()}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            aria-label="Close preview"
+                            onClick={() => setLightboxTheme(null)}
+                            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
+                          >
+                            <X className="h-4 w-4" aria-hidden />
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
                     {/* Primary CTA – match hero CTA layout and spacing */}
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                       <Button
