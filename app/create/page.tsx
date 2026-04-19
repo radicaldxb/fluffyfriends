@@ -634,8 +634,14 @@ function CreatePortraitContent() {
 
       <section className="py-10 md:py-14 flex-1">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
-          <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back to home</a>
+          <a
+            href="/"
+            className="z-40 text-sm text-muted-foreground transition-colors hover:text-foreground max-md:fixed max-md:right-4 max-md:top-[4.75rem] md:static md:top-auto md:right-auto md:z-auto md:mb-6 md:block"
+          >
+            ← Back to home
+          </a>
 
+          <div className="mt-12 md:mt-0">
           {showWizard && (
             <>
               <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
@@ -673,8 +679,8 @@ function CreatePortraitContent() {
                 ))}
               </div>
 
-              {/* Single step content with motion */}
-              <div className="relative mt-10 min-h-[320px] overflow-hidden">
+              {/* Single step content with motion — z-0 keeps scroll content below fixed bars (back z-40, CTA z-30) */}
+              <div className="relative z-0 mt-10 min-h-[320px] overflow-hidden">
                 {/* Step 1 — Choose style */}
                 {wizardStep === 1 && (
                   <div
@@ -806,12 +812,12 @@ function CreatePortraitContent() {
                       )}
                     </div>
                     {petName.trim() && theme ? (
-                      <div className="max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 z-50 border-t border-border bg-background p-4 shadow-lg md:relative md:z-auto md:mt-8 md:border-0 md:p-0 md:shadow-none">
+                      <div className="z-30 border-t border-border bg-background p-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 md:static md:z-auto md:mt-8 md:bg-transparent md:p-0">
                         <Button
                           type="button"
                           data-gtm="create-step1-next"
                           onClick={handleProceedToUpload}
-                          className="h-auto w-full rounded-organic-sm bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:bg-primary/90 md:mx-auto md:max-w-md"
+                          className="h-auto w-full rounded-organic-sm bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-lg shadow-primary/40 transition-colors hover:bg-primary/90 md:mx-auto md:max-w-md"
                         >
                           {`Let's upload ${petName.trim()}'s photo`}
                         </Button>
@@ -1686,6 +1692,7 @@ function CreatePortraitContent() {
               )}
             </div>
           )}
+          </div>
         </div>
       </section>
       <Footer />
