@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X } from "lucide-react"
+import { Check, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X, Search } from "lucide-react"
 import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
@@ -151,6 +151,7 @@ function CreatePortraitContent() {
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
   const [lightboxTheme, setLightboxTheme] = useState<ThemeItem | null>(null)
+  const [inspectModalOpen, setInspectModalOpen] = useState(false)
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0)
   const portraitLoadingActiveRef = useRef(false)
 
@@ -205,6 +206,24 @@ function CreatePortraitContent() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  useEffect(() => {
+    if (!inspectModalOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInspectModalOpen(false)
+    }
+    window.addEventListener("keydown", onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [inspectModalOpen])
+
+  useEffect(() => {
+    if (status !== "preview") setInspectModalOpen(false)
+  }, [status])
 
   useEffect(() => {
     if (!themeFromQuery || !themeIds.includes(themeFromQuery)) return
@@ -1294,6 +1313,14 @@ function CreatePortraitContent() {
                     </span>
                   ))}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setInspectModalOpen(true)}
+                  aria-label="Inspect portrait details"
+                  className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90 md:top-4 md:right-4 md:h-14 md:w-14"
+                >
+                  <Search className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2} aria-hidden />
+                </button>
                 </div>
               </div>
               <p className="mt-2 text-center text-xs text-muted-foreground">
@@ -1788,6 +1815,47 @@ function CreatePortraitContent() {
         <div className="mx-auto w-full max-w-2xl">{renderPreviewUnlockButton()}</div>
       </div>
     ) : null}
+
+    {inspectModalOpen && previewImageUrl
+      ? ReactDOM.createPortal(
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setInspectModalOpen(false)}
+            role="presentation"
+          >
+            <div
+              className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-organic"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Portrait inspection"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewImageUrl}
+                alt={
+                  petNameDisplay
+                    ? `${petNameDisplay}'s portrait — inspect details`
+                    : "Pet portrait — inspect details"
+                }
+                className="h-auto max-h-[90vh] w-full max-w-[90vw] object-contain"
+                style={{ touchAction: "pinch-zoom" }}
+                onContextMenu={(e) => e.preventDefault()}
+                draggable={false}
+              />
+              <button
+                type="button"
+                onClick={() => setInspectModalOpen(false)}
+                aria-label="Close inspection"
+                className="absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-organic-sm bg-background/95 text-foreground shadow-lg ring-1 ring-border transition-colors hover:bg-background md:top-4 md:right-4"
+              >
+                <X className="h-6 w-6" strokeWidth={2} aria-hidden />
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null}
     </>
   )
 }
