@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, Camera, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X } from "lucide-react"
+import { Check, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X } from "lucide-react"
 import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
@@ -151,6 +151,44 @@ function CreatePortraitContent() {
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
   const [lightboxTheme, setLightboxTheme] = useState<ThemeItem | null>(null)
+  const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0)
+
+  const portraitLoadingMessages = useMemo(() => {
+    const n = petName.trim() || "your pet"
+    return [
+      `Checking ${n}'s photo`,
+      "Analyzing their pose...",
+      "Reading their vibe...",
+      "Checking the lighting...",
+      "Bringing the mood to life...",
+    ]
+  }, [petName])
+
+  useEffect(() => {
+    if (status !== "processing" && status !== "generating") {
+      setLoadingPhaseIndex(0)
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (status !== "processing" && status !== "generating") return
+    if (loadingPhaseIndex >= portraitLoadingMessages.length - 1) return
+    const t = window.setTimeout(() => {
+      setLoadingPhaseIndex((i) => Math.min(i + 1, portraitLoadingMessages.length - 1))
+    }, 1800)
+    return () => window.clearTimeout(t)
+  }, [status, loadingPhaseIndex, portraitLoadingMessages.length])
+
+  useEffect(() => {
+    if (wizardStep !== 2) return
+    window.scrollTo(0, 0)
+  }, [wizardStep])
+
+  useEffect(() => {
+    if (status === "processing" || status === "generating") {
+      window.scrollTo(0, 0)
+    }
+  }, [status])
 
   useEffect(() => {
     return () => {
@@ -609,6 +647,9 @@ function CreatePortraitContent() {
   const showStep1UploadCta =
     showWizard && wizardStep === 1 && Boolean(petName.trim()) && Boolean(theme)
 
+  const showStep2StickyContinue =
+    showWizard && wizardStep === 2 && Boolean(file) && status === "idle"
+
   function renderStep1UploadButton() {
     return (
       <Button
@@ -618,6 +659,21 @@ function CreatePortraitContent() {
         className="h-auto w-full rounded-organic-sm bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-colors hover:bg-primary/90 md:mx-auto md:max-w-md"
       >
         {`Let's upload ${petName.trim()}'s photo`}
+      </Button>
+    )
+  }
+
+  function renderStep2ContinueButton() {
+    return (
+      <Button
+        type="button"
+        data-gtm="create-step2-next"
+        onClick={handleCheckImage}
+        disabled={!file}
+        className="inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-colors hover:bg-primary/90 md:mx-auto md:max-w-md disabled:pointer-events-none disabled:opacity-50"
+      >
+        Continue
+        <ChevronRight className="ml-0.5 h-4 w-4" />
       </Button>
     )
   }
@@ -893,11 +949,12 @@ function CreatePortraitContent() {
                     key="step2"
                     className={cn(
                       "animate-in fade-in-0 duration-300",
+                      showStep2StickyContinue && "pb-24 md:pb-0",
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
                     {isRejectionError && (
-                      <div className="mb-4 rounded-organic-sm border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-left">
+                      <div className="mb-3 rounded-organic-sm border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-left md:mb-4">
                         <p className="text-sm font-semibold text-foreground">Oops — this photo won&apos;t work</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {cleanedRejectionMessage ||
@@ -908,7 +965,7 @@ function CreatePortraitContent() {
                         </p>
                       </div>
                     )}
-                    <h2 className="text-xl font-semibold text-foreground">
+                    <h2 className="mt-3 mb-2 text-xl font-semibold text-foreground md:mt-6 md:mb-4">
                       Upload {theirOrName} photo
                     </h2>
                     <input
@@ -922,10 +979,8 @@ function CreatePortraitContent() {
                     <label
                       htmlFor="pet-photo"
                       className={cn(
-                        "mt-4 flex cursor-pointer flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-primary bg-primary/[0.04] py-10 transition-colors",
-                        isDragging
-                          ? "border-primary bg-primary/10"
-                          : "hover:border-primary/90 hover:bg-primary/[0.08]"
+                        "mt-3 flex h-44 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-organic border-2 border-dashed border-primary/30 transition-colors md:mt-4 md:h-80",
+                        isDragging ? "border-primary bg-primary/10" : "bg-primary/[0.04] hover:bg-primary/5"
                       )}
                       onDragEnter={handleDragEnter}
                       onDragOver={handleDragOver}
@@ -933,24 +988,48 @@ function CreatePortraitContent() {
                       onDrop={handleDrop}
                     >
                       {previewUrl && file ? (
-                        <div className="relative w-full max-w-sm overflow-hidden rounded-organic-sm">
+                        <div className="flex h-full w-full items-center justify-center p-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={previewUrl} alt="Preview" className="h-auto w-full object-contain max-h-64" />
+                          <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="max-h-full max-w-full object-contain"
+                          />
                         </div>
                       ) : (
-                        <>
-                          <Camera className="h-12 w-12 shrink-0 text-primary" strokeWidth={1.75} aria-hidden />
-                          <span className="mt-2 text-sm font-medium text-foreground">
-                            Drop {theirOrName} photo here, or click to browse
-                          </span>
-                          <span className="mt-0.5 text-xs text-muted-foreground">JPG or PNG · Up to 10 MB</span>
-                        </>
+                        <div className="text-center">
+                          <svg
+                            className="mx-auto mb-2 h-8 w-8 text-primary md:h-12 md:w-12"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                          <p className="text-sm font-medium text-foreground md:text-base">Tap to upload</p>
+                          <p className="mt-1 text-xs text-muted-foreground">or drag and drop · JPG or PNG · Up to 10 MB</p>
+                        </div>
                       )}
                     </label>
-                    <h3 className="mt-6 text-base font-semibold text-foreground">
+                    {file && previewUrl && status === "idle" ? (
+                      <div className="mt-3 flex flex-col items-center text-center md:mt-4">
+                        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                          <Check className="h-6 w-6 text-primary" strokeWidth={2.5} aria-hidden />
+                        </div>
+                        <p className="font-medium text-foreground">Upload complete!</p>
+                        <p className="mt-1 text-sm text-muted-foreground">We&apos;ll check your photo when you continue.</p>
+                      </div>
+                    ) : null}
+                    <h3 className="mt-3 mb-2 text-base font-semibold text-foreground md:mt-6 md:mb-4">
                       Any photo works — here&apos;s what gives the best result 🐾
                     </h3>
-                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground md:mt-3 md:space-y-2">
                       <li className="flex gap-2">
                         <span className="text-primary" aria-hidden>
                           ✓
@@ -982,24 +1061,15 @@ function CreatePortraitContent() {
                         <span>Natural light if possible</span>
                       </li>
                     </ul>
-                    <p className="mt-4 text-sm text-muted-foreground">
+                    <p className="mt-3 text-sm text-muted-foreground md:mt-4">
                       These are tips, not rules. Upload your best photo and we will let you know if it works.
                     </p>
-                    <div className="mt-6 flex justify-between">
+                    <div className="mt-6 flex justify-between gap-3 md:mt-8">
                       <Button type="button" variant="outline" onClick={goPrev} className="rounded-organic-sm">
                         <ChevronLeft className="mr-1 h-4 w-4" />
                         Back
                       </Button>
-                      <Button
-                        type="button"
-                        data-gtm="create-step2-next"
-                        onClick={handleCheckImage}
-                        disabled={!file}
-                        className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
-                      >
-                        Continue
-                        <ChevronRight className="ml-0.5 h-4 w-4" />
-                      </Button>
+                      <div className="hidden md:block">{renderStep2ContinueButton()}</div>
                     </div>
                   </div>
                 )}
@@ -1025,63 +1095,33 @@ function CreatePortraitContent() {
             </>
           )}
 
-          {/* Processing – validation only */}
-          {status === "processing" && (
-            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
-              <div className="relative h-32 w-32 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5 shadow-sm">
-                <video
-                  src="/video/FF-Loader.mp4"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="h-full w-full object-cover scale-[1.05]"
-                />
-              </div>
-              <p className="mt-6 text-lg font-semibold text-foreground">
-                Taking a look at {theirOrName} photo…
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Just making sure it&apos;ll work beautifully
-              </p>
-              <div className="mt-6 flex gap-1.5">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="h-2 w-2 rounded-organic-sm bg-primary animate-pulse"
-                    style={{ animationDelay: `${i * 150}ms` }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {status === "generating" && (
-            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center py-16 text-center">
-              <div className="relative h-32 w-32 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5 shadow-sm">
-                <video
-                  src="/video/FF-Loader.mp4"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="h-full w-full object-cover scale-[1.05]"
-                />
-              </div>
-              <p className="mt-6 text-lg font-semibold text-foreground">
-                Creating {petName.trim() ? `${petName.trim()}'s` : "your"} portrait now...
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                This takes about a minute. Stay with us.
-              </p>
-              <div className="mt-6 flex gap-1.5">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="h-2 w-2 rounded-organic-sm bg-primary animate-pulse"
-                    style={{ animationDelay: `${i * 150}ms` }}
-                  />
-                ))}
+          {/* Processing / generating — sequential messages + spinner */}
+          {(status === "processing" || status === "generating") && (
+            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
+              <div
+                className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"
+                aria-hidden
+              />
+              <div className="max-w-md">
+                <p className="text-lg font-medium text-foreground">
+                  {portraitLoadingMessages[loadingPhaseIndex] ?? "Almost there…"}
+                </p>
+                <div className="mt-3 flex justify-center gap-1.5">
+                  {portraitLoadingMessages.map((_, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-2 w-2 rounded-full transition-colors",
+                        i <= loadingPhaseIndex ? "bg-primary" : "bg-primary/20",
+                      )}
+                    />
+                  ))}
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {status === "generating"
+                    ? "This can take about a minute. Stay with us."
+                    : "Hang tight — we&apos;re making sure everything looks great."}
+                </p>
               </div>
             </div>
           )}
@@ -1711,6 +1751,11 @@ function CreatePortraitContent() {
     {showStep1UploadCta ? (
       <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
         <div className="mx-auto w-full max-w-2xl">{renderStep1UploadButton()}</div>
+      </div>
+    ) : null}
+    {showStep2StickyContinue ? (
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
+        <div className="mx-auto w-full max-w-2xl">{renderStep2ContinueButton()}</div>
       </div>
     ) : null}
     </>
