@@ -27,12 +27,12 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <a href="/" className="flex shrink-0 items-center" aria-label="FluffyFriends home">
           <Image
-            src="/logos/FluffyFriends-Footer-Logo.webp"
+            src="/logos/FluffyFriends-logo.webp"
             alt="FluffyFriends — AI Pet Portraits"
-            width={180}
-            height={48}
-            sizes="(max-width: 640px) 180px, 220px"
-            className="h-[2.875rem] w-auto object-contain sm:h-[3.45rem]"
+            width={112}
+            height={112}
+            sizes="48px"
+            className="h-10 w-10 object-contain md:h-12 md:w-12"
             priority
             unoptimized
           />
@@ -57,7 +57,7 @@ export function Navbar() {
             className="hidden sm:inline-flex rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
             asChild
           >
-            <a href="/create">Create My Portrait →</a>
+            <a href="/create">Create Their Portrait →</a>
           </Button>
           <button
             className="text-foreground p-2 md:hidden -m-2"
@@ -89,7 +89,7 @@ export function Navbar() {
                 className="w-full rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
                 asChild
               >
-                <a href="/create" onClick={() => setMobileOpen(false)}>Create My Portrait →</a>
+                <a href="/create" onClick={() => setMobileOpen(false)}>Create Their Portrait →</a>
               </Button>
             </li>
           </ul>

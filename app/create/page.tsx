@@ -1228,15 +1228,15 @@ function CreatePortraitContent() {
                 </div>
               </div>
               <div className="max-w-md">
-                <div className="min-h-[4.5rem]">
+                <div className="min-h-[3.5rem] md:min-h-[4rem]">
                   <p
                     key={loadingPhaseIndex}
-                    className="animate-in fade-in duration-300 text-lg font-medium text-primary"
+                    className="animate-in fade-in duration-300 text-lg font-medium leading-snug text-primary"
                   >
                     {portraitLoadingMessages[loadingPhaseIndex] ?? ""}
                   </p>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {status === "generating"
                     ? "This can take about a minute. Stay with us."
                     : "Hang tight. We're making sure everything looks great."}
