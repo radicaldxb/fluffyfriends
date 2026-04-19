@@ -152,6 +152,7 @@ function CreatePortraitContent() {
   const packageViewedSuccessRef = useRef(false)
   const [lightboxTheme, setLightboxTheme] = useState<ThemeItem | null>(null)
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0)
+  const portraitLoadingActiveRef = useRef(false)
 
   const portraitLoadingMessages = useMemo(() => {
     const n = petName.trim() || "your pet"
@@ -160,24 +161,33 @@ function CreatePortraitContent() {
       "Analyzing their pose...",
       "Reading their vibe...",
       "Checking the lighting...",
-      "Bringing the mood to life...",
+      "Getting ready for the portrait...",
+      "Final touches...",
+      "Getting ready for the big reveal...",
     ]
   }, [petName])
 
   useEffect(() => {
-    if (status !== "processing" && status !== "generating") {
+    const isLoading = status === "processing" || status === "generating"
+    if (!isLoading) {
+      portraitLoadingActiveRef.current = false
+      setLoadingPhaseIndex(0)
+      return
+    }
+    const wasActive = portraitLoadingActiveRef.current
+    portraitLoadingActiveRef.current = true
+    if (!wasActive) {
       setLoadingPhaseIndex(0)
     }
-  }, [status])
 
-  useEffect(() => {
-    if (status !== "processing" && status !== "generating") return
-    if (loadingPhaseIndex >= portraitLoadingMessages.length - 1) return
-    const t = window.setTimeout(() => {
-      setLoadingPhaseIndex((i) => Math.min(i + 1, portraitLoadingMessages.length - 1))
+    const intervalId = window.setInterval(() => {
+      setLoadingPhaseIndex((prev) =>
+        prev >= portraitLoadingMessages.length - 1 ? prev : prev + 1,
+      )
     }, 1800)
-    return () => window.clearTimeout(t)
-  }, [status, loadingPhaseIndex, portraitLoadingMessages.length])
+
+    return () => window.clearInterval(intervalId)
+  }, [status, portraitLoadingMessages.length])
 
   useEffect(() => {
     if (wizardStep !== 2) return
@@ -650,6 +660,12 @@ function CreatePortraitContent() {
   const showStep2StickyContinue =
     showWizard && wizardStep === 2 && Boolean(file) && status === "idle"
 
+  const showPreviewStickyUnlock =
+    status === "preview" &&
+    Boolean(previewImageUrl) &&
+    Boolean(generationPortraitId) &&
+    Boolean(selectedProduct)
+
   function renderStep1UploadButton() {
     return (
       <Button
@@ -678,9 +694,75 @@ function CreatePortraitContent() {
     )
   }
 
+  function renderPreviewUnlockButton({ className }: { className?: string } = {}) {
+    return (
+      <Button
+        data-gtm="create-step3-checkout"
+        className={cn(
+          "inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90",
+          className,
+        )}
+        onClick={async () => {
+          if (!generationPortraitId) return
+          setCheckoutStatus("submitting")
+          setCheckoutError("")
+          try {
+            window.dataLayer = window.dataLayer || []
+            window.dataLayer.push({
+              event: "checkout_initiated",
+              package: selectedProductId,
+              theme_name: theme ?? "",
+            })
+            if (typeof window !== "undefined" && typeof window.fbq === "function") {
+              window.fbq("track", "InitiateCheckout")
+            }
+            const res = await fetch("/api/create-checkout-v2", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                product_id: selectedProductId,
+                portrait_id: generationPortraitId,
+                ...(theme && { theme }),
+                ...(promotionCodeId && { promotionCodeId }),
+              }),
+            })
+            const data = await res.json().catch(() => ({}))
+            if (!res.ok || !data.url) {
+              setCheckoutStatus("error")
+              setCheckoutError(
+                typeof data.error === "string" && data.error
+                  ? data.error
+                  : "We could not start checkout. Please try again.",
+              )
+              return
+            }
+            window.dataLayer = window.dataLayer || []
+            window.dataLayer.push({ event: "create_step3_checkout" })
+            window.location.href = data.url as string
+          } catch {
+            setCheckoutStatus("error")
+            setCheckoutError("We could not start checkout. Please try again.")
+          }
+        }}
+        disabled={checkoutStatus === "submitting"}
+      >
+        {checkoutStatus === "submitting"
+          ? "Connecting to Stripe..."
+          : selectedProduct && previewCheckoutPriceDisplay
+            ? `Unlock my portrait — ${previewCheckoutPriceDisplay}`
+            : "Unlock my portrait"}
+      </Button>
+    )
+  }
+
   return (
     <>
-    <main className="min-h-screen bg-background flex flex-col">
+    <main
+      className={cn(
+        "min-h-screen bg-background flex flex-col",
+        showPreviewStickyUnlock && "pb-24 md:pb-0",
+      )}
+    >
       <Navbar />
 
       {portraitsRemaining !== null && portraitsRemaining > 0 && (
@@ -988,13 +1070,21 @@ function CreatePortraitContent() {
                       onDrop={handleDrop}
                     >
                       {previewUrl && file ? (
-                        <div className="flex h-full w-full items-center justify-center p-2">
+                        <div className="relative flex h-full w-full items-center justify-center p-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={previewUrl}
                             alt="Preview"
                             className="max-h-full max-w-full object-contain"
                           />
+                          {status === "idle" && !isRejectionError ? (
+                            <span
+                              className="pointer-events-none absolute top-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-primary shadow-md md:top-4 md:right-4 md:h-12 md:w-12"
+                              aria-hidden
+                            >
+                              <Check className="h-6 w-6 text-primary-foreground md:h-7 md:w-7" strokeWidth={3} />
+                            </span>
+                          ) : null}
                         </div>
                       ) : (
                         <div className="text-center">
@@ -1017,17 +1107,8 @@ function CreatePortraitContent() {
                         </div>
                       )}
                     </label>
-                    {file && previewUrl && status === "idle" ? (
-                      <div className="mt-3 flex flex-col items-center text-center md:mt-4">
-                        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                          <Check className="h-6 w-6 text-primary" strokeWidth={2.5} aria-hidden />
-                        </div>
-                        <p className="font-medium text-foreground">Upload complete!</p>
-                        <p className="mt-1 text-sm text-muted-foreground">We&apos;ll check your photo when you continue.</p>
-                      </div>
-                    ) : null}
                     <h3 className="mt-3 mb-2 text-base font-semibold text-foreground md:mt-6 md:mb-4">
-                      Any photo works — here&apos;s what gives the best result 🐾
+                      Any photo works. Here&apos;s what gives the best result
                     </h3>
                     <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground md:mt-3 md:space-y-2">
                       <li className="flex gap-2">
@@ -1099,19 +1180,25 @@ function CreatePortraitContent() {
           {(status === "processing" || status === "generating") && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
               <div
-                className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"
-                aria-hidden
+                className="mb-6 h-14 w-14 shrink-0 animate-spin rounded-full border-4 border-primary/25 border-t-primary border-r-primary/40"
+                role="status"
+                aria-label="Loading"
               />
               <div className="max-w-md">
-                <p className="text-lg font-medium text-foreground">
-                  {portraitLoadingMessages[loadingPhaseIndex] ?? "Almost there…"}
-                </p>
-                <div className="mt-3 flex justify-center gap-1.5">
+                <div className="min-h-[4.5rem]">
+                  <p
+                    key={loadingPhaseIndex}
+                    className="animate-in fade-in duration-300 text-lg font-medium text-foreground"
+                  >
+                    {portraitLoadingMessages[loadingPhaseIndex] ?? ""}
+                  </p>
+                </div>
+                <div className="mt-4 flex justify-center gap-1.5">
                   {portraitLoadingMessages.map((_, i) => (
                     <div
                       key={i}
                       className={cn(
-                        "h-2 w-2 rounded-full transition-colors",
+                        "h-2 w-2 rounded-full transition-colors duration-300",
                         i <= loadingPhaseIndex ? "bg-primary" : "bg-primary/20",
                       )}
                     />
@@ -1120,60 +1207,33 @@ function CreatePortraitContent() {
                 <p className="mt-4 text-sm text-muted-foreground">
                   {status === "generating"
                     ? "This can take about a minute. Stay with us."
-                    : "Hang tight — we&apos;re making sure everything looks great."}
+                    : "Hang tight. We&apos;re making sure everything looks great."}
                 </p>
               </div>
             </div>
           )}
 
           {status === "preview" && previewImageUrl && (
-            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10">
-              <div className="mb-6 flex w-full items-center justify-center gap-0 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </span>
-                  <span className="text-muted-foreground">Pick a theme</span>
-                </div>
-                <div className="mx-3 h-px w-6 flex-shrink-0 bg-primary" />
-                <div className="flex items-center gap-1.5">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-primary text-[10px] font-bold text-primary-foreground">
-                    2
-                  </span>
-                  <span className="font-medium text-foreground">Your preview</span>
-                </div>
-                <div className="mx-3 h-px w-6 flex-shrink-0 bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-organic-sm bg-muted text-[10px] font-bold text-muted-foreground">
-                    3
-                  </span>
-                  <span className="text-muted-foreground">Get your portrait</span>
-                </div>
-              </div>
-              <h2 className="font-heading mb-2 text-center text-3xl font-extrabold tracking-tight text-foreground">
-                {petNameDisplay ? `${petNameDisplay}'s` : "Your pet's"} portrait is ready.
-              </h2>
-              <p className="mb-8 text-center text-sm text-muted-foreground">
+            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-6 md:py-10">
+              <h1 className="font-heading text-center text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
+                {petNameDisplay ? (
+                  <>
+                    <span className="text-primary">{petNameDisplay}&apos;s</span> portrait is ready.
+                  </>
+                ) : (
+                  <>Your pet&apos;s portrait is ready.</>
+                )}
+              </h1>
+              <p className="mt-2 mb-3 text-center text-sm text-muted-foreground md:mb-4">
                 This is your preview. Unlock the full resolution below.
               </p>
-              <div className="relative w-full max-w-lg overflow-hidden rounded-[16px] border-4 border-primary/80 shadow-2xl ring-4 ring-primary/20">
+              <div className="mt-4 mb-3 flex w-full justify-center px-3 md:mt-6 md:mb-4 md:px-0">
+                <div className="relative w-full max-w-sm overflow-hidden rounded-organic border-2 border-primary/20 shadow-lg shadow-primary/15 md:max-w-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewImageUrl}
                   alt={`${petName.trim() || "Pet"} — landscape preview`}
-                  className="w-full select-none"
+                  className="w-full select-none object-cover"
                   onContextMenu={(e) => e.preventDefault()}
                   draggable={false}
                   onError={() => {
@@ -1221,16 +1281,13 @@ function CreatePortraitContent() {
                     </span>
                   ))}
                 </div>
+                </div>
               </div>
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                Full resolution · Both formats included · Watermark removed after purchase
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                Full resolution • Both formats included • Print ready
               </p>
-              <p className="mt-1.5 max-w-md text-center text-xs text-muted-foreground/70">
-                The AI adapts each portrait to your pet&apos;s unique features. The final result may differ
-                slightly from this preview.
-              </p>
-              <div className="mt-8 w-full max-w-xl">
-                <div className="mb-5 flex items-start gap-3 rounded-[12px] border border-primary/30 bg-primary/5 px-4 py-3">
+              <div className="mt-6 w-full max-w-xl md:mt-8">
+                <div className="mb-4 flex items-start gap-3 rounded-organic border border-primary/30 bg-primary/5 px-4 py-3 md:mb-5">
                   <span className="mt-0.5 text-primary">
                     <svg
                       width="16"
@@ -1255,10 +1312,10 @@ function CreatePortraitContent() {
                     </p>
                   </div>
                 </div>
-                <p className="mb-3 text-center text-sm font-medium text-foreground sm:text-left">
+                <h2 className="mb-4 text-lg font-semibold text-foreground md:text-xl">
                   Choose your package
-                </p>
-                <div className="grid gap-3 sm:grid-cols-3">
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   {PRODUCTS.map((p) => (
                     <button
                       key={p.id}
@@ -1277,7 +1334,7 @@ function CreatePortraitContent() {
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
                       <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-foreground">{p.priceDisplay}</span>
+                        <span className="text-2xl font-bold text-primary">{p.priceDisplay}</span>
                         {p.savePercent != null && (
                           <span className="text-xs font-medium text-primary">Save {p.savePercent}%</span>
                         )}
@@ -1350,58 +1407,9 @@ function CreatePortraitContent() {
                 </div>
               </div>
 
-              <Button
-                className="mt-4 w-full max-w-xl inline-flex items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto mx-auto"
-                onClick={async () => {
-                  if (!generationPortraitId) return
-                  setCheckoutStatus("submitting")
-                  setCheckoutError("")
-                  try {
-                    window.dataLayer = window.dataLayer || []
-                    window.dataLayer.push({
-                      event: "checkout_initiated",
-                      package: selectedProductId,
-                      theme_name: theme ?? "",
-                    })
-                    if (typeof window !== "undefined" && typeof window.fbq === "function") {
-                      window.fbq("track", "InitiateCheckout")
-                    }
-                    const res = await fetch("/api/create-checkout-v2", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        product_id: selectedProductId,
-                        portrait_id: generationPortraitId,
-                        ...(theme && { theme }),
-                        ...(promotionCodeId && { promotionCodeId }),
-                      }),
-                    })
-                    const data = await res.json().catch(() => ({}))
-                    if (!res.ok || !data.url) {
-                      setCheckoutStatus("error")
-                      setCheckoutError(
-                        typeof data.error === "string" && data.error
-                          ? data.error
-                          : "We could not start checkout. Please try again.",
-                      )
-                      return
-                    }
-                    window.dataLayer = window.dataLayer || []
-                    window.dataLayer.push({ event: "create_step3_checkout" })
-                    window.location.href = data.url as string
-                  } catch {
-                    setCheckoutStatus("error")
-                    setCheckoutError("We could not start checkout. Please try again.")
-                  }
-                }}
-                disabled={checkoutStatus === "submitting"}
-              >
-                {checkoutStatus === "submitting"
-                  ? "Connecting to Stripe..."
-                  : selectedProduct && previewCheckoutPriceDisplay
-                    ? `Unlock my portrait — ${previewCheckoutPriceDisplay}`
-                    : "Unlock my portrait"}
-              </Button>
+              <div className="mt-4 hidden w-full max-w-xl md:mt-8 md:block">
+                {renderPreviewUnlockButton({ className: "mx-auto max-w-xl" })}
+              </div>
             </div>
           )}
 
@@ -1453,7 +1461,7 @@ function CreatePortraitContent() {
               </p>
               <p className="mt-1 text-sm text-muted-foreground max-w-md">
                 {showPackFlow
-                  ? "Use one portrait from your pack — no payment needed."
+                  ? "Use one portrait from your pack. No payment needed."
                   : "We're confident this will make a stunning portrait. Choose your package and continue to payment."}
               </p>
 
@@ -1756,6 +1764,11 @@ function CreatePortraitContent() {
     {showStep2StickyContinue ? (
       <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
         <div className="mx-auto w-full max-w-2xl">{renderStep2ContinueButton()}</div>
+      </div>
+    ) : null}
+    {showPreviewStickyUnlock ? (
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
+        <div className="mx-auto w-full max-w-2xl">{renderPreviewUnlockButton()}</div>
       </div>
     ) : null}
     </>
