@@ -606,7 +606,24 @@ function CreatePortraitContent() {
   const showWizard = status === "idle" || status === "error"
   const progressPercent = showWizard ? (wizardStep / 3) * 100 : 100
 
+  const showStep1UploadCta =
+    showWizard && wizardStep === 1 && Boolean(petName.trim()) && Boolean(theme)
+
+  function renderStep1UploadButton() {
+    return (
+      <Button
+        type="button"
+        data-gtm="create-step1-next"
+        onClick={handleProceedToUpload}
+        className="h-auto w-full rounded-organic-sm bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-colors hover:bg-primary/90 md:mx-auto md:max-w-md"
+      >
+        {`Let's upload ${petName.trim()}'s photo`}
+      </Button>
+    )
+  }
+
   return (
+    <>
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
@@ -634,17 +651,9 @@ function CreatePortraitContent() {
 
       <section className="py-10 md:py-14 flex-1">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
-          <a
-            href="/"
-            className="z-40 text-sm text-muted-foreground transition-colors hover:text-foreground max-md:fixed max-md:right-4 max-md:top-[4.75rem] md:static md:top-auto md:right-auto md:z-auto md:mb-6 md:block"
-          >
-            ← Back to home
-          </a>
-
-          <div className="mt-12 md:mt-0">
           {showWizard && (
             <>
-              <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+              <h1 className="mt-3 mb-3 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl md:mt-6 md:mb-4">
                 {pageTitle}
               </h1>
               <p className="mt-1 hidden text-sm text-muted-foreground md:block">
@@ -680,7 +689,7 @@ function CreatePortraitContent() {
               </div>
 
               {/* Single step content with motion — z-0 keeps scroll content below fixed bars (back z-40, CTA z-30) */}
-              <div className="relative z-0 mt-10 min-h-[320px] overflow-hidden">
+              <div className="relative z-0 mt-4 min-h-[320px] overflow-hidden md:mt-10">
                 {/* Step 1 — Choose style */}
                 {wizardStep === 1 && (
                   <div
@@ -690,11 +699,13 @@ function CreatePortraitContent() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    <h2 className="text-xl font-semibold text-foreground">What&apos;s their name?</h2>
+                    <h2 className="mt-2 mb-2 text-xl font-semibold text-foreground md:mt-6 md:mb-4">
+                      What&apos;s their name?
+                    </h2>
                     <p className="mt-1 hidden text-sm text-muted-foreground md:block">
                       Exactly as you&apos;d like it to appear in the portrait
                     </p>
-                    <div className="mt-3">
+                    <div className="mt-2 md:mt-3">
                       <label
                         htmlFor="pet-name-step1"
                         className="mb-0 hidden text-sm font-medium text-foreground md:block"
@@ -724,9 +735,13 @@ function CreatePortraitContent() {
                         </p>
                       ) : null}
                     </div>
-                    <h2 className="mt-8 text-xl font-semibold text-foreground">What&apos;s their theme?</h2>
-                    <p className="mt-1 text-sm font-medium text-foreground">Pick their vibe</p>
-                    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <h2 className="mt-3 mb-2 text-xl font-semibold text-foreground md:mt-8 md:mb-4">
+                      What&apos;s their theme?
+                    </h2>
+                    <p className="mt-2 mb-2 text-sm font-medium text-foreground md:mt-6 md:mb-4">
+                      Pick their vibe
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-3 md:mt-6 md:grid-cols-4">
                       {themes.length === 0 ? (
                         <div className="col-span-full grid grid-cols-2 gap-3 md:grid-cols-4">
                           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -741,10 +756,6 @@ function CreatePortraitContent() {
                           const { id, name, previewUrl } = t
                           const selected = theme === id
                           const trimmedName = petName.trim()
-                          const personalisation = themePersonalisation[id] ?? themePersonalisation.fireman
-                          const personalisationLine = trimmedName
-                            ? personalisation.withName(trimmedName)
-                            : personalisation.fallback
 
                           return (
                             <div
@@ -781,9 +792,10 @@ function CreatePortraitContent() {
                                   </span>
                                 )}
                               </div>
-                              <div className="flex flex-col gap-1 p-2">
-                                <span className="font-heading text-sm font-semibold text-foreground">{name}</span>
-                                <span className="text-xs leading-snug text-primary">{personalisationLine}</span>
+                              <div className="px-2 pt-2">
+                                <p className="text-xs leading-snug text-muted-foreground">
+                                  {trimmedName ? `${name} · ${trimmedName}` : name}
+                                </p>
                               </div>
                               <div className="px-2 pb-2">
                                 <button
@@ -811,16 +823,9 @@ function CreatePortraitContent() {
                         })
                       )}
                     </div>
-                    {petName.trim() && theme ? (
-                      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background p-4 md:static md:border-t-0 md:mt-8 md:bg-transparent md:p-0 md:z-auto">
-                        <Button
-                          type="button"
-                          data-gtm="create-step1-next"
-                          onClick={handleProceedToUpload}
-                          className="h-auto w-full rounded-organic-sm bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-lg shadow-primary/40 transition-colors hover:bg-primary/90 md:mx-auto md:max-w-md"
-                        >
-                          {`Let's upload ${petName.trim()}'s photo`}
-                        </Button>
+                    {showStep1UploadCta ? (
+                      <div className="mt-8 hidden md:flex md:justify-center">
+                        {renderStep1UploadButton()}
                       </div>
                     ) : null}
                     {lightboxTheme ? ReactDOM.createPortal(
@@ -1692,11 +1697,18 @@ function CreatePortraitContent() {
               )}
             </div>
           )}
-          </div>
         </div>
       </section>
       <Footer />
     </main>
+
+    {/* Mobile sticky CTA — same structural level as MobileStickyBar on app/page.tsx (sibling after </main>, not inside scrolling content) */}
+    {showStep1UploadCta ? (
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
+        <div className="mx-auto w-full max-w-2xl">{renderStep1UploadButton()}</div>
+      </div>
+    ) : null}
+    </>
   )
 }
 
