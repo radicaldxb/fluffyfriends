@@ -595,8 +595,6 @@ function CreatePortraitContent() {
 
   // [Pet Name] for copy — "their" when no name
   const petNameDisplay = petName.trim()
-  const theirOrName = petNameDisplay ? `${petNameDisplay}'s` : "their"
-  const pageTitle = petNameDisplay ? `Create ${petNameDisplay}'s portrait` : "Create your portrait"
   const cleanedRejectionMessage = cleanValidatorMessage(message)
 
   async function handleApplyVoucher() {
@@ -652,7 +650,15 @@ function CreatePortraitContent() {
 
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
-  const progressPercent = showWizard ? (wizardStep / 3) * 100 : 100
+
+  const createProgressPercent = useMemo(() => {
+    if (status === "preview" && previewImageUrl) return 99.9
+    if (status === "success" && resultPortraitId) return 99.9
+    if (status === "delivered") return 99.9
+    if (status === "processing" || status === "generating") return 66.6
+    if (showWizard) return wizardStep === 1 ? 33.3 : 66.6
+    return 99.9
+  }, [status, previewImageUrl, resultPortraitId, showWizard, wizardStep])
 
   const showStep1UploadCta =
     showWizard && wizardStep === 1 && Boolean(petName.trim()) && Boolean(theme)
@@ -776,16 +782,14 @@ function CreatePortraitContent() {
         </div>
       )}
 
-      {/* Top progress bar — smooth, always visible during wizard */}
-      {showWizard && (
-        <div className="sticky top-[57px] z-40 h-1 bg-muted">
-          <div
-            className="h-full bg-primary transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent}%` }}
-            aria-hidden
-          />
-        </div>
-      )}
+      {/* Progress bar — below navbar, all create steps */}
+      <div className="sticky top-[57px] z-40 h-1 w-full bg-border">
+        <div
+          className="h-full bg-primary transition-all duration-300 ease-out"
+          style={{ width: `${createProgressPercent}%` }}
+          aria-hidden
+        />
+      </div>
 
       <section
         className={cn(
@@ -796,17 +800,28 @@ function CreatePortraitContent() {
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           {showWizard && (
             <>
-              <h1
-                className={cn(
-                  "mt-3 mb-2 text-2xl font-extrabold tracking-tight sm:text-3xl md:mt-6 md:mb-4",
-                  petNameDisplay ? "text-primary" : "text-foreground",
+              <h1 className="font-heading mt-0.5 text-center text-2xl font-extrabold tracking-tight text-foreground md:mt-0 md:text-3xl">
+                {wizardStep === 1 ? (
+                  petNameDisplay ? (
+                    <>
+                      Create <span className="text-primary">{petNameDisplay}&apos;s</span> portrait
+                    </>
+                  ) : (
+                    <>Create your portrait</>
+                  )
+                ) : petNameDisplay ? (
+                  <>
+                    Upload <span className="text-primary">{petNameDisplay}&apos;s</span> photo
+                  </>
+                ) : (
+                  <>Upload your pet&apos;s photo</>
                 )}
-              >
-                {pageTitle}
               </h1>
-              <p className="mt-1 hidden text-sm text-muted-foreground md:block">
-                Takes less than three minutes. No tech skills needed.
-              </p>
+              {wizardStep === 1 ? (
+                <p className="mt-2 hidden text-sm text-muted-foreground md:block">
+                  Takes less than three minutes. No tech skills needed.
+                </p>
+              ) : null}
               {/* Step indicator — minimal, not a blob */}
               <div className="mt-4 hidden items-center justify-center gap-2 md:mt-6 md:flex" aria-label="Progress">
                         {WIZARD_STEPS.map((s, i) => (
@@ -1035,7 +1050,7 @@ function CreatePortraitContent() {
                   <div
                     key="step2"
                     className={cn(
-                      "animate-in fade-in-0 duration-300",
+                      "mt-3 animate-in fade-in-0 duration-300 md:mt-6",
                       showStep2StickyContinue && "pb-24 md:pb-0",
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
@@ -1052,9 +1067,6 @@ function CreatePortraitContent() {
                         </p>
                       </div>
                     )}
-                    <h2 className="mt-3 mb-2 text-xl font-semibold text-foreground md:mt-6 md:mb-4">
-                      Upload {theirOrName} photo
-                    </h2>
                     <input
                       ref={fileInputRef}
                       id="pet-photo"
@@ -1185,7 +1197,7 @@ function CreatePortraitContent() {
           {(status === "processing" || status === "generating") && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
               <div className="mb-6 flex justify-center" role="status" aria-label="Loading">
-                <div className="relative h-32 w-32 overflow-hidden rounded-organic border-2 border-primary/40 bg-primary/5">
+                <div className="relative aspect-square h-32 w-32 shrink-0 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5">
                   <video
                     src="/video/FF-Loader.mp4"
                     autoPlay
@@ -1200,12 +1212,12 @@ function CreatePortraitContent() {
                 <div className="min-h-[4.5rem]">
                   <p
                     key={loadingPhaseIndex}
-                    className="animate-in fade-in duration-300 text-lg font-medium text-foreground"
+                    className="animate-in fade-in duration-300 text-lg font-medium text-primary"
                   >
                     {portraitLoadingMessages[loadingPhaseIndex] ?? ""}
                   </p>
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-muted-foreground">
                   {status === "generating"
                     ? "This can take about a minute. Stay with us."
                     : "Hang tight. We're making sure everything looks great."}
