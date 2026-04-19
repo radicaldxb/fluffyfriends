@@ -456,12 +456,22 @@ function CreatePortraitContent() {
         theme,
         pet_name: petName.trim(),
       })
+      window.gtag?.("event", "checkout_started", {
+        theme,
+        pet_name: petName.trim(),
+      })
       window.dataLayer = window.dataLayer || []
-      window.dataLayer.push({ event: 'create_step1_complete' })
+      window.dataLayer.push({ event: "create_step1_complete" })
+      window.dataLayer.push({ event: "checkout_started", theme, pet_name: petName.trim() })
     }
     setSlideDirection("next")
     setWizardStep((s) => Math.min(3, s + 1))
   }
+
+  function handleProceedToUpload() {
+    goNext()
+  }
+
   function goPrev() {
     setSlideDirection("prev")
     setWizardStep((s) => Math.max(1, s - 1))
@@ -631,11 +641,11 @@ function CreatePortraitContent() {
               <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
                 {pageTitle}
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 hidden text-sm text-muted-foreground md:block">
                 Takes less than three minutes. No tech skills needed.
               </p>
               {/* Step indicator — minimal, not a blob */}
-              <div className="mt-6 flex items-center justify-center gap-2" aria-label="Progress">
+              <div className="mt-6 hidden items-center justify-center gap-2 md:flex" aria-label="Progress">
                         {WIZARD_STEPS.map((s, i) => (
                   <div key={s.id} className="flex items-center">
                     <div
@@ -670,16 +680,19 @@ function CreatePortraitContent() {
                   <div
                     key="step1"
                     className={cn(
-                      "animate-in fade-in-0 duration-300",
+                      "animate-in fade-in-0 duration-300 pb-24 md:pb-0",
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
                     <h2 className="text-xl font-semibold text-foreground">What&apos;s their name?</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 hidden text-sm text-muted-foreground md:block">
                       Exactly as you&apos;d like it to appear in the portrait
                     </p>
                     <div className="mt-3">
-                      <label htmlFor="pet-name-step1" className="block text-sm font-medium text-foreground">
+                      <label
+                        htmlFor="pet-name-step1"
+                        className="mb-0 hidden text-sm font-medium text-foreground md:block"
+                      >
                         Your pet&apos;s name (required)
                       </label>
                       <input
@@ -687,13 +700,14 @@ function CreatePortraitContent() {
                         type="text"
                         required
                         value={petName}
+                        aria-label="Your pet's name (required)"
                         onFocus={() => {
                           window.dataLayer = window.dataLayer || []
                           window.dataLayer.push({ event: "pet_name_entered" })
                         }}
                         onChange={(e) => setPetName(e.target.value.slice(0, 12))}
                         maxLength={12}
-                        placeholder="Your pet's name (required)"
+                        placeholder="Your pet's name"
                         className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
                         aria-invalid={Boolean(theme && !petName.trim())}
                         aria-describedby={theme && !petName.trim() ? "pet-name-step1-error" : undefined}
@@ -705,9 +719,7 @@ function CreatePortraitContent() {
                       ) : null}
                     </div>
                     <h2 className="mt-8 text-xl font-semibold text-foreground">What&apos;s their theme?</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Browse our collection and pick the one that feels most like them. Their name will be worked into every portrait. Whatever theme you pick.
-                    </p>
+                    <p className="mt-1 text-sm font-medium text-foreground">Pick their vibe</p>
                     <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
                       {themes.length === 0 ? (
                         <div className="col-span-full grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -793,6 +805,18 @@ function CreatePortraitContent() {
                         })
                       )}
                     </div>
+                    {petName.trim() && theme ? (
+                      <div className="max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 z-50 border-t border-border bg-background p-4 shadow-lg md:relative md:z-auto md:mt-8 md:border-0 md:p-0 md:shadow-none">
+                        <Button
+                          type="button"
+                          data-gtm="create-step1-next"
+                          onClick={handleProceedToUpload}
+                          className="h-auto w-full rounded-organic-sm bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:bg-primary/90 md:mx-auto md:max-w-md"
+                        >
+                          {`Let's upload ${petName.trim()}'s photo`}
+                        </Button>
+                      </div>
+                    ) : null}
                     {lightboxTheme ? ReactDOM.createPortal(
                           <div
                             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4"
@@ -838,20 +862,7 @@ function CreatePortraitContent() {
                           document.body,
                         )
                       : null}
-                    {/* Primary CTA – match hero CTA layout and spacing */}
-                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                      <Button
-                        type="button"
-                        data-gtm="create-step1-next"
-                        onClick={goNext}
-                        disabled={!theme || !petName.trim()}
-                        className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
-                      >
-                        Next — upload their photo
-                        <ChevronRight className="ml-0.5 h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground text-center mt-3">
+                    <p className="mt-8 text-center text-sm text-muted-foreground">
                       Already have a portrait pack?{" "}
                       <Link href="/my-portraits" className="underline hover:text-foreground transition-colors">
                         Access my portraits →
