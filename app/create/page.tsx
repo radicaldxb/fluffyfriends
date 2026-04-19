@@ -649,18 +649,23 @@ function CreatePortraitContent() {
         </div>
       )}
 
-      <section className="py-10 md:py-14 flex-1">
+      <section className="flex-1 py-8 md:py-14">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           {showWizard && (
             <>
-              <h1 className="mt-3 mb-3 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl md:mt-6 md:mb-4">
+              <h1
+                className={cn(
+                  "mt-3 mb-2 text-2xl font-extrabold tracking-tight sm:text-3xl md:mt-6 md:mb-4",
+                  petNameDisplay ? "text-primary" : "text-foreground",
+                )}
+              >
                 {pageTitle}
               </h1>
               <p className="mt-1 hidden text-sm text-muted-foreground md:block">
                 Takes less than three minutes. No tech skills needed.
               </p>
               {/* Step indicator — minimal, not a blob */}
-              <div className="mt-6 hidden items-center justify-center gap-2 md:flex" aria-label="Progress">
+              <div className="mt-4 hidden items-center justify-center gap-2 md:mt-6 md:flex" aria-label="Progress">
                         {WIZARD_STEPS.map((s, i) => (
                   <div key={s.id} className="flex items-center">
                     <div
@@ -689,7 +694,7 @@ function CreatePortraitContent() {
               </div>
 
               {/* Single step content with motion — z-0 keeps scroll content below fixed bars (back z-40, CTA z-30) */}
-              <div className="relative z-0 mt-4 min-h-[320px] overflow-hidden md:mt-10">
+              <div className="relative z-0 mt-3 min-h-[320px] overflow-hidden md:mt-10">
                 {/* Step 1 — Choose style */}
                 {wizardStep === 1 && (
                   <div
@@ -699,7 +704,7 @@ function CreatePortraitContent() {
                       slideDirection === "next" ? "slide-in-from-right-4" : "slide-in-from-left-4"
                     )}
                   >
-                    <h2 className="mt-2 mb-2 text-xl font-semibold text-foreground md:mt-6 md:mb-4">
+                    <h2 className="mt-3 mb-2 text-xl font-semibold text-foreground md:mt-6 md:mb-4">
                       What&apos;s their name?
                     </h2>
                     <p className="mt-1 hidden text-sm text-muted-foreground md:block">
@@ -725,7 +730,7 @@ function CreatePortraitContent() {
                         onChange={(e) => setPetName(e.target.value.slice(0, 12))}
                         maxLength={12}
                         placeholder="Your pet's name"
-                        className="mt-1.5 w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                        className="mt-1.5 w-full rounded-organic-sm border-2 border-primary bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                         aria-invalid={Boolean(theme && !petName.trim())}
                         aria-describedby={theme && !petName.trim() ? "pet-name-step1-error" : undefined}
                       />
@@ -738,9 +743,6 @@ function CreatePortraitContent() {
                     <h2 className="mt-3 mb-2 text-xl font-semibold text-foreground md:mt-8 md:mb-4">
                       What&apos;s their theme?
                     </h2>
-                    <p className="mt-2 mb-2 text-sm font-medium text-foreground md:mt-6 md:mb-4">
-                      Pick their vibe
-                    </p>
                     <div className="mt-3 grid grid-cols-2 gap-3 md:mt-6 md:grid-cols-4">
                       {themes.length === 0 ? (
                         <div className="col-span-full grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -792,8 +794,8 @@ function CreatePortraitContent() {
                                   </span>
                                 )}
                               </div>
-                              <div className="px-2 pt-2">
-                                <p className="text-xs leading-snug text-muted-foreground">
+                              <div className="mb-3 min-w-0 px-2 pt-2">
+                                <p className="line-clamp-1 text-center text-xs leading-snug text-muted-foreground">
                                   {trimmedName ? `${name} · ${trimmedName}` : name}
                                 </p>
                               </div>
@@ -824,7 +826,7 @@ function CreatePortraitContent() {
                       )}
                     </div>
                     {showStep1UploadCta ? (
-                      <div className="mt-8 hidden md:flex md:justify-center">
+                      <div className="mt-6 hidden md:mt-8 md:flex md:justify-center">
                         {renderStep1UploadButton()}
                       </div>
                     ) : null}
@@ -873,11 +875,14 @@ function CreatePortraitContent() {
                           document.body,
                         )
                       : null}
-                    <p className="mt-8 text-center text-sm text-muted-foreground">
-                      Already have a portrait pack?{" "}
-                      <Link href="/my-portraits" className="underline hover:text-foreground transition-colors">
-                        Access my portraits →
-                      </Link>
+                    <p className="mt-3 mb-2 text-center text-sm text-muted-foreground md:mt-8">
+                      Already have a portrait pack?
+                      <br className="md:hidden" aria-hidden />
+                      <span className="md:ml-1">
+                        <Link href="/my-portraits" className="underline hover:text-foreground transition-colors">
+                          Access my portraits →
+                        </Link>
+                      </span>
                     </p>
                   </div>
                 )}
