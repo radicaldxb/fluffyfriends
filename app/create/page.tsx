@@ -1181,14 +1181,21 @@ function CreatePortraitContent() {
             </>
           )}
 
-          {/* Processing / generating — sequential messages + spinner */}
+          {/* Processing / generating — video loop + sequential messages */}
           {(status === "processing" || status === "generating") && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
-              <div
-                className="mb-6 h-14 w-14 shrink-0 animate-spin rounded-full border-4 border-primary/25 border-t-primary border-r-primary/40"
-                role="status"
-                aria-label="Loading"
-              />
+              <div className="mb-6 flex justify-center" role="status" aria-label="Loading">
+                <div className="relative h-32 w-32 overflow-hidden rounded-organic border-2 border-primary/40 bg-primary/5">
+                  <video
+                    src="/video/FF-Loader.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-full object-cover scale-[1.05]"
+                  />
+                </div>
+              </div>
               <div className="max-w-md">
                 <div className="min-h-[4.5rem]">
                   <p
@@ -1201,7 +1208,7 @@ function CreatePortraitContent() {
                 <p className="mt-4 text-sm text-muted-foreground">
                   {status === "generating"
                     ? "This can take about a minute. Stay with us."
-                    : "Hang tight. We&apos;re making sure everything looks great."}
+                    : "Hang tight. We're making sure everything looks great."}
                 </p>
               </div>
             </div>
