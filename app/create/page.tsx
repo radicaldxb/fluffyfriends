@@ -812,7 +812,7 @@ function CreatePortraitContent() {
                       )}
                     </div>
                     {petName.trim() && theme ? (
-                      <div className="z-30 border-t border-border bg-background p-4 max-md:fixed max-md:inset-x-0 max-md:bottom-0 md:static md:z-auto md:mt-8 md:bg-transparent md:p-0">
+                      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background p-4 md:static md:border-t-0 md:mt-8 md:bg-transparent md:p-0 md:z-auto">
                         <Button
                           type="button"
                           data-gtm="create-step1-next"
