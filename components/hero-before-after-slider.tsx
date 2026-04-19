@@ -65,7 +65,7 @@ export default function HeroBeforeAfterSlider() {
             priority
             draggable={false}
           />
-          <div className="absolute bottom-4 left-4 rounded-full bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md ring-1 ring-border/60 md:bottom-4 md:left-4 md:text-sm">
+          <div className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md ring-1 ring-border/60 md:bottom-4 md:left-4 md:text-sm">
             The real them
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function HeroBeforeAfterSlider() {
           <ChevronsLeftRight className="h-5 w-5 text-primary" strokeWidth={2} aria-hidden />
         </div>
 
-        <div className="absolute bottom-4 right-4 z-10 rounded-full bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md ring-1 ring-border/60 md:text-sm">
+        <div className="absolute bottom-4 right-4 z-10 rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md ring-1 ring-border/60 md:text-sm">
           Captured forever
         </div>
       </div>
