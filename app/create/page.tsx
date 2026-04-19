@@ -184,7 +184,7 @@ function CreatePortraitContent() {
       setLoadingPhaseIndex((prev) =>
         prev >= portraitLoadingMessages.length - 1 ? prev : prev + 1,
       )
-    }, 1800)
+    }, 3000)
 
     return () => window.clearInterval(intervalId)
   }, [status, portraitLoadingMessages.length])
@@ -787,7 +787,12 @@ function CreatePortraitContent() {
         </div>
       )}
 
-      <section className="flex-1 py-8 md:py-14">
+      <section
+        className={cn(
+          "flex-1",
+          status === "preview" && previewImageUrl ? "pt-4 pb-8 md:py-14" : "py-8 md:py-14",
+        )}
+      >
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           {showWizard && (
             <>
@@ -1108,7 +1113,7 @@ function CreatePortraitContent() {
                       )}
                     </label>
                     <h3 className="mt-3 mb-2 text-base font-semibold text-foreground md:mt-6 md:mb-4">
-                      Any photo works. Here&apos;s what gives the best result
+                      Photos that work best
                     </h3>
                     <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground md:mt-3 md:space-y-2">
                       <li className="flex gap-2">
@@ -1193,17 +1198,6 @@ function CreatePortraitContent() {
                     {portraitLoadingMessages[loadingPhaseIndex] ?? ""}
                   </p>
                 </div>
-                <div className="mt-4 flex justify-center gap-1.5">
-                  {portraitLoadingMessages.map((_, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "h-2 w-2 rounded-full transition-colors duration-300",
-                        i <= loadingPhaseIndex ? "bg-primary" : "bg-primary/20",
-                      )}
-                    />
-                  ))}
-                </div>
                 <p className="mt-4 text-sm text-muted-foreground">
                   {status === "generating"
                     ? "This can take about a minute. Stay with us."
@@ -1214,8 +1208,8 @@ function CreatePortraitContent() {
           )}
 
           {status === "preview" && previewImageUrl && (
-            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-6 md:py-10">
-              <h1 className="font-heading text-center text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
+            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center pt-1 pb-6 md:pt-10 md:pb-10">
+              <h1 className="font-heading mt-0.5 text-center text-2xl font-extrabold tracking-tight text-foreground md:mt-0 md:text-3xl">
                 {petNameDisplay ? (
                   <>
                     <span className="text-primary">{petNameDisplay}&apos;s</span> portrait is ready.
@@ -1225,10 +1219,10 @@ function CreatePortraitContent() {
                 )}
               </h1>
               <p className="mt-2 mb-3 text-center text-sm text-muted-foreground md:mb-4">
-                This is your preview. Unlock the full resolution below.
+                Unlock the full resolution below.
               </p>
               <div className="mt-4 mb-3 flex w-full justify-center px-3 md:mt-6 md:mb-4 md:px-0">
-                <div className="relative w-full max-w-sm overflow-hidden rounded-organic border-2 border-primary/20 shadow-lg shadow-primary/15 md:max-w-2xl">
+                <div className="relative w-full max-w-sm overflow-hidden rounded-organic border-4 border-primary shadow-lg shadow-primary/25 md:max-w-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewImageUrl}
@@ -1306,10 +1300,6 @@ function CreatePortraitContent() {
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-foreground">Free print guide included with every order</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Covers paper types, frame sizes, and the best local and online print shops. Yours at any
-                      package level.
-                    </p>
                   </div>
                 </div>
                 <h2 className="mb-4 text-lg font-semibold text-foreground md:text-xl">
@@ -1328,19 +1318,27 @@ function CreatePortraitContent() {
                           : "border-border bg-card hover:border-primary/50",
                       )}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-foreground">{p.name}</span>
-                        {selectedProductId === p.id && <Check className="h-4 w-4 text-primary" />}
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
-                      <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-primary">{p.priceDisplay}</span>
-                        {p.savePercent != null && (
-                          <span className="text-xs font-medium text-primary">Save {p.savePercent}%</span>
-                        )}
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-foreground">{p.name}</h3>
+                            {selectedProductId === p.id && (
+                              <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                            )}
+                          </div>
+                          <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-2xl font-bold text-primary">{p.priceDisplay}</p>
+                          {p.savePercent != null && (
+                            <span className="mt-0.5 block text-xs font-medium text-primary">
+                              Save {p.savePercent}%
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {p.badge && (
-                        <span className="mt-2 inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
+                        <span className="inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
                           {p.badge}
                         </span>
                       )}
