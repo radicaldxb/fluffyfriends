@@ -358,10 +358,10 @@ export default function PetmasterUsersPage() {
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {filterBtn("all", "All")}
-        {filterBtn("test", "Test")}
         {filterBtn("real", "Real")}
         {filterBtn("influencers", "Influencers")}
+        {filterBtn("test", "Test")}
+        {filterBtn("all", "All")}
       </div>
 
       {filter === "influencers" ? (
