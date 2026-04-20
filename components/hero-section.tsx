@@ -24,11 +24,11 @@ export function HeroSection() {
           </div>
 
           <div className="max-lg:contents lg:flex lg:flex-1 lg:flex-col lg:items-start lg:text-left">
-            <p className="order-1 mb-3 w-full text-center text-sm font-semibold uppercase tracking-wider text-primary max-md:mb-2 md:mb-4 md:text-base lg:order-none lg:mb-4 lg:text-left">
+            <p className="order-1 mb-1 w-full text-center text-sm font-semibold uppercase tracking-wider text-primary max-md:text-base md:mb-4 md:text-base lg:order-none lg:mb-4 lg:text-left">
               Made with love. Made to last.
             </p>
 
-            <h1 className="order-2 text-balance text-center text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:max-md:text-4xl md:text-5xl lg:order-none lg:text-left lg:text-6xl">
+            <h1 className="order-2 text-balance text-center text-4xl font-extrabold leading-tight tracking-tight text-foreground max-md:leading-[1.1] md:text-5xl lg:order-none lg:text-left lg:text-6xl">
               Their moment.
               <br />
               <span className="text-primary">Forever.</span>

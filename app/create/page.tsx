@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { Check, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X, Search } from "lucide-react"
+import { PreviewZoomableImage } from "@/components/preview-zoomable-image"
 import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
@@ -1260,68 +1261,73 @@ function CreatePortraitContent() {
                 Unlock the full resolution below.
               </p>
               <div className="mt-4 mb-3 flex w-full justify-center px-3 md:mt-6 md:mb-4 md:px-0">
-                <div className="relative w-full max-w-sm overflow-hidden rounded-organic border-4 border-primary shadow-lg shadow-primary/25 md:max-w-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewImageUrl}
-                  alt={`${petName.trim() || "Pet"} — landscape preview`}
-                  className="w-full select-none object-cover"
-                  onContextMenu={(e) => e.preventDefault()}
-                  draggable={false}
-                  onError={() => {
-                    const raw = previewCloudinaryRawRef.current
-                    if (!raw) return
-                    setPreviewImageUrl((current) => (current === raw ? current : raw))
-                  }}
-                />
-                <div
-                  className="pointer-events-none absolute inset-0 select-none"
-                  style={{
-                    background: `repeating-linear-gradient(
-                      -35deg,
-                      transparent,
-                      transparent 60px,
-                      rgba(255,255,255,0.07) 60px,
-                      rgba(255,255,255,0.07) 61px
-                    )`,
-                  }}
+                <PreviewZoomableImage
+                  className="w-full max-w-[min(100vw-1.5rem,36rem)] md:max-w-2xl"
+                  frameClassName="rounded-organic border-4 border-primary bg-background shadow-lg shadow-primary/25"
                 >
-                  {[
-                    { top: "8%", left: "5%", rotate: -25 },
-                    { top: "8%", left: "58%", rotate: -25 },
-                    { top: "22%", left: "30%", rotate: -25 },
-                    { top: "36%", left: "5%", rotate: -25 },
-                    { top: "36%", left: "58%", rotate: -25 },
-                    { top: "50%", left: "30%", rotate: -25 },
-                    { top: "64%", left: "5%", rotate: -25 },
-                    { top: "64%", left: "58%", rotate: -25 },
-                    { top: "78%", left: "30%", rotate: -25 },
-                  ].map((pos, i) => (
-                    <span
-                      key={i}
-                      className="pointer-events-none absolute select-none text-sm font-bold tracking-widest text-white/20"
+                  <div className="relative w-full overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewImageUrl}
+                      alt={`${petName.trim() || "Pet"} — landscape preview`}
+                      className="w-full select-none object-cover"
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
+                      onError={() => {
+                        const raw = previewCloudinaryRawRef.current
+                        if (!raw) return
+                        setPreviewImageUrl((current) => (current === raw ? current : raw))
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 select-none"
                       style={{
-                        top: pos.top,
-                        left: pos.left,
-                        transform: `rotate(${pos.rotate}deg)`,
-                        whiteSpace: "nowrap",
-                        maxWidth: "none",
-                        overflow: "visible",
+                        background: `repeating-linear-gradient(
+                          -35deg,
+                          transparent,
+                          transparent 60px,
+                          rgba(255,255,255,0.07) 60px,
+                          rgba(255,255,255,0.07) 61px
+                        )`,
                       }}
                     >
-                      FluffyFriends
-                    </span>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setInspectModalOpen(true)}
-                  aria-label="Inspect portrait details"
-                  className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90 md:top-4 md:right-4 md:h-14 md:w-14"
-                >
-                  <Search className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2} aria-hidden />
-                </button>
-                </div>
+                      {[
+                        { top: "8%", left: "5%", rotate: -25 },
+                        { top: "8%", left: "58%", rotate: -25 },
+                        { top: "22%", left: "30%", rotate: -25 },
+                        { top: "36%", left: "5%", rotate: -25 },
+                        { top: "36%", left: "58%", rotate: -25 },
+                        { top: "50%", left: "30%", rotate: -25 },
+                        { top: "64%", left: "5%", rotate: -25 },
+                        { top: "64%", left: "58%", rotate: -25 },
+                        { top: "78%", left: "30%", rotate: -25 },
+                      ].map((pos, i) => (
+                        <span
+                          key={i}
+                          className="pointer-events-none absolute select-none text-sm font-bold tracking-widest text-white/20"
+                          style={{
+                            top: pos.top,
+                            left: pos.left,
+                            transform: `rotate(${pos.rotate}deg)`,
+                            whiteSpace: "nowrap",
+                            maxWidth: "none",
+                            overflow: "visible",
+                          }}
+                        >
+                          FluffyFriends
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setInspectModalOpen(true)}
+                      aria-label="Inspect portrait details"
+                      className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90 md:top-4 md:right-4 md:h-14 md:w-14"
+                    >
+                      <Search className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2} aria-hidden />
+                    </button>
+                  </div>
+                </PreviewZoomableImage>
               </div>
               <p className="mt-2 text-center text-xs text-muted-foreground">
                 Full resolution • Both formats included • Print ready
