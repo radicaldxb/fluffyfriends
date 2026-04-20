@@ -26,25 +26,14 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border bg-background shadow-sm">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <a href="/" className="flex shrink-0 items-center" aria-label="FluffyFriends home">
-          {/* Mobile: circular icon only — saves header space */}
+          {/* Circular mark — all breakpoints (tablet + desktop use icon instead of wordmark) */}
           <Image
             src="/logos/FluffyFriends-logo.webp"
             alt="FluffyFriends"
             width={112}
             height={112}
-            sizes="40px"
-            className="h-10 w-10 object-contain md:hidden"
-            priority
-            unoptimized
-          />
-          {/* Desktop: full wordmark */}
-          <Image
-            src="/logos/FluffyFriends-Footer-Logo.webp"
-            alt="FluffyFriends — AI Pet Portraits"
-            width={220}
-            height={60}
-            sizes="(max-width: 1024px) 180px, 220px"
-            className="hidden h-[2.875rem] w-auto object-contain sm:h-[3.45rem] md:block"
+            sizes="(max-width: 768px) 40px, 52px"
+            className="h-10 w-10 object-contain sm:h-11 sm:w-11 md:h-[3.45rem] md:w-[3.45rem]"
             priority
             unoptimized
           />

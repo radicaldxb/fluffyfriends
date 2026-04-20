@@ -66,7 +66,7 @@ export default function HeroBeforeAfterSlider() {
             draggable={false}
           />
           <div className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md ring-1 ring-border/60 md:bottom-4 md:left-4 md:text-sm">
-            The real them
+            Before
           </div>
         </div>
 
