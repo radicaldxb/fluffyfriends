@@ -11,6 +11,15 @@ function parseFilter(value: string | null): PortraitFilter {
   return "all"
 }
 
+/** Real tab: is_test false plus email rules (applied in code — PostgREST not/neq drops NULL emails). */
+function matchesRealEmailRules(userEmail: string | null | undefined): boolean {
+  if (userEmail == null || String(userEmail).trim() === "") return true
+  const lower = String(userEmail).trim().toLowerCase()
+  if (lower.includes("yopmail")) return false
+  if (lower === "stephan@radical-thinking.net") return false
+  return true
+}
+
 export async function GET(request: Request) {
   const denied = await petmasterUnauthorizedResponse()
   if (denied) return denied
@@ -34,10 +43,7 @@ export async function GET(request: Request) {
   if (mode === "test") {
     query = query.eq("is_test", true)
   } else if (mode === "real") {
-    query = query
-      .eq("is_test", false)
-      .not("user_email", "ilike", "%yopmail%")
-      .neq("user_email", "stephan@radical-thinking.net")
+    query = query.eq("is_test", false)
   }
 
   const { data, error } = await query.order("created_at", { ascending: false })
@@ -47,5 +53,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json(data ?? [])
+  let rows = data ?? []
+  if (mode === "real") {
+    rows = rows.filter((row) => matchesRealEmailRules(row.user_email as string | null))
+  }
+
+  return NextResponse.json(rows)
 }
