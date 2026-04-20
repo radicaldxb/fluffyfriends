@@ -61,11 +61,16 @@ export function Navbar() {
             <a href="/create">Create Their Portrait →</a>
           </Button>
           <button
-            className="text-foreground p-2 md:hidden -m-2"
+            type="button"
+            className="flex h-11 min-h-11 min-w-11 items-center justify-center text-foreground md:hidden -m-1"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? (
+              <X className="h-7 w-7 shrink-0" strokeWidth={2.75} aria-hidden />
+            ) : (
+              <Menu className="h-7 w-7 shrink-0" strokeWidth={2.75} aria-hidden />
+            )}
           </button>
         </div>
       </nav>

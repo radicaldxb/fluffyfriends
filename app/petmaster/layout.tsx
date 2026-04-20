@@ -45,12 +45,16 @@ export default function PetmasterLayout({
       >
         <button
           type="button"
-          className="rounded-organic-sm p-2 text-[#F2EEE2] hover:bg-white/10"
+          className="flex h-11 min-h-11 min-w-11 items-center justify-center rounded-organic-sm text-[#F2EEE2] hover:bg-white/10"
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           onClick={() => setMobileOpen((o) => !o)}
         >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {mobileOpen ? (
+            <X className="h-7 w-7 shrink-0" strokeWidth={2.75} aria-hidden />
+          ) : (
+            <Menu className="h-7 w-7 shrink-0" strokeWidth={2.75} aria-hidden />
+          )}
         </button>
         <span className="flex items-center gap-1.5 font-mono text-xs text-[#F2EEE2]">
           <PawPrint className="h-3.5 w-3.5 shrink-0 text-[#F09A54]" aria-hidden />

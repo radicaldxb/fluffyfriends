@@ -18,8 +18,8 @@ export function HeroSection() {
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* max-lg: flat column + order (mobile / tablet). lg+: flex-row-reverse — slider column right. */}
         <div className="flex flex-col items-center max-md:gap-2.5 md:max-lg:gap-0 lg:flex-row-reverse lg:items-center lg:gap-16">
-          {/* Before/after slider — right column on lg; order 4 in single-column layouts */}
-          <div className="relative order-4 flex w-full min-w-0 max-w-md shrink-0 flex-col items-center justify-center px-2 sm:max-w-none sm:px-0 md:max-lg:mb-12 lg:order-none lg:mb-0 lg:max-w-none lg:flex-1 lg:justify-end">
+          {/* Before/after slider — max-md: above body copy; md–lg: after subcopy */}
+          <div className="relative order-3 flex w-full min-w-0 max-w-md shrink-0 flex-col items-center justify-center px-2 sm:max-w-none sm:px-0 md:order-4 md:max-lg:mb-12 lg:order-none lg:mb-0 lg:max-w-none lg:flex-1 lg:justify-end">
             <HeroBeforeAfterSlider />
           </div>
 
@@ -34,10 +34,10 @@ export function HeroSection() {
               <span className="text-primary">Forever.</span>
             </h1>
 
-            <p className="order-3 mt-0 max-w-lg text-pretty text-center text-sm leading-relaxed text-muted-foreground max-md:max-w-[min(100%,22rem)] md:text-base lg:order-none lg:mt-5 lg:text-left lg:text-lg">
+            <p className="order-4 mt-0 max-w-lg text-pretty text-center text-sm leading-relaxed text-muted-foreground max-md:max-w-[min(100%,22rem)] md:order-3 md:text-base lg:order-none lg:mt-5 lg:text-left lg:text-lg">
               Not a filter. Not a caption.
               <br />
-              Your pet&apos;s name is crafted into the portrait itself: a badge, a crest, a name tag.
+              Your pet&apos;s name is crafted into the portrait itself.
               <br />
               Upload one photo. Print-ready in minutes.
             </p>
