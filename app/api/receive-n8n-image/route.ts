@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
+import { getSupabaseAdmin } from "@/lib/supabase-admin"
 
 const BUCKET = "images"
 const WEBHOOK_SECRET = process.env.N8N_WEBHOOK_SECRET?.trim()
@@ -67,6 +68,9 @@ export async function POST(request: NextRequest) {
       }
       if (avifUrl) {
         updatePayload.image_url = avifUrl
+        // Preview: same AVIF used for My Portraits / download columns until WF3 delivers final crops
+        updatePayload.portrait_url = avifUrl
+        updatePayload.landscape_url = avifUrl
       }
       if (geminiImageUrl) {
         updatePayload.original_image_url = geminiImageUrl
@@ -79,10 +83,25 @@ export async function POST(request: NextRequest) {
         updatePayload.pet_image_url = petImageUrl
       }
 
-      const { error: updateError } = await supabase
+      let db
+      try {
+        db = getSupabaseAdmin()
+      } catch (e) {
+        console.error("[receive-n8n-image] SUPABASE_SERVICE_ROLE_KEY required for portrait_id updates:", e)
+        return NextResponse.json(
+          {
+            error: "Server misconfigured: set SUPABASE_SERVICE_ROLE_KEY for n8n webhook updates.",
+            details: e instanceof Error ? e.message : String(e),
+          },
+          { status: 503 },
+        )
+      }
+
+      const { data: updatedRows, error: updateError } = await db
         .from("pet_portraits")
         .update(updatePayload)
         .eq("id", portraitId)
+        .select("id")
 
       if (updateError) {
         console.error("[receive-n8n-image] portrait_id update error:", updateError)
@@ -90,8 +109,19 @@ export async function POST(request: NextRequest) {
           {
             error: "Failed to update portrait with generated image",
             details: updateError.message,
+            code: updateError.code,
           },
-          { status: 500 },
+          { status: 400 },
+        )
+      }
+      if (!updatedRows?.length) {
+        console.error("[receive-n8n-image] No row matched portrait_id:", portraitId)
+        return NextResponse.json(
+          {
+            error: "No pet_portraits row found for portrait_id",
+            portrait_id: portraitId,
+          },
+          { status: 400 },
         )
       }
 
