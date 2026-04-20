@@ -4,7 +4,14 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+type PortraitFilter = "all" | "test" | "real"
+
+function parseFilter(value: string | null): PortraitFilter {
+  if (value === "test" || value === "real") return value
+  return "all"
+}
+
+export async function GET(request: Request) {
   const denied = await petmasterUnauthorizedResponse()
   if (denied) return denied
 
@@ -15,12 +22,25 @@ export async function GET() {
     return NextResponse.json({ error: "Server misconfigured" }, { status: 503 })
   }
 
-  const { data, error } = await admin
+  const { searchParams } = new URL(request.url)
+  const mode = parseFilter(searchParams.get("filter"))
+
+  let query = admin
     .from("pet_portraits")
     .select(
-      "id, pet_name, theme, status, user_email, portrait_url, landscape_url, created_at, showcase_consent, location",
+      "id, pet_name, theme, status, user_email, portrait_url, landscape_url, created_at, showcase_consent, location, is_test",
     )
-    .order("created_at", { ascending: false })
+
+  if (mode === "test") {
+    query = query.eq("is_test", true)
+  } else if (mode === "real") {
+    query = query
+      .eq("is_test", false)
+      .not("user_email", "ilike", "%yopmail%")
+      .neq("user_email", "stephan@radical-thinking.net")
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false })
 
   if (error) {
     console.error("petmaster-users:", error)

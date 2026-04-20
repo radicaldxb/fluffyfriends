@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
+import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { Button } from "@/components/ui/button"
 
 type PortraitRow = {
   id: string
@@ -13,6 +14,7 @@ type PortraitRow = {
   created_at: string
   showcase_consent: boolean | null
   location: string | null
+  is_test: boolean | null
 }
 
 type InfluencerRow = {
@@ -29,11 +31,6 @@ type InfluencerRow = {
 }
 
 type FilterMode = "all" | "test" | "real" | "influencers"
-
-function isTestEmail(email: string | null | undefined): boolean {
-  if (email == null || String(email).trim() === "") return true
-  return String(email).toLowerCase().includes("yopmail")
-}
 
 function StatusPill({ status }: { status: string | null }) {
   const s = status ?? "—"
@@ -64,33 +61,35 @@ export default function PetmasterUsersPage() {
   const [formCredits, setFormCredits] = useState("4")
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [toggleBusyId, setToggleBusyId] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await fetch("/api/petmaster-users", { credentials: "same-origin" })
-        const j = await res.json().catch(() => ({}))
-        if (!res.ok) {
-          if (!cancelled) setError(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
-          if (!cancelled) setRows([])
-          return
-        }
-        const data = Array.isArray(j) ? j : []
-        if (!cancelled) setRows(data as PortraitRow[])
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load")
-        if (!cancelled) setRows([])
-      } finally {
-        if (!cancelled) setLoading(false)
+  const fetchPortraits = useCallback(async (mode: Exclude<FilterMode, "influencers">) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/petmaster-users?filter=${encodeURIComponent(mode)}`, {
+        credentials: "same-origin",
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
+        setRows([])
+        return
       }
-    })()
-    return () => {
-      cancelled = true
+      const data = Array.isArray(j) ? j : []
+      setRows(data as PortraitRow[])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load")
+      setRows([])
+    } finally {
+      setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    if (filter === "influencers") return
+    void fetchPortraits(filter)
+  }, [filter, fetchPortraits])
 
   const fetchInfluencers = useCallback(async () => {
     setInfluencersLoading(true)
@@ -118,11 +117,28 @@ export default function PetmasterUsersPage() {
     void fetchInfluencers()
   }, [filter, fetchInfluencers])
 
-  const filtered = useMemo(() => {
-    if (filter === "all") return rows
-    if (filter === "test") return rows.filter((r) => isTestEmail(r.user_email))
-    return rows.filter((r) => !isTestEmail(r.user_email))
-  }, [rows, filter])
+  async function handleToggleTest(row: PortraitRow) {
+    const next = row.is_test !== true
+    setToggleBusyId(row.id)
+    try {
+      const res = await fetch("/api/petmaster-toggle-test", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: row.id, is_test: next }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
+        return
+      }
+      if (filter !== "influencers") {
+        await fetchPortraits(filter)
+      }
+    } finally {
+      setToggleBusyId(null)
+    }
+  }
 
   const filterBtn = (mode: FilterMode, label: string) => (
     <button
@@ -412,7 +428,7 @@ export default function PetmasterUsersPage() {
         </>
       ) : (
         <div className="overflow-x-auto rounded-organic-sm border border-[#111827]/10 bg-white">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1020px] text-left text-sm">
             <thead>
               <tr className="border-b border-[#111827]/10 bg-[#F2EEE2]/60">
                 <th className="px-3 py-2 font-semibold text-[#111827]">Pet</th>
@@ -423,11 +439,13 @@ export default function PetmasterUsersPage() {
                 <th className="px-3 py-2 font-semibold text-[#111827]">Date</th>
                 <th className="px-3 py-2 font-semibold text-[#111827]">Portrait</th>
                 <th className="px-3 py-2 font-semibold text-[#111827]">Showcase</th>
+                <th className="px-3 py-2 font-semibold text-[#111827]">Test</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row) => {
+              {rows.map((row) => {
                 const landscape = row.landscape_url?.trim()
+                const isTest = row.is_test === true
                 return (
                   <tr key={row.id} className="border-b border-[#111827]/5">
                     <td className="px-3 py-2 font-medium text-[#111827]">{row.pet_name ?? "—"}</td>
@@ -464,12 +482,23 @@ export default function PetmasterUsersPage() {
                     <td className="px-3 py-2 text-center text-[#111827]">
                       {row.showcase_consent === true ? "\u2713" : "—"}
                     </td>
+                    <td className="px-3 py-2">
+                      <Button
+                        type="button"
+                        variant={isTest ? "secondary" : "outline"}
+                        size="sm"
+                        disabled={toggleBusyId === row.id}
+                        onClick={() => void handleToggleTest(row)}
+                      >
+                        {isTest ? "Mark as real" : "Mark as test"}
+                      </Button>
+                    </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
-          {filtered.length === 0 ? (
+          {rows.length === 0 ? (
             <p className="p-4 text-center text-sm text-[#111827]/60">No rows match this filter.</p>
           ) : null}
         </div>
