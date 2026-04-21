@@ -16,6 +16,15 @@ type AnalyticsDailyRow = {
   pinterest_spend?: number | null
   pinterest_clicks?: number | null
   meta_campaigns?: unknown
+  clarity_sessions?: number | null
+  clarity_mobile_pct?: number | null
+  clarity_engagement_time?: number | null
+  clarity_pages_per_session?: number | null
+  clarity_rage_clicks?: number | null
+  clarity_dead_clicks?: number | null
+  clarity_excessive_scroll?: number | null
+  clarity_quickback_clicks?: number | null
+  clarity_top_pages?: unknown
 }
 
 type FunnelPayload = {
@@ -183,7 +192,7 @@ function parseCampaignsPayload(raw: unknown): Array<Record<string, unknown>> {
 }
 
 function campaignAdName(row: Record<string, unknown>): string {
-  const n = row.ad_name ?? row.name ?? row.adName ?? row.ad_title ?? row.title ?? "—"
+  const n = row.ad ?? row.ad_name ?? row.name ?? row.adName ?? row.ad_title ?? row.title ?? "—"
   const s = String(n)
   return s.length > 40 ? `${s.slice(0, 37)}…` : s
 }
@@ -201,6 +210,71 @@ function num(row: Record<string, unknown>, ...keys: string[]): number | null {
 function formatAed(v: number | null): string {
   if (v === null) return "—"
   return `${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AED`
+}
+
+/** Clarity mobile % — stored as ratio 0–1 or as 0–100 */
+function formatClarityMobilePct(v: number | null | undefined): string {
+  if (v === null || v === undefined) return "—"
+  const n = Number(v)
+  if (!Number.isFinite(n)) return "—"
+  const pct = n <= 1 && n >= 0 ? n * 100 : n
+  return `${pct.toFixed(1)}%`
+}
+
+function formatClarityEngagementSeconds(v: number | null | undefined): string {
+  if (v === null || v === undefined) return "—"
+  const n = Number(v)
+  if (!Number.isFinite(n)) return "—"
+  return `${n.toLocaleString(undefined, { maximumFractionDigits: 1 })} s`
+}
+
+function formatClarityPagesPerSession(v: number | null | undefined): string {
+  if (v === null || v === undefined) return "—"
+  const n = Number(v)
+  if (!Number.isFinite(n)) return "—"
+  return n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })
+}
+
+function parseClarityTopPages(raw: unknown): { displayUrl: string; sessions: number }[] {
+  const list = parseCampaignsPayload(raw)
+  return list
+    .map((row) => {
+      const full = String(row.page_url ?? row.url ?? row.path ?? row.page ?? "").trim()
+      const sessionsVal = num(row, "sessions", "session_count", "count")
+      const s = sessionsVal != null && Number.isFinite(sessionsVal) ? sessionsVal : 0
+      const displayUrl =
+        full.length === 0 ? "—" : full.length > 40 ? `${full.slice(0, 37)}…` : full
+      return { displayUrl, sessions: s }
+    })
+    .filter((r) => r.displayUrl !== "—")
+    .sort((a, b) => b.sessions - a.sessions)
+    .slice(0, 5)
+}
+
+function RageClicksCard({ value, n }: { value: string; n: number | null | undefined }) {
+  const v = n == null || !Number.isFinite(Number(n)) ? null : Number(n)
+  const alert = v !== null && v > 0
+  return (
+    <div
+      className="rounded-organic-sm p-4 shadow-sm"
+      style={{ backgroundColor: "#1F2937", color: "#F2EEE2" }}
+    >
+      <p
+        className={
+          alert
+            ? "text-xs font-medium uppercase tracking-wide text-[#A32D2D]"
+            : "text-xs font-medium uppercase tracking-wide text-[#F2EEE2]/60"
+        }
+      >
+        Rage clicks
+      </p>
+      <p
+        className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${alert ? "text-[#A32D2D]" : "text-[#F2EEE2]"}`}
+      >
+        {value}
+      </p>
+    </div>
+  )
 }
 
 export default function PetmasterDashboardPage() {
@@ -274,6 +348,11 @@ export default function PetmasterDashboardPage() {
       })
       .sort((a, b) => b.spend - a.spend)
   }, [latest])
+
+  const clarityTopPagesRows = useMemo(
+    () => (latest ? parseClarityTopPages(latest.clarity_top_pages) : []),
+    [latest],
+  )
 
   useEffect(() => {
     if (!chartSeries.length || !canvasRef.current || !followersCanvasRef.current) return
@@ -543,6 +622,83 @@ export default function PetmasterDashboardPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Behaviour — Clarity */}
+      <section>
+        {latest?.clarity_sessions != null ? (
+          <>
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-[#111827]/70">
+                Behaviour — Clarity
+              </h2>
+              <p className="mt-1 text-xs text-[#111827]/50">Updated daily at 7am UAE</p>
+            </div>
+            <p className="mb-3 text-xs font-semibold text-[#111827]/65">Session quality</p>
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Sessions" value={formatSessions(latest.clarity_sessions)} />
+              <StatCard label="Mobile %" value={formatClarityMobilePct(latest.clarity_mobile_pct)} />
+              <StatCard
+                label="Engagement time"
+                value={formatClarityEngagementSeconds(latest.clarity_engagement_time)}
+              />
+              <StatCard
+                label="Pages / session"
+                value={formatClarityPagesPerSession(latest.clarity_pages_per_session)}
+              />
+            </div>
+            <p className="mb-3 text-xs font-semibold text-[#111827]/65">Friction signals</p>
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <RageClicksCard
+                n={latest.clarity_rage_clicks}
+                value={formatSessions(latest.clarity_rage_clicks)}
+              />
+              <StatCard label="Dead clicks" value={formatSessions(latest.clarity_dead_clicks)} />
+              <StatCard
+                label="Excessive scroll"
+                value={formatSessions(latest.clarity_excessive_scroll)}
+              />
+              <div title="User went back immediately" className="h-full">
+                <StatCard
+                  label="Quickback clicks"
+                  value={formatSessions(latest.clarity_quickback_clicks)}
+                />
+              </div>
+            </div>
+            {clarityTopPagesRows.length > 0 ? (
+              <div>
+                <p className="mb-2 text-xs font-semibold text-[#111827]/65">Top pages by sessions</p>
+                <div
+                  className="overflow-x-auto rounded-organic-sm p-3"
+                  style={{ backgroundColor: "#1F2937", color: "#F2EEE2" }}
+                >
+                  <table className="w-full min-w-[320px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-[#F2EEE2]/15">
+                        <th className="pb-2 pr-3 font-semibold text-[#F2EEE2]/80">Page URL</th>
+                        <th className="pb-2 font-semibold text-[#F2EEE2]/80">Sessions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clarityTopPagesRows.map((row, i) => (
+                        <tr key={i} className="border-b border-[#F2EEE2]/10">
+                          <td className="py-2 pr-3 font-mono text-xs break-all text-[#F2EEE2]">
+                            {row.displayUrl}
+                          </td>
+                          <td className="py-2 tabular-nums">{row.sessions.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <p className="text-sm text-[#111827]/55">
+            Clarity data updates at 7am UAE — check back tomorrow.
+          </p>
+        )}
       </section>
 
       {/* Campaigns — today (from latest ff_analytics_daily row) */}
