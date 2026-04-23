@@ -65,7 +65,7 @@ export function HowItWorksVisualSection() {
             Beautiful enough for any wall.
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            No tech skills needed. No subscription. Just your favourite photo and a few minutes of your time.
+            No skills needed. No subscription. Just your favourite photo and a few minutes of your time.
           </p>
         </div>
 

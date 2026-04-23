@@ -69,10 +69,9 @@ export function ReviewsSection() {
         </div>
 
         <p className="mx-auto mt-12 max-w-2xl text-center text-sm text-muted-foreground">
-          <span className="text-primary" aria-hidden>
-            {STAR_ROW}{" "}
-          </span>
-          Loved by pet owners across the US, Canada, Australia and beyond
+          <span className="text-primary">5 stars</span>
+          <br />
+          Loved by pet owners across the world
         </p>
 
         <div className="relative mx-auto mt-8 w-full max-w-6xl px-4 sm:px-10 md:px-14">

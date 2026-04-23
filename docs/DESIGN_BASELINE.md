@@ -49,3 +49,18 @@ Every page should:
 - Design system rule (for AI/editors): `.cursor/rules/fluffyfriends-design-system.mdc`
 - Rebrand context: `docs/SOFT_REBRAND_PROPOSAL.md`
 - Rollback: `app/globals.css.rollback`, `docs/DESIGN_ROLLBACK_SNAPSHOT.md`
+
+## Hidden landing page sections (temporary)
+
+**Reviews block** (carousel + `id="reviews"`) is **turned off** on the home page but the component is kept: `components/reviews-section.tsx`.
+
+**To show it again:**
+
+1. In `app/page.tsx`, add: `import { ReviewsSection } from "@/components/reviews-section"`.
+2. After `HowItWorksVisualSection` and the following `<SketchDivider />`, insert:
+   - `<ReviewsSection />`
+   - `<SketchDivider />` (so flow is: How it works → Reviews → divider → Pricing).
+3. In `components/navbar.tsx`, add back to `navLinks` (after "How it works", before "Pricing" if you want the original order):
+   - `{ label: "Reviews", href: "/#reviews" },`
+
+Remove or update the short JSX comment in `app/page.tsx` that points to this section.

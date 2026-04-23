@@ -201,7 +201,7 @@ export function PricingSection() {
         {/* Comparison table — light card + CTA */}
         <div className="mt-16 text-center">
           <h2 className="text-balance text-3xl font-bold text-foreground">
-            No one else does all of this.
+            No One Else does it
           </h2>
           <p className="mt-2 text-base text-muted-foreground">We checked.</p>
         </div>
@@ -329,7 +329,7 @@ export function PricingSection() {
 
         {/* Trust line below comparison */}
         <p className="mt-10 text-center text-sm font-medium text-foreground">
-          Create your portrait first. Choose your package when you&apos;re ready. No payment until step 3.
+          Create your portrait first. Choose your package when you&apos;re ready.
         </p>
       </div>
     </section>

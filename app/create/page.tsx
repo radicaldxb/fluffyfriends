@@ -838,7 +838,7 @@ function CreatePortraitContent() {
               </h1>
               {wizardStep === 1 ? (
                 <p className="mt-2 hidden text-sm text-muted-foreground md:block">
-                  Takes less than three minutes. No tech skills needed.
+                  Takes less than three minutes. No skills needed.
                 </p>
               ) : null}
               {/* Step indicator — minimal, not a blob */}

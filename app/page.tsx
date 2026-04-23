@@ -5,7 +5,6 @@ import { HowItWorksVisualSection } from "@/components/how-it-works-visual-sectio
 import { GallerySection } from "@/components/gallery-section"
 import { AboutSection } from "@/components/about-section"
 import { PricingSection } from "@/components/pricing-section"
-import { ReviewsSection } from "@/components/reviews-section"
 import { FinalCTASection } from "@/components/final-cta-section"
 import { Footer } from "@/components/footer"
 import { SketchDivider } from "@/components/sketch-divider"
@@ -127,8 +126,7 @@ export default function Home() {
           <SketchDivider />
           <HowItWorksVisualSection />
           <SketchDivider />
-          <ReviewsSection />
-          <SketchDivider />
+          {/* Reviews: hidden for now — restore steps: docs/DESIGN_BASELINE.md (Hidden landing page sections) */}
           <PricingSection />
           <SketchDivider />
           <AboutSection />

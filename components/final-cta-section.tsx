@@ -1,17 +1,14 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
-const STAR_ROW = "★★★★★"
-
 export function FinalCTASection() {
   return (
     <section id="final-cta" className="relative bg-muted py-24">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <p className="text-sm text-muted-foreground">
-          <span className="text-primary" aria-hidden>
-            {STAR_ROW}{" "}
-          </span>
-          Loved by pet owners across the US, Canada, Australia and beyond
+          <span className="text-primary">5 stars</span>
+          <br />
+          Loved by pet owners across the world
         </p>
 
         <h2 className="mt-8 text-balance text-4xl font-bold tracking-tight text-foreground md:text-5xl">
@@ -19,7 +16,7 @@ export function FinalCTASection() {
         </h2>
 
         <p className="mt-4 text-lg text-muted-foreground">
-          One photo. Minutes. Yours forever.
+          One photo. In Minutes. Yours Forever.
         </p>
 
         <Button
