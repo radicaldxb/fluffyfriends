@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { GalleryImageLightbox } from "@/components/gallery-image-lightbox"
 import { supabase } from "@/lib/supabase"
 import { isValidDownloadUrl } from "@/lib/utils"
 
@@ -21,6 +22,7 @@ export default function GalleryPage() {
   const [portraits, setPortraits] = useState<Portrait[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
 
   useEffect(() => {
     async function fetchAll() {
@@ -118,43 +120,56 @@ export default function GalleryPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
-              {portraits.map((portrait, index) => (
-                <div
-                  key={`${portrait.src}-${index}`}
-                  className="group relative aspect-[4/5] overflow-hidden rounded-organic border border-border/50"
-                >
-                  {/* Native img: portrait URLs come from Supabase (or other hosts); avoids Next/Image remotePatterns mismatches and matches unoptimized delivery */}
-                  <img
-                    src={portrait.src}
-                    alt={portrait.pet}
-                    loading={index < 10 ? "eager" : "lazy"}
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
-                    <p className="text-white text-sm font-semibold drop-shadow-sm">
-                      {portrait.pet}
-                      {(portrait.location ||
-                        (portrait.users?.city && portrait.users?.country
-                          ? `${portrait.users.city}, ${portrait.users.country}`
-                          : null)) && (
-                        <span className="font-normal text-white/90">
-                          {" "}
-                          ·{" "}
-                          {portrait.location ||
-                            (portrait.users?.city && portrait.users?.country
-                              ? `${portrait.users.city}, ${portrait.users.country}`
-                              : null)}
-                        </span>
-                      )}
-                    </p>
+              {portraits.map((portrait, index) => {
+                const locationLine =
+                  portrait.location ||
+                  (portrait.users?.city && portrait.users?.country
+                    ? `${portrait.users.city}, ${portrait.users.country}`
+                    : null)
+                const alt = locationLine
+                  ? `${portrait.pet} · ${locationLine}`
+                  : portrait.pet
+                return (
+                  <div
+                    key={`${portrait.src}-${index}`}
+                    className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-organic border border-border/50"
+                  >
+                    {/* Native img: portrait URLs come from Supabase (or other hosts); avoids Next/Image remotePatterns mismatches and matches unoptimized delivery */}
+                    <img
+                      src={portrait.src}
+                      alt={portrait.pet}
+                      loading={index < 10 ? "eager" : "lazy"}
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setLightbox({ src: portrait.src, alt })}
+                      className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-organic"
+                      aria-label={`View larger — ${portrait.pet}`}
+                    />
+                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
+                      <p className="text-white text-sm font-semibold drop-shadow-sm">
+                        {portrait.pet}
+                        {locationLine && (
+                          <span className="font-normal text-white/90"> · {locationLine}</span>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
       </section>
+
+      <GalleryImageLightbox
+        open={lightbox !== null}
+        src={lightbox?.src ?? null}
+        alt={lightbox?.alt ?? ""}
+        onClose={() => setLightbox(null)}
+      />
 
       <Footer />
     </main>

@@ -3,31 +3,40 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { GalleryImageLightbox } from "@/components/gallery-image-lightbox"
 import { supabase } from "@/lib/supabase"
 import { isValidDownloadUrl } from "@/lib/utils"
 
-const staticPortraits = [
-  { src: "/images/gallery-fireman.jpg", theme: "Fireman", pet: "French Bulldog", city: null as string | null, country: null as string | null },
-  { src: "/images/gallery-samurai.jpg", theme: "Samurai", pet: "Shiba Inu", city: null, country: null },
-  { src: "/images/gallery-renaissance.jpg", theme: "Renaissance", pet: "British Shorthair", city: null, country: null },
-  { src: "/images/gallery-astronaut.jpg", theme: "Astronaut", pet: "Labrador Retriever", city: null, country: null },
-  { src: "/images/gallery-pirate.jpg", theme: "Pirate", pet: "Terrier", city: null, country: null },
-  { src: "/images/gallery-wizard.jpg", theme: "Wizard", pet: "Persian Cat", city: null, country: null },
+const staticPortraits: Portrait[] = [
+  { src: "/images/gallery-fireman.jpg", theme: "Fireman", pet: "French Bulldog", location: null, users: null },
+  { src: "/images/gallery-samurai.jpg", theme: "Samurai", pet: "Shiba Inu", location: null, users: null },
+  { src: "/images/gallery-renaissance.jpg", theme: "Renaissance", pet: "British Shorthair", location: null, users: null },
+  { src: "/images/gallery-astronaut.jpg", theme: "Astronaut", pet: "Labrador Retriever", location: null, users: null },
+  { src: "/images/gallery-pirate.jpg", theme: "Pirate", pet: "Terrier", location: null, users: null },
+  { src: "/images/gallery-wizard.jpg", theme: "Wizard", pet: "Persian Cat", location: null, users: null },
 ]
 
-type Portrait = { src: string; theme: string; pet: string; city?: string | null; country?: string | null }
+/** Aligned with /gallery: pet_name + location (column) with city/country fallback */
+type Portrait = {
+  src: string
+  theme: string
+  pet: string
+  location?: string | null
+  users?: { city?: string | null; country?: string | null } | null
+}
 
 const GALLERY_LIMIT = 8
 
 export function GallerySection() {
   const [fromDb, setFromDb] = useState<Portrait[]>([])
   const [loading, setLoading] = useState(true)
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
 
   useEffect(() => {
     async function fetchRecent() {
       const { data } = await supabase
         .from("pet_portraits")
-        .select("image_url, original_image_url, pet_name, status, showcase_consent, users(city, country)")
+        .select("image_url, original_image_url, pet_name, status, showcase_consent, location, users(city, country)")
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .eq("showcase_consent", true)
@@ -45,12 +54,13 @@ export function GallerySection() {
                 : null
             if (!src) return null
             const users = row.users as { city?: string; country?: string } | null
+            const locRaw = row.location
             return {
               src,
               theme: "Portrait",
               pet: row.pet_name || "Pet",
-              city: users?.city ?? null,
-              country: users?.country ?? null,
+              location: typeof locRaw === "string" && locRaw.trim() ? locRaw.trim() : null,
+              users: users ?? null,
             }
           })
           .filter(
@@ -90,31 +100,53 @@ export function GallerySection() {
           </div>
         ) : (
             <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-              {portraits.slice(0, GALLERY_LIMIT).map((portrait, index) => (
+              {portraits.slice(0, GALLERY_LIMIT).map((portrait, index) => {
+                const locationLine =
+                  portrait.location ||
+                  (portrait.users?.city && portrait.users?.country
+                    ? `${portrait.users.city}, ${portrait.users.country}`
+                    : null)
+                const imgAlt = locationLine ? `${portrait.pet} · ${locationLine}` : portrait.pet
+                const lightboxAlt =
+                  locationLine
+                    ? `${portrait.pet} · ${locationLine}`
+                    : `${portrait.pet} – ${portrait.theme}`
+                return (
                 <div
                   key={`${portrait.src}-${index}`}
-                  className="group relative aspect-[4/5] overflow-hidden rounded-organic border border-border/50"
+                  className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-organic border border-border/50"
                 >
                   <Image
                     src={portrait.src}
-                    alt={`${portrait.pet} – ${portrait.theme}`}
+                    alt={imgAlt}
                     fill
                     loading="lazy"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     unoptimized={portrait.src.startsWith("http")}
                   />
-
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLightbox({
+                        src: portrait.src,
+                        alt: lightboxAlt,
+                      })
+                    }
+                    className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-organic"
+                    aria-label={`View larger — ${portrait.pet}`}
+                  />
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
                     <p className="text-white text-sm font-semibold drop-shadow-sm">
                       {portrait.pet}
-                      {portrait.city && portrait.country && (
-                        <span className="font-normal text-white/90"> · {portrait.city}, {portrait.country}</span>
+                      {locationLine && (
+                        <span className="font-normal text-white/90"> · {locationLine}</span>
                       )}
                     </p>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
         )}
 
@@ -127,6 +159,13 @@ export function GallerySection() {
           </Link>
         </div>
       </div>
+
+      <GalleryImageLightbox
+        open={lightbox !== null}
+        src={lightbox?.src ?? null}
+        alt={lightbox?.alt ?? ""}
+        onClose={() => setLightbox(null)}
+      />
     </section>
   )
 }
