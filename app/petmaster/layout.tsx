@@ -3,31 +3,50 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, PawPrint, X } from "lucide-react"
+import { ChevronRight, Menu, PawPrint, X } from "lucide-react"
+import { cn } from "@/lib/utils"
 
-const navItems = [
-  { href: "/petmaster", label: "Dashboard" },
-  { href: "/petmaster/agents", label: "Agents" },
+const agentsSubLinks = [
+  { href: "/petmaster/agents", label: "Overview" },
   { href: "/petmaster/agents/approvals", label: "Approvals" },
   { href: "/petmaster/agents/brain", label: "Brain" },
+] as const
+
+const mainNavAfterAgents = [
   { href: "/petmaster/tasks", label: "Tasks" },
   { href: "/petmaster/backlog", label: "Backlog" },
   { href: "/petmaster/dm", label: "DM Generator" },
   { href: "/petmaster/users", label: "Users" },
 ] as const
 
-function isActive(pathname: string, href: string) {
+function isAgentsPath(pathname: string) {
+  return pathname.startsWith("/petmaster/agents")
+}
+
+function isSubLinkActive(pathname: string, href: string) {
   if (href === "/petmaster") {
     return pathname === "/petmaster" || pathname === "/petmaster/"
   }
   if (href === "/petmaster/agents") {
     return (
-      (pathname === "/petmaster/agents" || pathname === "/petmaster/agents/") &&
-      !pathname.startsWith("/petmaster/agents/approvals") &&
-      !pathname.startsWith("/petmaster/agents/brain")
+      pathname === "/petmaster/agents" || pathname === "/petmaster/agents/"
     )
   }
   return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function linkClass(active: boolean) {
+  return `block rounded-organic-sm px-3 py-2.5 text-sm font-medium transition-colors ${
+    active ? "bg-white/10 text-[#F09A54]" : "text-[#F2EEE2]/90 hover:bg-white/5 hover:text-[#F2EEE2]"
+  }`
+}
+
+function subLinkClass(active: boolean) {
+  return `block rounded-organic-sm py-2 pl-8 pr-3 text-sm transition-colors ${
+    active
+      ? "bg-white/10 text-[#F09A54] font-medium"
+      : "text-[#F2EEE2]/80 hover:bg-white/5 hover:text-[#F2EEE2]"
+  }`
 }
 
 export default function PetmasterLayout({
@@ -37,9 +56,16 @@ export default function PetmasterLayout({
 }) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [agentsOpen, setAgentsOpen] = useState(() => isAgentsPath(pathname))
 
   useEffect(() => {
     setMobileOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (isAgentsPath(pathname)) {
+      setAgentsOpen(true)
+    }
   }, [pathname])
 
   if (pathname === "/petmaster/login") {
@@ -94,23 +120,59 @@ export default function PetmasterLayout({
           PetMaster
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5 px-2">
-          {navItems.map(({ href, label }) => {
-            const active = isActive(pathname, href)
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`rounded-organic-sm px-3 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-white/10 text-[#F09A54]"
-                    : "text-[#F2EEE2]/90 hover:bg-white/5 hover:text-[#F2EEE2]"
-                }`}
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2" aria-label="PetMaster">
+          <div className="flex flex-col gap-0.5">
+            <Link
+              href="/petmaster"
+              className={linkClass(isSubLinkActive(pathname, "/petmaster"))}
+              onClick={() => setMobileOpen(false)}
+            >
+              Dashboard
+            </Link>
+
+            {/* Collapsible Agents group */}
+            <div className="flex flex-col">
+              <button
+                type="button"
+                onClick={() => setAgentsOpen((o) => !o)}
+                aria-expanded={agentsOpen}
+                className={cn(
+                  "flex w-full items-center justify-between gap-2 rounded-organic-sm px-3 py-2.5 text-left text-sm font-medium transition-colors",
+                  isAgentsPath(pathname) ? "text-[#F09A54]" : "text-[#F2EEE2]/90",
+                  "hover:bg-white/5",
+                )}
               >
-                {label}
-              </Link>
-            )
-          })}
+                <span>Agents</span>
+                <ChevronRight
+                  className={cn("h-4 w-4 shrink-0 text-[#F2EEE2]/50 transition-transform", agentsOpen && "rotate-90")}
+                  aria-hidden
+                />
+              </button>
+              {agentsOpen && (
+                <ul className="ml-0 flex flex-col border-l border-white/10 pl-1.5" role="list">
+                  {agentsSubLinks.map(({ href, label }) => {
+                    const active = isSubLinkActive(pathname, href)
+                    return (
+                      <li key={href}>
+                        <Link href={href} className={subLinkClass(active)} onClick={() => setMobileOpen(false)}>
+                          {label}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {mainNavAfterAgents.map(({ href, label }) => {
+              const active = isSubLinkActive(pathname, href)
+              return (
+                <Link key={href} href={href} className={linkClass(active)} onClick={() => setMobileOpen(false)}>
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
         </nav>
 
         <div className="mt-auto border-t border-white/10 p-3">
