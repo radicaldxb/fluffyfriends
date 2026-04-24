@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
+import { GalleryImageLightbox } from "@/components/gallery-image-lightbox"
 import { cn } from "@/lib/utils"
 
 const REJECT_CATEGORIES = [
@@ -85,6 +86,12 @@ function proposedRule(p: PlaybookProposal): string {
   return String(p.proposed_rule ?? p.proposed_text ?? p.rule ?? "").trim()
 }
 
+function postLightboxAlt(post: ContentPost): string {
+  const theme = post.theme?.trim() || "Post preview"
+  const pl = post.platform?.trim()
+  return pl ? `${theme} · ${pl}` : theme
+}
+
 export default function PetmasterAgentsApprovalsPage() {
   const [tab, setTab] = useState<Tab>("content")
   const [data, setData] = useState<ApprovalsPayload | null>(null)
@@ -98,6 +105,7 @@ export default function PetmasterAgentsApprovalsPage() {
   const [rejectingPostId, setRejectingPostId] = useState<string | null>(null)
   const [rejectCategory, setRejectCategory] = useState<string>("")
   const [rejectDetails, setRejectDetails] = useState("")
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
 
   const load = useCallback(async () => {
     setError(null)
@@ -300,18 +308,25 @@ export default function PetmasterAgentsApprovalsPage() {
                     className="overflow-hidden rounded-xl border border-white/5 bg-[#1F2937]"
                   >
                     <div className="flex flex-col gap-4 p-4 md:flex-row">
-                    <div
-                      className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-lg border border-white/10 md:h-[200px] md:w-[200px]"
-                    >
+                    <div className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-lg border border-white/10 md:h-[200px] md:w-[200px]">
                       {post.image_url ? (
-                        <Image
-                          src={post.image_url}
-                          alt=""
-                          width={200}
-                          height={200}
-                          unoptimized
-                          className="h-full w-full object-cover"
-                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setLightbox({ src: post.image_url as string, alt: postLightboxAlt(post) })
+                          }
+                          className="group relative block h-full w-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F09A54] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F2937]"
+                          aria-label="View full image"
+                        >
+                          <Image
+                            src={post.image_url}
+                            alt={postLightboxAlt(post)}
+                            width={200}
+                            height={200}
+                            unoptimized
+                            className="h-full w-full object-cover transition-opacity group-hover:opacity-90"
+                          />
+                        </button>
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-slate-600/80 text-sm text-slate-300">
                           Generating…
@@ -578,6 +593,13 @@ export default function PetmasterAgentsApprovalsPage() {
           drafts will appear here for review before activation in Meta Ads Manager.
         </div>
       </section>
+
+      <GalleryImageLightbox
+        open={!!lightbox}
+        src={lightbox?.src ?? null}
+        alt={lightbox?.alt ?? ""}
+        onClose={() => setLightbox(null)}
+      />
     </div>
   )
 }
