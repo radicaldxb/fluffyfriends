@@ -8,6 +8,7 @@ import { Menu, PawPrint, X } from "lucide-react"
 const navItems = [
   { href: "/petmaster", label: "Dashboard" },
   { href: "/petmaster/agents", label: "Agents" },
+  { href: "/petmaster/agents/approvals", label: "Approvals" },
   { href: "/petmaster/tasks", label: "Tasks" },
   { href: "/petmaster/backlog", label: "Backlog" },
   { href: "/petmaster/dm", label: "DM Generator" },
@@ -17,6 +18,12 @@ const navItems = [
 function isActive(pathname: string, href: string) {
   if (href === "/petmaster") {
     return pathname === "/petmaster" || pathname === "/petmaster/"
+  }
+  if (href === "/petmaster/agents") {
+    return (
+      (pathname === "/petmaster/agents" || pathname === "/petmaster/agents/") &&
+      !pathname.startsWith("/petmaster/agents/approvals")
+    )
   }
   return pathname === href || pathname.startsWith(`${href}/`)
 }
