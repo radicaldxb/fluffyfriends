@@ -228,7 +228,7 @@ function CreatePortraitContent() {
     if (status !== "generating" || !previewImageUrl) return
     if (previewFinishSettledRef.current) return
 
-    const preloader = new Image()
+    const preloader = new window.Image()
     preloader.onload = () => finishPreviewTransition(false)
     preloader.onerror = () => finishPreviewTransition(true)
     preloader.src = previewImageUrl
