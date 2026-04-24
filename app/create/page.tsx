@@ -108,6 +108,18 @@ function pickPreviewRawUrlFromRow(data: {
   return ""
 }
 
+/** GTM: always include `theme` (lowercase key or null) and `portrait_id` (UUID or null) on /create funnel events. */
+function funnelDatalayerPayload(
+  theme: string | null,
+  portraitId: string | null | undefined,
+): { theme: string | null; portrait_id: string | null } {
+  return {
+    theme: theme == null || String(theme).trim() === "" ? null : String(theme).trim().toLowerCase(),
+    portrait_id:
+      portraitId != null && String(portraitId).trim() ? String(portraitId).trim() : null,
+  }
+}
+
 function CreatePageFallback() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -323,7 +335,10 @@ function CreatePortraitContent() {
     setStatus("idle")
     setMessage("")
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: "create_step2_upload" })
+    window.dataLayer.push({
+      event: "create_step2_upload",
+      ...funnelDatalayerPayload(theme, null),
+    })
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -360,7 +375,10 @@ function CreatePortraitContent() {
     if (!file || !theme) return
 
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: "create_step2_image_checked" })
+    window.dataLayer.push({
+      event: "create_step2_image_checked",
+      ...funnelDatalayerPayload(theme, null),
+    })
 
     setIsValidationReject(false)
     setStatus("processing")
@@ -407,9 +425,10 @@ function CreatePortraitContent() {
       window.gtag?.("event", "create_step2_complete", {
         theme: theme ?? "",
       })
+      const photoFp = funnelDatalayerPayload(theme, normalizedId)
       window.dataLayer = window.dataLayer || []
-      window.dataLayer.push({ event: 'create_step2_complete' })
-      window.dataLayer.push({ event: "photo_uploaded" })
+      window.dataLayer.push({ event: "create_step2_complete", ...photoFp })
+      window.dataLayer.push({ event: "photo_uploaded", ...photoFp })
       const packCustomer =
         portraitsRemaining != null && portraitsRemaining > 0 && emailFromQuery.trim().length > 0
       if (packCustomer) {
@@ -565,6 +584,7 @@ function CreatePortraitContent() {
   function goNext() {
     if (wizardStep === 1) {
       if (!petName.trim() || !theme) return
+      const step1Fp = funnelDatalayerPayload(theme, null)
       window.gtag?.("event", "create_step1_complete", {
         theme,
         pet_name: petName.trim(),
@@ -574,8 +594,12 @@ function CreatePortraitContent() {
         pet_name: petName.trim(),
       })
       window.dataLayer = window.dataLayer || []
-      window.dataLayer.push({ event: "create_step1_complete" })
-      window.dataLayer.push({ event: "checkout_started", theme, pet_name: petName.trim() })
+      window.dataLayer.push({ event: "create_step1_complete", ...step1Fp })
+      window.dataLayer.push({
+        event: "checkout_started",
+        ...step1Fp,
+        pet_name: petName.trim(),
+      })
     }
     setSlideDirection("next")
     setWizardStep((s) => Math.min(3, s + 1))
@@ -599,7 +623,10 @@ function CreatePortraitContent() {
     if (!generationPortraitId) return
     setPreviewEmailError("")
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: "email_captured_preview" })
+    window.dataLayer.push({
+      event: "email_captured_preview",
+      ...funnelDatalayerPayload(theme, generationPortraitId),
+    })
     setPreviewEmailCaptureDone(true)
     void (async () => {
       try {
@@ -620,7 +647,10 @@ function CreatePortraitContent() {
 
   function handlePreviewEmailSkip() {
     window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({ event: "preview_reveal_skipped" })
+    window.dataLayer.push({
+      event: "preview_reveal_skipped",
+      ...funnelDatalayerPayload(theme, generationPortraitId),
+    })
     setPreviewEmailCaptureDone(true)
   }
 
@@ -653,11 +683,12 @@ function CreatePortraitContent() {
     window.dataLayer.push({
       event: "portrait_preview_shown",
       theme_name: theme ?? "",
+      ...funnelDatalayerPayload(theme, generationPortraitId),
     })
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
       window.fbq("track", "ViewContent")
     }
-  }, [status, previewImageUrl, theme, previewEmailCaptureDone])
+  }, [status, previewImageUrl, theme, previewEmailCaptureDone, generationPortraitId])
 
   useEffect(() => {
     if (status !== "preview" || !previewImageUrl || !previewEmailCaptureDone) return
@@ -667,8 +698,9 @@ function CreatePortraitContent() {
     window.dataLayer.push({
       event: "package_viewed",
       default_package: "portrait_pack",
+      ...funnelDatalayerPayload(theme, generationPortraitId),
     })
-  }, [status, previewImageUrl, previewEmailCaptureDone])
+  }, [status, previewImageUrl, previewEmailCaptureDone, theme, generationPortraitId])
 
   useEffect(() => {
     if (status !== "success" || !resultPortraitId || showPackFlow) return
@@ -678,8 +710,9 @@ function CreatePortraitContent() {
     window.dataLayer.push({
       event: "package_viewed",
       default_package: "portrait_pack",
+      ...funnelDatalayerPayload(theme, resultPortraitId),
     })
-  }, [status, resultPortraitId, showPackFlow])
+  }, [status, resultPortraitId, showPackFlow, theme])
 
   function pushPackageSelected(product: Product) {
     if (product.id === selectedProductId) return
@@ -688,6 +721,7 @@ function CreatePortraitContent() {
       event: "package_changed",
       package_selected: product.id,
       package_price: product.priceDisplay,
+      ...funnelDatalayerPayload(theme, generationPortraitId ?? resultPortraitId),
     })
     setSelectedProductId(product.id)
   }
@@ -821,6 +855,7 @@ function CreatePortraitContent() {
               event: "checkout_initiated",
               package: selectedProductId,
               theme_name: theme ?? "",
+              ...funnelDatalayerPayload(theme, generationPortraitId),
             })
             if (typeof window !== "undefined" && typeof window.fbq === "function") {
               window.fbq("track", "InitiateCheckout")
@@ -846,7 +881,10 @@ function CreatePortraitContent() {
               return
             }
             window.dataLayer = window.dataLayer || []
-            window.dataLayer.push({ event: "create_step3_checkout" })
+            window.dataLayer.push({
+              event: "create_step3_checkout",
+              ...funnelDatalayerPayload(theme, generationPortraitId),
+            })
             window.location.href = data.url as string
           } catch {
             setCheckoutStatus("error")
@@ -995,7 +1033,10 @@ function CreatePortraitContent() {
                         aria-label="Your pet's name (required)"
                         onFocus={() => {
                           window.dataLayer = window.dataLayer || []
-                          window.dataLayer.push({ event: "pet_name_entered" })
+                          window.dataLayer.push({
+                            event: "pet_name_entered",
+                            ...funnelDatalayerPayload(theme, null),
+                          })
                         }}
                         onChange={(e) => setPetName(e.target.value.slice(0, 12))}
                         maxLength={12}
@@ -1079,6 +1120,7 @@ function CreatePortraitContent() {
                                     window.dataLayer.push({
                                       event: "theme_selected",
                                       theme_name: id,
+                                      ...funnelDatalayerPayload(id, null),
                                     })
                                   }}
                                   className={`w-full rounded-organic py-1.5 text-sm font-semibold text-white transition-all duration-200 ${
@@ -1618,7 +1660,10 @@ function CreatePortraitContent() {
                       value={voucherCode}
                       onFocus={() => {
                         window.dataLayer = window.dataLayer || []
-                        window.dataLayer.push({ event: "discount_code_attempted" })
+                        window.dataLayer.push({
+                          event: "discount_code_attempted",
+                          ...funnelDatalayerPayload(theme, generationPortraitId ?? resultPortraitId),
+                        })
                       }}
                       onChange={(e) => {
                         setVoucherCode(e.target.value)
@@ -1867,7 +1912,10 @@ function CreatePortraitContent() {
                           value={voucherCode}
                           onFocus={() => {
                             window.dataLayer = window.dataLayer || []
-                            window.dataLayer.push({ event: "discount_code_attempted" })
+                            window.dataLayer.push({
+                              event: "discount_code_attempted",
+                              ...funnelDatalayerPayload(theme, generationPortraitId ?? resultPortraitId),
+                            })
                           }}
                           onChange={(e) => {
                             setVoucherCode(e.target.value)
@@ -1950,6 +1998,7 @@ function CreatePortraitContent() {
                             event: "checkout_initiated",
                             package: selectedProductId,
                             theme_name: theme ?? "",
+                            ...funnelDatalayerPayload(theme, resultPortraitId),
                           })
                           if (typeof window !== "undefined" && typeof window.fbq === "function") {
                             window.fbq("track", "InitiateCheckout")
@@ -1976,7 +2025,10 @@ function CreatePortraitContent() {
                           })
                           initiateCheckout()
                           window.dataLayer = window.dataLayer || []
-                          window.dataLayer.push({ event: "create_step3_checkout" })
+                          window.dataLayer.push({
+                            event: "create_step3_checkout",
+                            ...funnelDatalayerPayload(theme, resultPortraitId),
+                          })
                           window.location.href = data.url as string
                         } catch (err) {
                           setCheckoutStatus("error")
