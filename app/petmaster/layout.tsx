@@ -7,6 +7,7 @@ import { Menu, PawPrint, X } from "lucide-react"
 
 const navItems = [
   { href: "/petmaster", label: "Dashboard" },
+  { href: "/petmaster/agents", label: "Agents" },
   { href: "/petmaster/tasks", label: "Tasks" },
   { href: "/petmaster/backlog", label: "Backlog" },
   { href: "/petmaster/dm", label: "DM Generator" },
