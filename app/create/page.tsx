@@ -1,7 +1,7 @@
 "use client"
 
 import ReactDOM from "react-dom"
-import { useState, useEffect, useRef, useMemo, Suspense } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
@@ -192,6 +192,7 @@ function CreatePortraitContent() {
   const previewEmailGateImgRef = useRef<HTMLImageElement | null>(null)
   const previewImagePreloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const previewImagePreloadCancelledRef = useRef(false)
+  const previewFinishSettledRef = useRef(false)
   const portraitPreviewShownRef = useRef(false)
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
@@ -212,6 +213,31 @@ function CreatePortraitContent() {
       "Getting ready for the big reveal...",
     ]
   }, [petName])
+
+  const finishPreviewTransition = useCallback((imageFailed: boolean) => {
+    if (previewFinishSettledRef.current || previewImagePreloadCancelledRef.current) return
+    previewFinishSettledRef.current = true
+    if (previewImagePreloadTimeoutRef.current) {
+      clearTimeout(previewImagePreloadTimeoutRef.current)
+      previewImagePreloadTimeoutRef.current = null
+    }
+    setPreviewGateImageFailed(imageFailed)
+    setStatus("preview")
+  }, [])
+
+  useEffect(() => {
+    if (status !== "generating" || !previewImageUrl) return
+    if (previewFinishSettledRef.current) return
+    previewImagePreloadTimeoutRef.current = window.setTimeout(() => {
+      finishPreviewTransition(true)
+    }, 10_000)
+    return () => {
+      if (previewImagePreloadTimeoutRef.current) {
+        clearTimeout(previewImagePreloadTimeoutRef.current)
+        previewImagePreloadTimeoutRef.current = null
+      }
+    }
+  }, [status, previewImageUrl, finishPreviewTransition])
 
   useEffect(() => {
     const isLoading = status === "processing" || status === "generating"
@@ -251,15 +277,6 @@ function CreatePortraitContent() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
-
-  useEffect(() => {
-    return () => {
-      if (previewImagePreloadTimeoutRef.current) {
-        clearTimeout(previewImagePreloadTimeoutRef.current)
-        previewImagePreloadTimeoutRef.current = null
-      }
-    }
-  }, [])
 
   useEffect(() => {
     if (!inspectModalOpen) return
@@ -510,11 +527,8 @@ function CreatePortraitContent() {
                 pollIntervalRef.current = null
               }
               previewImagePreloadCancelledRef.current = false
-              if (previewImagePreloadTimeoutRef.current) {
-                clearTimeout(previewImagePreloadTimeoutRef.current)
-                previewImagePreloadTimeoutRef.current = null
-              }
               const wm = applyWatermark(raw)
+              previewFinishSettledRef.current = false
               previewCloudinaryRawRef.current = raw
               setPreviewGateImageFailed(false)
               setPreviewImageUrl(wm)
@@ -523,23 +537,7 @@ function CreatePortraitContent() {
               setPreviewEmailCaptureDone(
                 typeof existingEmail === "string" && existingEmail.trim().length > 0,
               )
-              // Stay on "generating" until the watermarked preview is decodable in-browser (or 10s fallback).
-              let settled = false
-              const finish = (imageFailed: boolean) => {
-                if (settled || previewImagePreloadCancelledRef.current) return
-                settled = true
-                if (previewImagePreloadTimeoutRef.current) {
-                  clearTimeout(previewImagePreloadTimeoutRef.current)
-                  previewImagePreloadTimeoutRef.current = null
-                }
-                setPreviewGateImageFailed(imageFailed)
-                setStatus("preview")
-              }
-              const preloader = new Image()
-              previewImagePreloadTimeoutRef.current = window.setTimeout(() => finish(true), 10_000)
-              preloader.onload = () => finish(false)
-              preloader.onerror = () => finish(true)
-              preloader.src = wm
+              // Stay on "generating" until hidden in-DOM <img> onLoad/onError or 10s useEffect (Brief 8.3).
             }
           }
         } catch {
@@ -554,6 +552,7 @@ function CreatePortraitContent() {
 
   function handleReset() {
     previewImagePreloadCancelledRef.current = true
+    previewFinishSettledRef.current = true
     if (previewImagePreloadTimeoutRef.current) {
       clearTimeout(previewImagePreloadTimeoutRef.current)
       previewImagePreloadTimeoutRef.current = null
@@ -1386,7 +1385,24 @@ function CreatePortraitContent() {
 
           {/* Processing / generating — video loop + sequential messages */}
           {(status === "processing" || status === "generating") && (
-            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
+            <div className="relative animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
+              {status === "generating" && previewImageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={previewImageUrl}
+                  onLoad={() => finishPreviewTransition(false)}
+                  onError={() => finishPreviewTransition(true)}
+                  style={{
+                    position: "absolute",
+                    width: 1,
+                    height: 1,
+                    opacity: 0,
+                    pointerEvents: "none",
+                  }}
+                  aria-hidden
+                  alt=""
+                />
+              ) : null}
               <div className="mb-6 flex justify-center" role="status" aria-label="Loading">
                 <div className="relative aspect-square h-32 w-32 shrink-0 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5">
                   <video
