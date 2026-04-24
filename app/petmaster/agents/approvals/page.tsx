@@ -4,6 +4,14 @@ import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
+const REJECT_CATEGORIES = [
+  "Image/caption mismatch",
+  "Wrong pet type",
+  "Off-brand copy",
+  "Image quality",
+  "Other",
+] as const
+
 type Tab = "content" | "playbook"
 
 type ContentPost = {
@@ -87,6 +95,10 @@ export default function PetmasterAgentsApprovalsPage() {
   const [editCaption, setEditCaption] = useState("")
   const [editHashtags, setEditHashtags] = useState("")
 
+  const [rejectingPostId, setRejectingPostId] = useState<string | null>(null)
+  const [rejectCategory, setRejectCategory] = useState<string>("")
+  const [rejectDetails, setRejectDetails] = useState("")
+
   const load = useCallback(async () => {
     setError(null)
     setLoading(true)
@@ -134,11 +146,31 @@ export default function PetmasterAgentsApprovalsPage() {
     }
   }
 
-  async function onRejectPost(id: string) {
+  function openRejectModal(postId: string) {
+    setEditingId(null)
+    setRejectingPostId(postId)
+    setRejectCategory("")
+    setRejectDetails("")
+    setError(null)
+  }
+
+  function closeRejectModal() {
+    setRejectingPostId(null)
+    setRejectCategory("")
+    setRejectDetails("")
+  }
+
+  async function onConfirmRejectPost(id: string) {
+    if (!rejectCategory.trim()) return
     setBusyId(id)
     setError(null)
     try {
-      await patchJson("/api/petmaster-reject-post", { id })
+      await patchJson("/api/petmaster-reject-post", {
+        id,
+        rejection_category: rejectCategory,
+        rejection_reason: rejectDetails.trim() || null,
+      })
+      closeRejectModal()
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Reject failed")
@@ -261,11 +293,13 @@ export default function PetmasterAgentsApprovalsPage() {
               {posts.map((post) => {
                 const isBusy = busyId === post.id
                 const isEditing = editingId === post.id
+                const isRejecting = rejectingPostId === post.id
                 return (
                   <li
                     key={post.id}
-                    className="flex flex-col gap-4 rounded-xl border border-white/5 bg-[#1F2937] p-4 md:flex-row"
+                    className="overflow-hidden rounded-xl border border-white/5 bg-[#1F2937]"
                   >
+                    <div className="flex flex-col gap-4 p-4 md:flex-row">
                     <div
                       className="relative h-[200px] w-full shrink-0 overflow-hidden rounded-lg border border-white/10 md:h-[200px] md:w-[200px]"
                     >
@@ -379,7 +413,7 @@ export default function PetmasterAgentsApprovalsPage() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => onRejectPost(post.id)}
+                            onClick={() => openRejectModal(post.id)}
                             disabled={isBusy}
                             className="rounded-md bg-[#ef4444] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
                           >
@@ -388,6 +422,7 @@ export default function PetmasterAgentsApprovalsPage() {
                           <button
                             type="button"
                             onClick={() => {
+                              setRejectingPostId(null)
                               setEditingId(post.id)
                               setEditCaption(String(post.caption_a ?? ""))
                               setEditHashtags(String(post.hashtags ?? ""))
@@ -400,6 +435,70 @@ export default function PetmasterAgentsApprovalsPage() {
                         </div>
                       )}
                     </div>
+                    </div>
+                    {isRejecting && !isEditing && (
+                      <div className="border-t border-white/10 bg-[#1a1f2e] px-4 py-3">
+                        <p className="text-xs font-medium uppercase tracking-wide text-[#F2EEE2]/50">
+                          Reject reason
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {REJECT_CATEGORIES.map((label) => {
+                            const active = rejectCategory === label
+                            return (
+                              <button
+                                key={label}
+                                type="button"
+                                onClick={() => {
+                                  setRejectCategory(label)
+                                }}
+                                className={cn(
+                                  "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+                                  active
+                                    ? "border-[#F09A54] bg-[#F09A54]/15 text-[#F09A54]"
+                                    : "border-white/20 text-[#F2EEE2]/80 hover:border-white/30",
+                                )}
+                              >
+                                {label}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        {rejectCategory ? (
+                          <label className="mt-3 block text-xs text-[#F2EEE2]/50">
+                            Add details (optional)
+                            <textarea
+                              value={rejectDetails}
+                              onChange={(e) => setRejectDetails(e.target.value.slice(0, 200))}
+                              maxLength={200}
+                              rows={2}
+                              placeholder="Add details (optional)"
+                              className="mt-1 w-full max-w-lg rounded-md border border-white/15 bg-[#111827] px-2 py-1.5 text-sm text-[#F2EEE2] placeholder:text-[#F2EEE2]/35"
+                            />
+                            <span className="mt-0.5 block text-[11px] text-[#F2EEE2]/40">
+                              {rejectDetails.length}/200
+                            </span>
+                          </label>
+                        ) : null}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onConfirmRejectPost(post.id)}
+                            disabled={isBusy || !rejectCategory}
+                            className="rounded-md bg-[#ef4444] px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {isBusy ? "…" : "Confirm Reject"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={closeRejectModal}
+                            disabled={isBusy}
+                            className="rounded-md border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-[#F2EEE2]/80 hover:bg-white/10 disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 )
               })}
