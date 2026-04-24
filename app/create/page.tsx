@@ -189,7 +189,6 @@ function CreatePortraitContent() {
   /** Raw DB URL (portrait_url preferred) — used for watermarked preview + load fallbacks */
   const previewCloudinaryRawRef = useRef<string | null>(null)
   const [previewGateImageFailed, setPreviewGateImageFailed] = useState(false)
-  const previewEmailGateImgRef = useRef<HTMLImageElement | null>(null)
   const previewImagePreloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const previewImagePreloadCancelledRef = useRef(false)
   const previewFinishSettledRef = useRef(false)
@@ -842,8 +841,7 @@ function CreatePortraitContent() {
     Boolean(selectedProduct) &&
     previewEmailCaptureDone
 
-  const isPreviewEmailGate =
-    status === "preview" && Boolean(previewImageUrl) && !previewEmailCaptureDone
+  const isPreviewEmailGate = status === "preview" && !previewEmailCaptureDone
 
   function renderStep1UploadButton() {
     return (
@@ -1433,70 +1431,52 @@ function CreatePortraitContent() {
             </div>
           )}
 
-          {status === "preview" && previewImageUrl && !previewEmailCaptureDone && (
+          {status === "preview" && !previewEmailCaptureDone && (
             <div className="w-full px-6 py-6 md:px-8 md:py-12">
               <div className="relative isolate mx-auto w-full max-w-[900px] overflow-hidden rounded-2xl shadow-lg ring-1 ring-border/30">
-                {/*
-                  Portrait band: must render a real <img> (watermarked Cloudinary URL from previewImageUrl).
-                  Flat grey when img fails — gradient fallback only. No opacity-0 (breaks some browsers’ paint/load).
-                */}
                 <div
-                  className="relative w-full
-                  min-h-[min(100%,20rem)]
-                  h-[18rem] min-[400px]:h-[22rem]
-                  md:min-h-0 md:h-[520px]"
-                >
-                  {previewGateImageFailed ? (
-                    <div
-                      className="absolute inset-0 z-0 bg-gradient-to-b from-secondary/50 via-background to-secondary/30"
-                      aria-hidden
-                    />
-                  ) : (
-                    <>
-                      <div
-                        className="absolute inset-0 z-0 bg-gradient-to-b from-background/30 to-background/5"
-                        aria-hidden
-                      />
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        ref={previewEmailGateImgRef}
-                        src={previewImageUrl}
-                        alt=""
-                        loading="eager"
-                        decoding="async"
-                        fetchPriority="high"
-                        onLoad={() => setPreviewGateImageFailed(false)}
-                        onContextMenu={(e) => e.preventDefault()}
-                        draggable={false}
-                        className="absolute inset-0 z-[1] h-full w-full min-h-full min-w-full object-cover object-center select-none [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
-                        style={{
-                          filter: "blur(32px)",
-                          transform: "scale(1.1) translateZ(0)",
-                          transformOrigin: "center center",
-                        }}
-                        onError={() => {
-                          const raw = previewCloudinaryRawRef.current
-                          if (!raw) {
-                            setPreviewGateImageFailed(true)
-                            return
-                          }
-                          const watermarked = applyWatermark(raw)
-                          setPreviewImageUrl((current) => {
-                            if (current === watermarked) {
-                              setPreviewGateImageFailed(true)
-                              return current
-                            }
-                            return watermarked
-                          })
-                        }}
-                      />
-                    </>
+                  className={cn(
+                    "relative w-full overflow-hidden",
+                    "min-h-[min(100%,20rem)] h-[18rem] min-[400px]:h-[22rem] md:min-h-0 md:h-[520px]",
+                    (!previewImageUrl || previewGateImageFailed) && "bg-muted/50",
                   )}
+                >
+                  {previewImageUrl && !previewGateImageFailed ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={previewImageUrl}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ filter: "blur(32px)", transform: "scale(1.1)" }}
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority="high"
+                      onLoad={() => setPreviewGateImageFailed(false)}
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
+                      onError={() => {
+                        const raw = previewCloudinaryRawRef.current
+                        if (!raw) {
+                          setPreviewGateImageFailed(true)
+                          return
+                        }
+                        const watermarked = applyWatermark(raw)
+                        setPreviewImageUrl((current) => {
+                          if (current === watermarked) {
+                            setPreviewGateImageFailed(true)
+                            return current
+                          }
+                          return watermarked
+                        })
+                      }}
+                    />
+                  ) : null}
                   <div
-                    className="pointer-events-none absolute inset-0 z-[2] bg-black/30"
+                    className="pointer-events-none absolute inset-0 z-[1] bg-black/30"
                     aria-hidden
                   />
-                  <div className="relative z-[3] flex h-full w-full min-h-0 items-center justify-center p-5 sm:p-6">
+                  <div className="relative z-[2] flex h-full w-full min-h-0 items-center justify-center p-5 sm:p-6">
                     <div className="w-full max-w-md rounded-organic border border-border bg-card/95 p-5 shadow-md sm:mx-auto sm:max-w-md sm:p-6">
                       <h1 className="font-heading text-center text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
                         {petNameDisplay ? (
