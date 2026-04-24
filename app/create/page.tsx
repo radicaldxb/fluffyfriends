@@ -188,8 +188,10 @@ function CreatePortraitContent() {
   const [previewEmailError, setPreviewEmailError] = useState("")
   /** Raw DB URL (portrait_url preferred) — used for watermarked preview + load fallbacks */
   const previewCloudinaryRawRef = useRef<string | null>(null)
-  const [previewGateImageReady, setPreviewGateImageReady] = useState(false)
   const [previewGateImageFailed, setPreviewGateImageFailed] = useState(false)
+  const previewEmailGateImgRef = useRef<HTMLImageElement | null>(null)
+  const previewImagePreloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const previewImagePreloadCancelledRef = useRef(false)
   const portraitPreviewShownRef = useRef(false)
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
@@ -249,6 +251,15 @@ function CreatePortraitContent() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  useEffect(() => {
+    return () => {
+      if (previewImagePreloadTimeoutRef.current) {
+        clearTimeout(previewImagePreloadTimeoutRef.current)
+        previewImagePreloadTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!inspectModalOpen) return
@@ -448,6 +459,7 @@ function CreatePortraitContent() {
   }
 
   async function handleTriggerPreview(portraitId: string) {
+    previewImagePreloadCancelledRef.current = false
     setStatus("generating")
     try {
       const res = await fetch("/api/trigger-preview", {
@@ -497,16 +509,37 @@ function CreatePortraitContent() {
                 clearInterval(pollIntervalRef.current)
                 pollIntervalRef.current = null
               }
+              previewImagePreloadCancelledRef.current = false
+              if (previewImagePreloadTimeoutRef.current) {
+                clearTimeout(previewImagePreloadTimeoutRef.current)
+                previewImagePreloadTimeoutRef.current = null
+              }
+              const wm = applyWatermark(raw)
               previewCloudinaryRawRef.current = raw
-              setPreviewGateImageReady(false)
               setPreviewGateImageFailed(false)
-              setPreviewImageUrl(applyWatermark(raw))
+              setPreviewImageUrl(wm)
               setGenerationPortraitId(portraitId)
               const existingEmail = data.user_email
               setPreviewEmailCaptureDone(
                 typeof existingEmail === "string" && existingEmail.trim().length > 0,
               )
-              setStatus("preview")
+              // Stay on "generating" until the watermarked preview is decodable in-browser (or 10s fallback).
+              let settled = false
+              const finish = (imageFailed: boolean) => {
+                if (settled || previewImagePreloadCancelledRef.current) return
+                settled = true
+                if (previewImagePreloadTimeoutRef.current) {
+                  clearTimeout(previewImagePreloadTimeoutRef.current)
+                  previewImagePreloadTimeoutRef.current = null
+                }
+                setPreviewGateImageFailed(imageFailed)
+                setStatus("preview")
+              }
+              const preloader = new Image()
+              previewImagePreloadTimeoutRef.current = window.setTimeout(() => finish(true), 10_000)
+              preloader.onload = () => finish(false)
+              preloader.onerror = () => finish(true)
+              preloader.src = wm
             }
           }
         } catch {
@@ -520,6 +553,11 @@ function CreatePortraitContent() {
   }
 
   function handleReset() {
+    previewImagePreloadCancelledRef.current = true
+    if (previewImagePreloadTimeoutRef.current) {
+      clearTimeout(previewImagePreloadTimeoutRef.current)
+      previewImagePreloadTimeoutRef.current = null
+    }
     setTheme(null)
     setFile(null)
     if (previewUrl) {
@@ -535,7 +573,6 @@ function CreatePortraitContent() {
     setResultPortraitId(null)
     setPreviewImageUrl(null)
     previewCloudinaryRawRef.current = null
-    setPreviewGateImageReady(false)
     setPreviewGateImageFailed(false)
     setGenerationPortraitId(null)
     setPreviewEmailCaptureDone(false)
@@ -1381,52 +1418,69 @@ function CreatePortraitContent() {
           )}
 
           {status === "preview" && previewImageUrl && !previewEmailCaptureDone && (
-            <div className="animate-in fade-in-0 duration-500 w-full">
-              <div className="relative mx-auto w-full max-w-[900px] overflow-hidden rounded-2xl shadow-lg ring-1 ring-border/30">
-                {/* Fixed height band: real portrait fills as cover; cream gradient until load or on failure */}
-                <div className="relative h-[min(58vh,520px)] w-full min-h-[260px] max-h-[600px] sm:min-h-[300px]">
+            <div className="w-full px-6 py-6 md:px-8 md:py-12">
+              <div className="relative isolate mx-auto w-full max-w-[900px] overflow-hidden rounded-2xl shadow-lg ring-1 ring-border/30">
+                {/*
+                  Portrait band: must render a real <img> (watermarked Cloudinary URL from previewImageUrl).
+                  Flat grey when img fails — gradient fallback only. No opacity-0 (breaks some browsers’ paint/load).
+                */}
+                <div
+                  className="relative w-full
+                  min-h-[min(100%,20rem)]
+                  h-[18rem] min-[400px]:h-[22rem]
+                  md:min-h-0 md:h-[520px]"
+                >
+                  {previewGateImageFailed ? (
+                    <div
+                      className="absolute inset-0 z-0 bg-gradient-to-b from-secondary/50 via-background to-secondary/30"
+                      aria-hidden
+                    />
+                  ) : (
+                    <>
+                      <div
+                        className="absolute inset-0 z-0 bg-gradient-to-b from-background/30 to-background/5"
+                        aria-hidden
+                      />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        ref={previewEmailGateImgRef}
+                        src={previewImageUrl}
+                        alt=""
+                        loading="eager"
+                        decoding="async"
+                        fetchPriority="high"
+                        onLoad={() => setPreviewGateImageFailed(false)}
+                        onContextMenu={(e) => e.preventDefault()}
+                        draggable={false}
+                        className="absolute inset-0 z-[1] h-full w-full min-h-full min-w-full object-cover object-center select-none [backface-visibility:hidden] [-webkit-backface-visibility:hidden]"
+                        style={{
+                          filter: "blur(32px)",
+                          transform: "scale(1.1) translateZ(0)",
+                          transformOrigin: "center center",
+                        }}
+                        onError={() => {
+                          const raw = previewCloudinaryRawRef.current
+                          if (!raw) {
+                            setPreviewGateImageFailed(true)
+                            return
+                          }
+                          const watermarked = applyWatermark(raw)
+                          setPreviewImageUrl((current) => {
+                            if (current === watermarked) {
+                              setPreviewGateImageFailed(true)
+                              return current
+                            }
+                            return watermarked
+                          })
+                        }}
+                      />
+                    </>
+                  )}
                   <div
-                    className="absolute inset-0 bg-gradient-to-b from-secondary/50 via-background to-secondary/30"
+                    className="pointer-events-none absolute inset-0 z-[2] bg-black/30"
                     aria-hidden
                   />
-                  {!previewGateImageFailed && previewImageUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={previewImageUrl}
-                      alt=""
-                      decoding="async"
-                      fetchPriority="high"
-                      className={cn(
-                        "absolute inset-0 h-full w-full object-cover object-center blur-[32px] select-none will-change-transform",
-                        "scale-110",
-                        previewGateImageReady ? "opacity-100" : "opacity-0",
-                        "transition-opacity duration-500",
-                      )}
-                      onLoad={() => {
-                        setPreviewGateImageReady(true)
-                        setPreviewGateImageFailed(false)
-                      }}
-                      onContextMenu={(e) => e.preventDefault()}
-                      draggable={false}
-                      onError={() => {
-                        const raw = previewCloudinaryRawRef.current
-                        if (!raw) {
-                          setPreviewGateImageFailed(true)
-                          return
-                        }
-                        const watermarked = applyWatermark(raw)
-                        setPreviewImageUrl((current) => {
-                          if (current === watermarked) {
-                            setPreviewGateImageFailed(true)
-                            return current
-                          }
-                          return watermarked
-                        })
-                      }}
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 z-[1] bg-black/30" aria-hidden />
-                  <div className="relative z-10 flex h-full w-full min-h-0 items-center justify-center p-4 sm:p-6">
+                  <div className="relative z-[3] flex h-full w-full min-h-0 items-center justify-center p-5 sm:p-6">
                     <div className="w-full max-w-md rounded-organic border border-border bg-card/95 p-5 shadow-md sm:mx-auto sm:max-w-md sm:p-6">
                       <h1 className="font-heading text-center text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
                         {petNameDisplay ? (
@@ -1448,9 +1502,9 @@ function CreatePortraitContent() {
                         <input
                           id="preview-email-gate"
                           name="preview_email_gate"
-                          type="text"
+                          type="email"
                           inputMode="email"
-                          autoComplete="off"
+                          autoComplete="email"
                           value={previewEmailInput}
                           onChange={(e) => {
                             setPreviewEmailInput(e.target.value)

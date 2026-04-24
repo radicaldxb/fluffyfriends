@@ -147,12 +147,14 @@
   }
 }
 
-/* /create email gate: hide browser autofill / credential affordances in WebKit (clean single field) */
+/* /create email gate: hide browser autofill / credential / reveal affordances (clean single field) */
 @layer components {
   .preview-email-gate-input {
     appearance: none;
   }
-  .preview-email-gate-input::-webkit-credentials-auto-fill-button,
+  .preview-email-gate-input::-webkit-credentials-auto-fill-button {
+    display: none !important;
+  }
   .preview-email-gate-input::-webkit-contacts-auto-fill-button {
     display: none !important;
     visibility: hidden;
@@ -160,5 +162,8 @@
     max-width: 0;
     height: 0;
     max-height: 0;
+  }
+  .preview-email-gate-input::-ms-reveal {
+    display: none;
   }
 }
