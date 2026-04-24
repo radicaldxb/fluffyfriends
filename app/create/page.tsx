@@ -220,7 +220,10 @@ function CreatePortraitContent() {
       clearTimeout(previewImagePreloadTimeoutRef.current)
       previewImagePreloadTimeoutRef.current = null
     }
-    setPreviewGateImageFailed(imageFailed)
+    if (imageFailed) {
+      console.warn("[preview-transition] preloader failed or timed out; gate image will still attempt load")
+    }
+    setPreviewGateImageFailed(false)
     setStatus("preview")
   }, [])
 
