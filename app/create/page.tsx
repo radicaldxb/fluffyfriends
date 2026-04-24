@@ -83,6 +83,12 @@ function formatCheckoutPriceFromCents(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
 }
 
+function isValidEmailFormat(email: string): boolean {
+  const t = email.trim()
+  if (!t) return false
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)
+}
+
 function CreatePageFallback() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -145,6 +151,10 @@ function CreatePortraitContent() {
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
+  /** After generation, true when user may see the full preview (no blur): email on record, or submitted, or skipped. */
+  const [previewEmailCaptureDone, setPreviewEmailCaptureDone] = useState(false)
+  const [previewEmailInput, setPreviewEmailInput] = useState("")
+  const [previewEmailError, setPreviewEmailError] = useState("")
   /** Raw Cloudinary `image_url` from DB — used if watermarked URL fails to load */
   const previewCloudinaryRawRef = useRef<string | null>(null)
   const portraitPreviewShownRef = useRef(false)
@@ -435,7 +445,7 @@ function CreatePortraitContent() {
         try {
           const { data } = await supabase
             .from("pet_portraits")
-            .select("status, image_url")
+            .select("status, image_url, user_email")
             .eq("id", portraitId)
             .single()
           if (data?.status === "preview" && data?.image_url) {
@@ -447,6 +457,10 @@ function CreatePortraitContent() {
             previewCloudinaryRawRef.current = raw
             setPreviewImageUrl(applyWatermark(raw))
             setGenerationPortraitId(portraitId)
+            const existingEmail = data.user_email
+            setPreviewEmailCaptureDone(
+              typeof existingEmail === "string" && existingEmail.trim().length > 0,
+            )
             setStatus("preview")
           }
         } catch {
@@ -476,6 +490,9 @@ function CreatePortraitContent() {
     setPreviewImageUrl(null)
     previewCloudinaryRawRef.current = null
     setGenerationPortraitId(null)
+    setPreviewEmailCaptureDone(false)
+    setPreviewEmailInput("")
+    setPreviewEmailError("")
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current)
       pollIntervalRef.current = null
@@ -544,6 +561,40 @@ function CreatePortraitContent() {
     setWizardStep((s) => Math.max(1, s - 1))
   }
 
+  function handlePreviewEmailSubmit() {
+    const email = previewEmailInput.trim()
+    if (!isValidEmailFormat(email)) {
+      setPreviewEmailError("Please enter a valid email address.")
+      return
+    }
+    if (!generationPortraitId) return
+    setPreviewEmailError("")
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: "email_captured_preview" })
+    setPreviewEmailCaptureDone(true)
+    void (async () => {
+      try {
+        const res = await fetch("/api/save-preview-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: generationPortraitId, email }),
+        })
+        if (!res.ok) {
+          const t = await res.text().catch(() => "")
+          console.error("save-preview-email failed", res.status, t)
+        }
+      } catch (e) {
+        console.error("save-preview-email", e)
+      }
+    })()
+  }
+
+  function handlePreviewEmailSkip() {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: "preview_reveal_skipped" })
+    setPreviewEmailCaptureDone(true)
+  }
+
   const isRejectionError = status === "error" && isValidationReject
 
   const selectedTheme = themes.find((t) => t.id === theme)
@@ -566,7 +617,7 @@ function CreatePortraitContent() {
   const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
 
   useEffect(() => {
-    if (status !== "preview" || !previewImageUrl) return
+    if (status !== "preview" || !previewImageUrl || !previewEmailCaptureDone) return
     if (portraitPreviewShownRef.current) return
     portraitPreviewShownRef.current = true
     window.dataLayer = window.dataLayer || []
@@ -577,10 +628,10 @@ function CreatePortraitContent() {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
       window.fbq("track", "ViewContent")
     }
-  }, [status, previewImageUrl, theme])
+  }, [status, previewImageUrl, theme, previewEmailCaptureDone])
 
   useEffect(() => {
-    if (status !== "preview" || !previewImageUrl) return
+    if (status !== "preview" || !previewImageUrl || !previewEmailCaptureDone) return
     if (packageViewedPreviewRef.current) return
     packageViewedPreviewRef.current = true
     window.dataLayer = window.dataLayer || []
@@ -588,7 +639,7 @@ function CreatePortraitContent() {
       event: "package_viewed",
       default_package: "portrait_pack",
     })
-  }, [status, previewImageUrl])
+  }, [status, previewImageUrl, previewEmailCaptureDone])
 
   useEffect(() => {
     if (status !== "success" || !resultPortraitId || showPackFlow) return
@@ -689,7 +740,8 @@ function CreatePortraitContent() {
     status === "preview" &&
     Boolean(previewImageUrl) &&
     Boolean(generationPortraitId) &&
-    Boolean(selectedProduct)
+    Boolean(selectedProduct) &&
+    previewEmailCaptureDone
 
   function renderStep1UploadButton() {
     return (
@@ -1245,7 +1297,107 @@ function CreatePortraitContent() {
             </div>
           )}
 
-          {status === "preview" && previewImageUrl && (
+          {status === "preview" && previewImageUrl && !previewEmailCaptureDone && (
+            <div className="animate-in fade-in-0 duration-500 w-full pt-1 pb-8 md:pb-10">
+              <div className="relative mx-auto w-full max-w-[min(100vw-2rem,36rem)] overflow-hidden rounded-organic border-4 border-primary/40 bg-background shadow-lg md:max-w-2xl">
+                <div className="relative min-h-[240px] w-full sm:min-h-[280px] md:min-h-[320px]">
+                  <div className="absolute inset-0 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewImageUrl}
+                      alt=""
+                      className="h-full w-full scale-105 object-cover blur-[24px] select-none"
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
+                      onError={() => {
+                        const raw = previewCloudinaryRawRef.current
+                        if (!raw) return
+                        const watermarked = applyWatermark(raw)
+                        setPreviewImageUrl((current) => (current === watermarked ? current : watermarked))
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/30" aria-hidden />
+                    <div
+                      className="pointer-events-none absolute inset-0 select-none"
+                      style={{
+                        background: `repeating-linear-gradient(
+                        -35deg,
+                        transparent,
+                        transparent 60px,
+                        rgba(255,255,255,0.06) 60px,
+                        rgba(255,255,255,0.06) 61px
+                      )`,
+                      }}
+                    />
+                  </div>
+                  <div className="relative z-10 flex min-h-[240px] w-full flex-col items-stretch justify-center px-4 py-6 sm:min-h-[280px] md:min-h-[320px] md:px-8">
+                    <div className="w-full max-w-full rounded-organic border border-border bg-card/95 p-5 shadow-sm backdrop-blur-sm sm:mx-auto sm:max-w-md">
+                      <h1 className="font-heading text-center text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
+                        {petNameDisplay ? (
+                          <>
+                            <span className="text-primary">{petNameDisplay}&apos;s</span> portrait is ready.
+                          </>
+                        ) : (
+                          <>Your pet&apos;s portrait is ready.</>
+                        )}
+                      </h1>
+                      <p className="mt-2 text-center text-sm text-muted-foreground">
+                        Enter your email to see it clearly.
+                      </p>
+                      <div className="mt-4">
+                        <label className="sr-only" htmlFor="preview-email-gate">
+                          Email
+                        </label>
+                        <input
+                          id="preview-email-gate"
+                          type="email"
+                          inputMode="email"
+                          autoComplete="email"
+                          value={previewEmailInput}
+                          onChange={(e) => {
+                            setPreviewEmailInput(e.target.value)
+                            if (previewEmailError) setPreviewEmailError("")
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              handlePreviewEmailSubmit()
+                            }
+                          }}
+                          placeholder="your@email.com"
+                          className="w-full rounded-organic-sm border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                        />
+                        {previewEmailError ? (
+                          <p className="mt-1.5 text-sm text-destructive" role="alert">
+                            {previewEmailError}
+                          </p>
+                        ) : null}
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handlePreviewEmailSubmit}
+                        className="mt-4 h-auto w-full rounded-organic-sm bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-md shadow-primary/30 hover:bg-primary/90"
+                      >
+                        Reveal my portrait →
+                      </Button>
+                      <p className="mt-3 text-center text-xs text-muted-foreground">
+                        Your portrait is saved for 48 hours. No spam, ever.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handlePreviewEmailSkip}
+                        className="mt-3 w-full text-center text-sm text-muted-foreground/50 underline-offset-2 transition-colors hover:text-muted-foreground/80 hover:underline"
+                      >
+                        Skip and see it anyway
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {status === "preview" && previewImageUrl && previewEmailCaptureDone && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center pt-1 pb-6 md:pt-10 md:pb-10">
               <h1 className="font-heading mt-0.5 text-center text-2xl font-extrabold tracking-tight text-foreground md:mt-0 md:text-3xl">
                 {petNameDisplay ? (
@@ -1816,7 +1968,7 @@ function CreatePortraitContent() {
       </div>
     ) : null}
 
-    {inspectModalOpen && previewImageUrl
+    {inspectModalOpen && previewImageUrl && previewEmailCaptureDone
       ? ReactDOM.createPortal(
           <div
             className="fixed inset-0 z-[200] flex items-center justify-center overflow-auto bg-black/80 p-4"
