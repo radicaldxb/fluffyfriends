@@ -227,9 +227,16 @@ function CreatePortraitContent() {
   useEffect(() => {
     if (status !== "generating" || !previewImageUrl) return
     if (previewFinishSettledRef.current) return
+
+    const preloader = new Image()
+    preloader.onload = () => finishPreviewTransition(false)
+    preloader.onerror = () => finishPreviewTransition(true)
+    preloader.src = previewImageUrl
+
     previewImagePreloadTimeoutRef.current = window.setTimeout(() => {
       finishPreviewTransition(true)
     }, 10_000)
+
     return () => {
       if (previewImagePreloadTimeoutRef.current) {
         clearTimeout(previewImagePreloadTimeoutRef.current)
@@ -1383,24 +1390,7 @@ function CreatePortraitContent() {
 
           {/* Processing / generating — video loop + sequential messages */}
           {(status === "processing" || status === "generating") && (
-            <div className="relative animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
-              {status === "generating" && previewImageUrl ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={previewImageUrl}
-                  onLoad={() => finishPreviewTransition(false)}
-                  onError={() => finishPreviewTransition(true)}
-                  style={{
-                    position: "absolute",
-                    width: 1,
-                    height: 1,
-                    opacity: 0,
-                    pointerEvents: "none",
-                  }}
-                  aria-hidden
-                  alt=""
-                />
-              ) : null}
+            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
               <div className="mb-6 flex justify-center" role="status" aria-label="Loading">
                 <div className="relative aspect-square h-32 w-32 shrink-0 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5">
                   <video
@@ -1432,12 +1422,11 @@ function CreatePortraitContent() {
           )}
 
           {status === "preview" && !previewEmailCaptureDone && (
-            <div className="w-full px-6 py-6 md:px-8 md:py-12">
-              <div className="relative isolate mx-auto w-full max-w-[900px] overflow-hidden rounded-2xl shadow-lg ring-1 ring-border/30">
+            <div className="w-full px-4 py-8 md:px-8 md:py-12">
+              <div className="relative isolate mx-auto w-full max-w-[900px] overflow-hidden md:rounded-2xl md:shadow-lg md:ring-1 md:ring-border/30">
                 <div
                   className={cn(
-                    "relative w-full overflow-hidden",
-                    "min-h-[min(100%,20rem)] h-[18rem] min-[400px]:h-[22rem] md:min-h-0 md:h-[520px]",
+                    "relative w-full overflow-hidden min-h-[28rem] md:min-h-[32rem]",
                     (!previewImageUrl || previewGateImageFailed) && "bg-muted/50",
                   )}
                 >
@@ -1456,19 +1445,8 @@ function CreatePortraitContent() {
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
                       onError={() => {
-                        const raw = previewCloudinaryRawRef.current
-                        if (!raw) {
-                          setPreviewGateImageFailed(true)
-                          return
-                        }
-                        const watermarked = applyWatermark(raw)
-                        setPreviewImageUrl((current) => {
-                          if (current === watermarked) {
-                            setPreviewGateImageFailed(true)
-                            return current
-                          }
-                          return watermarked
-                        })
+                        console.warn("[preview-gate] image failed to load", previewImageUrl)
+                        setPreviewGateImageFailed(true)
                       }}
                     />
                   ) : null}
@@ -1477,8 +1455,8 @@ function CreatePortraitContent() {
                     aria-hidden
                   />
                   <div className="relative z-[2] flex h-full w-full min-h-0 items-center justify-center p-5 sm:p-6">
-                    <div className="w-full max-w-md rounded-organic border border-border bg-card/95 p-5 shadow-md sm:mx-auto sm:max-w-md sm:p-6">
-                      <h1 className="font-heading text-center text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
+                    <div className="w-full max-w-md rounded-organic border border-border bg-card/95 p-5 pb-6 shadow-md sm:mx-auto sm:max-w-md sm:p-6 sm:pb-7">
+                      <h1 className="font-heading text-center text-lg font-extrabold tracking-tight text-foreground text-balance sm:text-2xl">
                         {petNameDisplay ? (
                           <>
                             <span className="text-primary">{possessiveFormPet(petNameDisplay)}</span>{" "}
