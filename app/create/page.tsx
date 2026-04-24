@@ -614,13 +614,13 @@ function CreatePortraitContent() {
   // AVIF preview generated from the Gemini output. This is always in landscape ratio.
   // Use image_url directly — do not attempt to derive a portrait crop URL. One image, one reveal.
   function applyWatermark(cloudinaryUrl: string): string {
-    const tile =
-      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_north_west,x_30,y_40/" +
-      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_north_east,x_30,y_40/" +
-      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_south_west,x_30,y_40/" +
-      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_south_east,x_30,y_40/" +
-      "l_text:Arial_28_bold:FluffyFriends,co_white,o_30,g_center,angle_-20/"
-    return cloudinaryUrl.replace("/image/upload/", `/image/upload/${tile}`)
+    // Single tiled text overlay (fl_tiled) — avoids Cloudinary 400s from long l_text chains.
+    const watermark =
+      "l_text:Arial_60_bold:FluffyFriends,co_white,o_20,angle_-20,fl_tiled"
+    return cloudinaryUrl.replace(
+      "/image/upload/",
+      `/image/upload/${watermark}/`
+    )
   }
 
   function goNext() {
