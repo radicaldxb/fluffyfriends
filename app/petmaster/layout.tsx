@@ -9,6 +9,7 @@ const navItems = [
   { href: "/petmaster", label: "Dashboard" },
   { href: "/petmaster/agents", label: "Agents" },
   { href: "/petmaster/agents/approvals", label: "Approvals" },
+  { href: "/petmaster/agents/brain", label: "Brain" },
   { href: "/petmaster/tasks", label: "Tasks" },
   { href: "/petmaster/backlog", label: "Backlog" },
   { href: "/petmaster/dm", label: "DM Generator" },
@@ -22,7 +23,8 @@ function isActive(pathname: string, href: string) {
   if (href === "/petmaster/agents") {
     return (
       (pathname === "/petmaster/agents" || pathname === "/petmaster/agents/") &&
-      !pathname.startsWith("/petmaster/agents/approvals")
+      !pathname.startsWith("/petmaster/agents/approvals") &&
+      !pathname.startsWith("/petmaster/agents/brain")
     )
   }
   return pathname === href || pathname.startsWith(`${href}/`)
