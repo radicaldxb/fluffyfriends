@@ -18,8 +18,34 @@ const navLinks = [
   { label: "My Portraits", href: "/my-portraits" },
 ]
 
-export function Navbar() {
+type NavbarProps = {
+  /** /create: hide links and CTA during the pre-reveal email gate; logo only. */
+  emailGateMode?: boolean
+}
+
+export function Navbar({ emailGateMode = false }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  if (emailGateMode) {
+    return (
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 shadow-sm">
+        <nav className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6" aria-label="FluffyFriends">
+          <a href="/" className="flex shrink-0 items-center" aria-label="FluffyFriends home">
+            <Image
+              src="/logos/FluffyFriends-logo.webp"
+              alt="FluffyFriends"
+              width={112}
+              height={112}
+              sizes="(max-width: 768px) 40px, 52px"
+              className="h-10 w-10 object-contain sm:h-11 sm:w-11 md:h-[3.45rem] md:w-[3.45rem]"
+              priority
+              unoptimized
+            />
+          </a>
+        </nav>
+      </header>
+    )
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background shadow-sm">

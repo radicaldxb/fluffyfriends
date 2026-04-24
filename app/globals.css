@@ -146,3 +146,19 @@
     border-bottom-left-radius: 1.35rem;
   }
 }
+
+/* /create email gate: hide browser autofill / credential affordances in WebKit (clean single field) */
+@layer components {
+  .preview-email-gate-input {
+    appearance: none;
+  }
+  .preview-email-gate-input::-webkit-credentials-auto-fill-button,
+  .preview-email-gate-input::-webkit-contacts-auto-fill-button {
+    display: none !important;
+    visibility: hidden;
+    width: 0;
+    max-width: 0;
+    height: 0;
+    max-height: 0;
+  }
+}
