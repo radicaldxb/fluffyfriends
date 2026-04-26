@@ -1,7 +1,7 @@
 "use client"
 
 import ReactDOM from "react-dom"
-import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react"
+import { useState, useEffect, useRef, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
@@ -81,12 +81,6 @@ function cleanValidatorMessage(raw: string | null): string {
 function formatCheckoutPriceFromCents(cents: number): string {
   if (cents % 100 === 0) return `$${cents / 100}`
   return `$${(cents / 100).toFixed(2)}`
-}
-
-function isValidEmailFormat(email: string): boolean {
-  const t = email.trim()
-  if (!t) return false
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)
 }
 
 /** Possessive for headings: "Gus'" not "Gus's" when name ends in s/S. */
@@ -182,16 +176,8 @@ function CreatePortraitContent() {
   const [portraitsRemaining, setPortraitsRemaining] = useState<number | null>(null)
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
-  /** After generation, true when user may see the full preview (no blur): email on record, or submitted, or skipped. */
-  const [previewEmailCaptureDone, setPreviewEmailCaptureDone] = useState(false)
-  const [previewEmailInput, setPreviewEmailInput] = useState("")
-  const [previewEmailError, setPreviewEmailError] = useState("")
   /** Raw DB URL (portrait_url preferred) — used for watermarked preview + load fallbacks */
   const previewCloudinaryRawRef = useRef<string | null>(null)
-  const [previewGateImageFailed, setPreviewGateImageFailed] = useState(false)
-  const previewImagePreloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const previewImagePreloadCancelledRef = useRef(false)
-  const previewFinishSettledRef = useRef(false)
   const portraitPreviewShownRef = useRef(false)
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
@@ -212,41 +198,6 @@ function CreatePortraitContent() {
       "Getting ready for the big reveal...",
     ]
   }, [petName])
-
-  const finishPreviewTransition = useCallback((imageFailed: boolean) => {
-    if (previewFinishSettledRef.current || previewImagePreloadCancelledRef.current) return
-    previewFinishSettledRef.current = true
-    if (previewImagePreloadTimeoutRef.current) {
-      clearTimeout(previewImagePreloadTimeoutRef.current)
-      previewImagePreloadTimeoutRef.current = null
-    }
-    if (imageFailed) {
-      console.warn("[preview-transition] preloader failed or timed out; gate image will still attempt load")
-    }
-    setPreviewGateImageFailed(false)
-    setStatus("preview")
-  }, [])
-
-  useEffect(() => {
-    if (status !== "generating" || !previewImageUrl) return
-    if (previewFinishSettledRef.current) return
-
-    const preloader = new window.Image()
-    preloader.onload = () => finishPreviewTransition(false)
-    preloader.onerror = () => finishPreviewTransition(true)
-    preloader.src = previewImageUrl
-
-    previewImagePreloadTimeoutRef.current = window.setTimeout(() => {
-      finishPreviewTransition(true)
-    }, 10_000)
-
-    return () => {
-      if (previewImagePreloadTimeoutRef.current) {
-        clearTimeout(previewImagePreloadTimeoutRef.current)
-        previewImagePreloadTimeoutRef.current = null
-      }
-    }
-  }, [status, previewImageUrl, finishPreviewTransition])
 
   useEffect(() => {
     const isLoading = status === "processing" || status === "generating"
@@ -485,7 +436,6 @@ function CreatePortraitContent() {
   }
 
   async function handleTriggerPreview(portraitId: string) {
-    previewImagePreloadCancelledRef.current = false
     setStatus("generating")
     try {
       const res = await fetch("/api/trigger-preview", {
@@ -523,7 +473,7 @@ function CreatePortraitContent() {
         try {
           const { data } = await supabase
             .from("pet_portraits")
-            .select("status, image_url, portrait_url, landscape_url, user_email")
+            .select("status, image_url, portrait_url, landscape_url")
             .eq("id", portraitId)
             .single()
           if (data?.status === "preview") {
@@ -535,18 +485,11 @@ function CreatePortraitContent() {
                 clearInterval(pollIntervalRef.current)
                 pollIntervalRef.current = null
               }
-              previewImagePreloadCancelledRef.current = false
               const wm = applyWatermark(raw)
-              previewFinishSettledRef.current = false
               previewCloudinaryRawRef.current = raw
-              setPreviewGateImageFailed(false)
               setPreviewImageUrl(wm)
               setGenerationPortraitId(portraitId)
-              const existingEmail = data.user_email
-              setPreviewEmailCaptureDone(
-                typeof existingEmail === "string" && existingEmail.trim().length > 0,
-              )
-              // Stay on "generating" until hidden in-DOM <img> onLoad/onError or 10s useEffect (Brief 8.3).
+              setStatus("preview")
             }
           }
         } catch {
@@ -560,12 +503,6 @@ function CreatePortraitContent() {
   }
 
   function handleReset() {
-    previewImagePreloadCancelledRef.current = true
-    previewFinishSettledRef.current = true
-    if (previewImagePreloadTimeoutRef.current) {
-      clearTimeout(previewImagePreloadTimeoutRef.current)
-      previewImagePreloadTimeoutRef.current = null
-    }
     setTheme(null)
     setFile(null)
     if (previewUrl) {
@@ -581,11 +518,7 @@ function CreatePortraitContent() {
     setResultPortraitId(null)
     setPreviewImageUrl(null)
     previewCloudinaryRawRef.current = null
-    setPreviewGateImageFailed(false)
     setGenerationPortraitId(null)
-    setPreviewEmailCaptureDone(false)
-    setPreviewEmailInput("")
-    setPreviewEmailError("")
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current)
       pollIntervalRef.current = null
@@ -659,46 +592,6 @@ function CreatePortraitContent() {
     setWizardStep((s) => Math.max(1, s - 1))
   }
 
-  function handlePreviewEmailSubmit() {
-    const email = previewEmailInput.trim()
-    if (!isValidEmailFormat(email)) {
-      setPreviewEmailError("Please enter a valid email address.")
-      return
-    }
-    if (!generationPortraitId) return
-    setPreviewEmailError("")
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({
-      event: "email_captured_preview",
-      ...funnelDatalayerPayload(theme, generationPortraitId),
-    })
-    setPreviewEmailCaptureDone(true)
-    void (async () => {
-      try {
-        const res = await fetch("/api/save-preview-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: generationPortraitId, email }),
-        })
-        if (!res.ok) {
-          const t = await res.text().catch(() => "")
-          console.error("save-preview-email failed", res.status, t)
-        }
-      } catch (e) {
-        console.error("save-preview-email", e)
-      }
-    })()
-  }
-
-  function handlePreviewEmailSkip() {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({
-      event: "preview_reveal_skipped",
-      ...funnelDatalayerPayload(theme, generationPortraitId),
-    })
-    setPreviewEmailCaptureDone(true)
-  }
-
   const isRejectionError = status === "error" && isValidationReject
 
   const selectedTheme = themes.find((t) => t.id === theme)
@@ -721,7 +614,7 @@ function CreatePortraitContent() {
   const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
 
   useEffect(() => {
-    if (status !== "preview" || !previewImageUrl || !previewEmailCaptureDone) return
+    if (status !== "preview" || !previewImageUrl) return
     if (portraitPreviewShownRef.current) return
     portraitPreviewShownRef.current = true
     window.dataLayer = window.dataLayer || []
@@ -733,10 +626,10 @@ function CreatePortraitContent() {
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
       window.fbq("track", "ViewContent")
     }
-  }, [status, previewImageUrl, theme, previewEmailCaptureDone, generationPortraitId])
+  }, [status, previewImageUrl, theme, generationPortraitId])
 
   useEffect(() => {
-    if (status !== "preview" || !previewImageUrl || !previewEmailCaptureDone) return
+    if (status !== "preview" || !previewImageUrl) return
     if (packageViewedPreviewRef.current) return
     packageViewedPreviewRef.current = true
     window.dataLayer = window.dataLayer || []
@@ -745,7 +638,7 @@ function CreatePortraitContent() {
       default_package: "portrait_pack",
       ...funnelDatalayerPayload(theme, generationPortraitId),
     })
-  }, [status, previewImageUrl, previewEmailCaptureDone, theme, generationPortraitId])
+  }, [status, previewImageUrl, theme, generationPortraitId])
 
   useEffect(() => {
     if (status !== "success" || !resultPortraitId || showPackFlow) return
@@ -848,10 +741,7 @@ function CreatePortraitContent() {
     status === "preview" &&
     Boolean(previewImageUrl) &&
     Boolean(generationPortraitId) &&
-    Boolean(selectedProduct) &&
-    previewEmailCaptureDone
-
-  const isPreviewEmailGate = status === "preview" && !previewEmailCaptureDone
+    Boolean(selectedProduct)
 
   function renderStep1UploadButton() {
     return (
@@ -954,7 +844,7 @@ function CreatePortraitContent() {
         showPreviewStickyUnlock && "pb-24 md:pb-0",
       )}
     >
-      <Navbar emailGateMode={isPreviewEmailGate} />
+      <Navbar />
 
       {portraitsRemaining !== null && portraitsRemaining > 0 && (
         <div className="w-full bg-primary/10 border-b border-primary/20 px-4 py-3 text-center text-sm">
@@ -978,16 +868,16 @@ function CreatePortraitContent() {
 
       <section
         className={cn(
-          isPreviewEmailGate ? "shrink-0 py-2 md:py-3" : "flex-1",
-          !isPreviewEmailGate && status === "preview" && previewImageUrl
+          "flex-1",
+          status === "preview" && previewImageUrl
             ? "pt-4 pb-8 md:py-14"
-            : !isPreviewEmailGate && "py-8 md:py-14",
+            : "py-8 md:py-14",
         )}
       >
         <div
           className={cn(
             "mx-auto w-full px-4 sm:px-6",
-            isPreviewEmailGate || (status === "preview" && previewImageUrl)
+            status === "preview" && previewImageUrl
               ? "max-w-[900px]"
               : "max-w-2xl",
           )}
@@ -1424,109 +1314,7 @@ function CreatePortraitContent() {
             </div>
           )}
 
-          {status === "preview" && !previewEmailCaptureDone && (
-            <div className="w-full px-4 py-8 md:px-8 md:py-12">
-              <div className="relative isolate mx-auto w-full max-w-[900px] overflow-hidden md:rounded-2xl md:shadow-lg md:ring-1 md:ring-border/30">
-                <div
-                  className={cn(
-                    "relative w-full overflow-hidden min-h-[28rem] md:min-h-[32rem]",
-                    (!previewImageUrl || previewGateImageFailed) && "bg-muted/50",
-                  )}
-                >
-                  {previewImageUrl && !previewGateImageFailed ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={previewImageUrl}
-                      alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover"
-                      style={{ filter: "blur(32px)", transform: "scale(1.1)" }}
-                      loading="eager"
-                      decoding="async"
-                      fetchPriority="high"
-                      onLoad={() => setPreviewGateImageFailed(false)}
-                      onContextMenu={(e) => e.preventDefault()}
-                      draggable={false}
-                      onError={() => {
-                        console.warn("[preview-gate] image failed to load", previewImageUrl)
-                        setPreviewGateImageFailed(true)
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[1] bg-black/30"
-                    aria-hidden
-                  />
-                  <div className="relative z-[2] flex h-full w-full min-h-0 items-center justify-center p-5 sm:p-6">
-                    <div className="w-full max-w-md rounded-organic border border-border bg-card/95 p-5 pb-6 shadow-md sm:mx-auto sm:max-w-md sm:p-6 sm:pb-7">
-                      <h1 className="font-heading text-center text-lg font-extrabold tracking-tight text-foreground text-balance sm:text-2xl">
-                        {petNameDisplay ? (
-                          <>
-                            <span className="text-primary">{possessiveFormPet(petNameDisplay)}</span>{" "}
-                            portrait is ready.
-                          </>
-                        ) : (
-                          <>Your pet&apos;s portrait is ready.</>
-                        )}
-                      </h1>
-                      <p className="mt-2 text-center text-sm text-muted-foreground">
-                        Enter your email to see it clearly.
-                      </p>
-                      <div className="mt-4">
-                        <label className="sr-only" htmlFor="preview-email-gate">
-                          Email
-                        </label>
-                        <input
-                          id="preview-email-gate"
-                          name="preview_email_gate"
-                          type="email"
-                          inputMode="email"
-                          autoComplete="email"
-                          value={previewEmailInput}
-                          onChange={(e) => {
-                            setPreviewEmailInput(e.target.value)
-                            if (previewEmailError) setPreviewEmailError("")
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault()
-                              handlePreviewEmailSubmit()
-                            }
-                          }}
-                          placeholder="your@email.com"
-                          className="preview-email-gate-input w-full rounded-organic-sm border border-input bg-background py-2.5 pl-3 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 [background-clip:padding-box]"
-                        />
-                        {previewEmailError ? (
-                          <p className="mt-1.5 text-sm text-destructive" role="alert">
-                            {previewEmailError}
-                          </p>
-                        ) : null}
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={handlePreviewEmailSubmit}
-                        className="mt-4 h-auto w-full rounded-organic-sm bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-md shadow-primary/30 hover:bg-primary/90"
-                      >
-                        Reveal my portrait →
-                      </Button>
-                      <p className="mt-3 text-center text-xs text-muted-foreground">
-                        Your portrait is saved for 48 hours. No spam, ever.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handlePreviewEmailSkip}
-                        className="mt-3 w-full text-center text-sm text-muted-foreground/50 underline-offset-2 transition-colors hover:text-muted-foreground/80 hover:underline"
-                      >
-                        Skip and see it anyway
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {status === "preview" && previewImageUrl && previewEmailCaptureDone && (
+          {status === "preview" && previewImageUrl && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center pt-1 pb-6 md:pt-6 md:pb-8">
               <h1 className="font-heading mt-0.5 text-center text-2xl font-extrabold tracking-tight text-foreground md:mt-0 md:text-3xl">
                 {petNameDisplay ? (
@@ -2108,7 +1896,7 @@ function CreatePortraitContent() {
       </div>
     ) : null}
 
-    {inspectModalOpen && previewImageUrl && previewEmailCaptureDone
+    {inspectModalOpen && previewImageUrl
       ? ReactDOM.createPortal(
           <div
             className="fixed inset-0 z-[200] flex items-center justify-center overflow-auto bg-black/80 p-4"
