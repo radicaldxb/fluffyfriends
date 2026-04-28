@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto"
 import { NextResponse } from "next/server"
 import { getSupabase } from "@/lib/supabase"
 
@@ -24,12 +25,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Server misconfigured" }, { status: 503 })
   }
 
-  const { error } = await supabase.from("pet_portraits").update({ user_email: email }).eq("id", id)
+  const token = randomBytes(24).toString("base64url")
+  const revealedAt = new Date().toISOString()
 
-  if (error) {
-    console.error("save-preview-email:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  const { data: inserted, error: errFirst } = await supabase
+    .from("pet_portraits")
+    .update({
+      user_email: email,
+      preview_token: token,
+      preview_revealed_at: revealedAt,
+    })
+    .eq("id", id)
+    .is("preview_token", null)
+    .select("id")
+
+  if (errFirst) {
+    console.error("save-preview-email:", errFirst)
+    return NextResponse.json({ error: errFirst.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true })
+  if (!inserted?.length) {
+    const { error: errEmailOnly } = await supabase.from("pet_portraits").update({ user_email: email }).eq("id", id)
+    if (errEmailOnly) {
+      console.error("save-preview-email (email retry):", errEmailOnly)
+      return NextResponse.json({ error: errEmailOnly.message }, { status: 500 })
+    }
+  }
+
+  return NextResponse.json({ ok: true })
 }

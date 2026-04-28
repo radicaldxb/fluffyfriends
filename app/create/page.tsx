@@ -10,11 +10,14 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { Check, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X, Search } from "lucide-react"
+import { Check, AlertCircle, ChevronRight, ChevronLeft, ZoomIn, X } from "lucide-react"
 import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { themeIds } from "@/lib/themes"
 import { initiateCheckout } from "@/lib/fpixel"
 import { supabase } from "@/lib/supabase"
+import { applyWatermark } from "@/lib/cloudinary"
+import { funnelDatalayerPayload } from "@/lib/funnel-datalayer"
+import { PreviewRevealStageB } from "@/components/preview-reveal-stage-b"
 
 export const dynamic = "force-dynamic"
 
@@ -78,11 +81,6 @@ function cleanValidatorMessage(raw: string | null): string {
   return stripped.charAt(0).toUpperCase() + stripped.slice(1)
 }
 
-function formatCheckoutPriceFromCents(cents: number): string {
-  if (cents % 100 === 0) return `$${cents / 100}`
-  return `$${(cents / 100).toFixed(2)}`
-}
-
 /** Possessive for headings: "Gus'" not "Gus's" when name ends in s/S. */
 function possessiveFormPet(name: string): string {
   const t = name.trim()
@@ -100,18 +98,6 @@ function pickPreviewRawUrlFromRow(data: {
     if (typeof v === "string" && v.trim()) return v.trim()
   }
   return ""
-}
-
-/** GTM: always include `theme` (lowercase key or null) and `portrait_id` (UUID or null) on /create funnel events. */
-function funnelDatalayerPayload(
-  theme: string | null,
-  portraitId: string | null | undefined,
-): { theme: string | null; portrait_id: string | null } {
-  return {
-    theme: theme == null || String(theme).trim() === "" ? null : String(theme).trim().toLowerCase(),
-    portrait_id:
-      portraitId != null && String(portraitId).trim() ? String(portraitId).trim() : null,
-  }
 }
 
 function CreatePageFallback() {
@@ -187,7 +173,7 @@ function CreatePortraitContent() {
   const packageViewedPreviewRef = useRef(false)
   const packageViewedSuccessRef = useRef(false)
   const [lightboxTheme, setLightboxTheme] = useState<ThemeItem | null>(null)
-  const [inspectModalOpen, setInspectModalOpen] = useState(false)
+  const createQueryDeepLinkApplied = useRef(false)
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0)
   const portraitLoadingActiveRef = useRef(false)
 
@@ -244,27 +230,28 @@ function CreatePortraitContent() {
   }, [previewUrl])
 
   useEffect(() => {
-    if (!inspectModalOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setInspectModalOpen(false)
+    if (!createQueryDeepLinkApplied.current) {
+      const t = searchParams.get("theme")?.trim().toLowerCase() || ""
+      const nameRaw = searchParams.get("name")
+      const hasValidTheme = Boolean(t && themeIds.includes(t))
+      const hasName = Boolean(nameRaw?.trim())
+      if (hasValidTheme || hasName) {
+        createQueryDeepLinkApplied.current = true
+        if (hasValidTheme) setTheme(t)
+        if (nameRaw) {
+          try {
+            setPetName(decodeURIComponent(nameRaw.trim()).replace(/\+/g, " ").slice(0, 12))
+          } catch {
+            setPetName(nameRaw.trim().slice(0, 12))
+          }
+        }
+        setWizardStep(2)
+        return
+      }
     }
-    window.addEventListener("keydown", onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => {
-      window.removeEventListener("keydown", onKey)
-      document.body.style.overflow = prevOverflow
-    }
-  }, [inspectModalOpen])
-
-  useEffect(() => {
-    if (status !== "preview") setInspectModalOpen(false)
-  }, [status])
-
-  useEffect(() => {
     if (!themeFromQuery || !themeIds.includes(themeFromQuery)) return
     setTheme(themeFromQuery)
-  }, [themeFromQuery])
+  }, [searchParams, themeFromQuery])
 
   useEffect(() => {
     return () => {
@@ -564,21 +551,6 @@ function CreatePortraitContent() {
     setTimeout(() => fileInputRef.current?.click(), 100)
   }
 
-  // NOTE on which URL to use for the preview: The image_url stored by WF2B is the
-  // AVIF preview generated from the Gemini output. This is always in landscape ratio.
-  // Use image_url directly — do not attempt to derive a portrait crop URL. One image, one reveal.
-  function applyWatermark(cloudinaryUrl: string): string {
-    // Tiled rotated text overlay. Note: Cloudinary requires the overlay declaration
-    // and the layer-apply (with rotation + tiling flags) in TWO separate components.
-    // Verified working syntax: l_text:...,co_white,o_20/a_-20,fl_layer_apply,fl_tiled
-    const overlay =
-      "l_text:Arial_60_bold:FluffyFriends,co_white,o_20/a_-20,fl_layer_apply,fl_tiled"
-    return cloudinaryUrl.replace(
-      "/image/upload/",
-      `/image/upload/${overlay}/`
-    )
-  }
-
   async function submitPreviewEmail(emailValue: string): Promise<boolean> {
     const trimmed = emailValue.trim()
     if (!trimmed) {
@@ -667,19 +639,6 @@ function CreatePortraitContent() {
 
   const selectedTheme = themes.find((t) => t.id === theme)
   const selectedProduct = PRODUCTS.find((p) => p.id === selectedProductId)
-
-  const previewCheckoutPriceDisplay = useMemo(() => {
-    if (!selectedProduct) return null
-    if (voucherStatus !== "valid" || !promotionCodeId) return selectedProduct.priceDisplay
-    let cents = selectedProduct.priceCents
-    if (typeof voucherPercentOff === "number") {
-      cents = Math.round((cents * (100 - voucherPercentOff)) / 100)
-    }
-    if (typeof voucherAmountOffCents === "number") {
-      cents = Math.max(0, cents - voucherAmountOffCents)
-    }
-    return formatCheckoutPriceFromCents(cents)
-  }, [selectedProduct, voucherStatus, promotionCodeId, voucherPercentOff, voucherAmountOffCents])
 
   const effectivePackEmail = emailFromQuery
   const showPackFlow = portraitsRemaining != null && portraitsRemaining > 0 && effectivePackEmail
@@ -812,7 +771,6 @@ function CreatePortraitContent() {
     status === "preview" &&
     Boolean(previewImageUrl) &&
     Boolean(generationPortraitId) &&
-    Boolean(selectedProduct) &&
     previewRevealed
 
   function renderStep1UploadButton() {
@@ -839,71 +797,6 @@ function CreatePortraitContent() {
       >
         Continue
         <ChevronRight className="ml-0.5 h-4 w-4" />
-      </Button>
-    )
-  }
-
-  function renderPreviewUnlockButton({ className }: { className?: string } = {}) {
-    return (
-      <Button
-        data-gtm="create-step3-checkout"
-        className={cn(
-          "inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90",
-          className,
-        )}
-        onClick={async () => {
-          if (!generationPortraitId) return
-          setCheckoutStatus("submitting")
-          setCheckoutError("")
-          try {
-            window.dataLayer = window.dataLayer || []
-            window.dataLayer.push({
-              event: "checkout_initiated",
-              package: selectedProductId,
-              theme_name: theme ?? "",
-              ...funnelDatalayerPayload(theme, generationPortraitId),
-            })
-            if (typeof window !== "undefined" && typeof window.fbq === "function") {
-              window.fbq("track", "InitiateCheckout")
-            }
-            const res = await fetch("/api/create-checkout-v2", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                product_id: selectedProductId,
-                portrait_id: generationPortraitId,
-                ...(theme && { theme }),
-                ...(promotionCodeId && { promotionCodeId }),
-              }),
-            })
-            const data = await res.json().catch(() => ({}))
-            if (!res.ok || !data.url) {
-              setCheckoutStatus("error")
-              setCheckoutError(
-                typeof data.error === "string" && data.error
-                  ? data.error
-                  : "We could not start checkout. Please try again.",
-              )
-              return
-            }
-            window.dataLayer = window.dataLayer || []
-            window.dataLayer.push({
-              event: "create_step3_checkout",
-              ...funnelDatalayerPayload(theme, generationPortraitId),
-            })
-            window.location.href = data.url as string
-          } catch {
-            setCheckoutStatus("error")
-            setCheckoutError("We could not start checkout. Please try again.")
-          }
-        }}
-        disabled={checkoutStatus === "submitting"}
-      >
-        {checkoutStatus === "submitting"
-          ? "Connecting to Stripe..."
-          : selectedProduct && previewCheckoutPriceDisplay
-            ? `Unlock my portrait — ${previewCheckoutPriceDisplay}`
-            : "Unlock my portrait"}
       </Button>
     )
   }
@@ -1481,221 +1374,20 @@ function CreatePortraitContent() {
             </div>
           )}
 
-          {status === "preview" && previewImageUrl && previewRevealed && (
-            <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center pt-1 pb-6 md:pt-6 md:pb-8">
-              <h1 className="font-heading mt-0.5 text-center text-2xl font-extrabold tracking-tight text-foreground md:mt-0 md:text-3xl">
-                {petNameDisplay ? (
-                  <>
-                    <span className="text-primary">{possessiveFormPet(petNameDisplay)}</span>{" "}
-                    portrait is ready.
-                  </>
-                ) : (
-                  <>Your pet&apos;s portrait is ready.</>
-                )}
-              </h1>
-              <p className="mt-2 mb-3 text-center text-sm text-muted-foreground md:mb-4">
-                Unlock the full resolution below.
-              </p>
-              <div className="mt-4 mb-3 flex w-full justify-center px-3 md:mt-6 md:mb-4 md:px-0">
-                <div className="relative w-full max-w-[min(100vw-1.5rem,36rem)] overflow-hidden rounded-organic border-4 border-primary bg-background shadow-lg shadow-primary/25 md:max-w-2xl">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={previewLandscapeUrl || previewImageUrl}
-                    alt={`${petName.trim() || "Pet"} — landscape preview`}
-                    className="w-full select-none object-cover"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable={false}
-                    onError={() => {
-                      const raw = previewCloudinaryRawRef.current
-                      if (!raw) return
-                      setPreviewImageUrl((current) => (current === raw ? current : raw))
-                    }}
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 select-none"
-                    style={{
-                      background: `repeating-linear-gradient(
-                        -35deg,
-                        transparent,
-                        transparent 60px,
-                        rgba(255,255,255,0.07) 60px,
-                        rgba(255,255,255,0.07) 61px
-                      )`,
-                    }}
-                  >
-                    {[
-                      { top: "8%", left: "5%", rotate: -25 },
-                      { top: "8%", left: "58%", rotate: -25 },
-                      { top: "22%", left: "30%", rotate: -25 },
-                      { top: "36%", left: "5%", rotate: -25 },
-                      { top: "36%", left: "58%", rotate: -25 },
-                      { top: "50%", left: "30%", rotate: -25 },
-                      { top: "64%", left: "5%", rotate: -25 },
-                      { top: "64%", left: "58%", rotate: -25 },
-                      { top: "78%", left: "30%", rotate: -25 },
-                    ].map((pos, i) => (
-                      <span
-                        key={i}
-                        className="pointer-events-none absolute select-none text-sm font-bold tracking-widest text-white/20"
-                        style={{
-                          top: pos.top,
-                          left: pos.left,
-                          transform: `rotate(${pos.rotate}deg)`,
-                          whiteSpace: "nowrap",
-                          maxWidth: "none",
-                          overflow: "visible",
-                        }}
-                      >
-                        FluffyFriends
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setInspectModalOpen(true)}
-                    aria-label="Inspect portrait details"
-                    className="absolute top-3 right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90 md:top-4 md:right-4 md:h-14 md:w-14"
-                  >
-                    <Search className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2} aria-hidden />
-                  </button>
-                </div>
-              </div>
-              <p className="mt-2 text-center text-xs text-muted-foreground">
-                Full resolution • Both formats included • Print ready
-              </p>
-              <div className="mt-6 w-full max-w-xl md:mt-8">
-                <div className="mb-4 flex items-start gap-3 rounded-organic border border-primary/30 bg-primary/5 px-4 py-3 md:mb-5">
-                  <span className="mt-0.5 text-primary">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Free print guide included with every order</p>
-                  </div>
-                </div>
-                <h2 className="mb-4 text-lg font-semibold text-foreground md:text-xl">
-                  Choose your package
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  {PRODUCTS.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => pushPackageSelected(p)}
-                      className={cn(
-                        "rounded-organic-sm border-2 p-4 text-left transition-all",
-                        selectedProductId === p.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/50",
-                      )}
-                    >
-                      <div className="mb-3 flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-foreground">{p.name}</h3>
-                            {selectedProductId === p.id && (
-                              <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-                            )}
-                          </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-2xl font-bold text-primary">{p.priceDisplay}</p>
-                          {p.savePercent != null && (
-                            <span className="mt-0.5 block text-xs font-medium text-primary">
-                              Save {p.savePercent}%
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {p.badge && (
-                        <span className="inline-block rounded-organic-sm bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
-                          {p.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {checkoutError && (
-                <p className="mt-4 text-sm text-destructive max-w-md">{checkoutError}</p>
-              )}
-
-              {/* Voucher code input */}
-              <div className="mt-6 w-full max-w-xl text-left">
-                <div className="rounded-organic-sm border border-border bg-muted/30 px-4 py-3">
-                  <p className="text-sm font-medium text-foreground">Have a discount code?</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Enter it here before continuing to payment.
-                  </p>
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <input
-                      type="text"
-                      value={voucherCode}
-                      onFocus={() => {
-                        window.dataLayer = window.dataLayer || []
-                        window.dataLayer.push({
-                          event: "discount_code_attempted",
-                          ...funnelDatalayerPayload(theme, generationPortraitId ?? resultPortraitId),
-                        })
-                      }}
-                      onChange={(e) => {
-                        setVoucherCode(e.target.value)
-                        if (voucherStatus !== "idle") {
-                          setVoucherStatus("idle")
-                          setVoucherMessage("")
-                          setPromotionCodeId(null)
-                          setVoucherPercentOff(null)
-                          setVoucherAmountOffCents(null)
-                        }
-                      }}
-                      placeholder="Enter discount code"
-                      className="w-full rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      disabled={voucherStatus === "loading"}
-                      onClick={handleApplyVoucher}
-                      className="mt-1 inline-flex items-center justify-center rounded-organic-sm px-4 py-2 text-sm font-semibold sm:mt-0"
-                    >
-                      {voucherStatus === "loading" ? "Checking…" : "Apply"}
-                    </Button>
-                  </div>
-                  {voucherMessage && (
-                    <p
-                      className={cn(
-                        "mt-2 text-xs",
-                        voucherStatus === "valid"
-                          ? "text-emerald-600"
-                          : voucherStatus === "invalid"
-                            ? "text-destructive"
-                            : "text-muted-foreground",
-                      )}
-                    >
-                      {voucherMessage}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-4 hidden w-full max-w-xl md:mt-8 md:block">
-                {renderPreviewUnlockButton({ className: "mx-auto max-w-xl" })}
-              </div>
-            </div>
-          )}
+          {status === "preview" &&
+            previewImageUrl &&
+            previewRevealed &&
+            generationPortraitId && (
+              <PreviewRevealStageB
+                key={generationPortraitId}
+                portraitId={generationPortraitId}
+                theme={theme}
+                petNameTrimmed={petName.trim()}
+                watermarkLandscapeSrc={previewLandscapeUrl ?? previewImageUrl}
+                watermarkPortraitSrc={previewImageUrl}
+                rawFallbackUrl={previewCloudinaryRawRef.current}
+              />
+            )}
 
           {status === "delivered" && resultPortraitId && (
             <div className="animate-in fade-in-0 zoom-in-95 duration-500 flex flex-col items-center py-10 text-center">
@@ -2062,56 +1754,7 @@ function CreatePortraitContent() {
         <div className="mx-auto w-full max-w-2xl">{renderStep2ContinueButton()}</div>
       </div>
     ) : null}
-    {showPreviewStickyUnlock ? (
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
-        <div className="mx-auto w-full max-w-2xl">{renderPreviewUnlockButton()}</div>
-      </div>
-    ) : null}
 
-    {inspectModalOpen && previewImageUrl
-      ? ReactDOM.createPortal(
-          <div
-            className="fixed inset-0 z-[200] flex items-center justify-center overflow-auto bg-black/80 p-4"
-            onClick={() => setInspectModalOpen(false)}
-            role="presentation"
-          >
-            <div
-              className="relative w-max max-w-full"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Portrait inspection"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previewImageUrl}
-                alt={
-                  petNameDisplay
-                    ? `${possessiveFormPet(petNameDisplay)} portrait — inspect details`
-                    : "Pet portrait — inspect details"
-                }
-                className="max-w-none h-auto object-contain"
-                style={{
-                  width: "auto",
-                  maxHeight: "90vh",
-                  cursor: "grab",
-                }}
-                onContextMenu={(e) => e.preventDefault()}
-                draggable={false}
-              />
-              <button
-                type="button"
-                onClick={() => setInspectModalOpen(false)}
-                aria-label="Close inspection"
-                className="absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-foreground shadow-lg transition-colors hover:bg-white md:top-4 md:right-4"
-              >
-                <X className="h-6 w-6" strokeWidth={2} aria-hidden />
-              </button>
-            </div>
-          </div>,
-          document.body,
-        )
-      : null}
     </>
   )
 }

@@ -63,8 +63,35 @@ export async function POST(request: NextRequest) {
           ? (body.pet_image_url as string).trim()
           : null
 
+      let db
+      try {
+        db = getSupabaseAdmin()
+      } catch (e) {
+        console.error("[receive-n8n-image] SUPABASE_SERVICE_ROLE_KEY required for portrait_id updates:", e)
+        return NextResponse.json(
+          {
+            error: "Server misconfigured: set SUPABASE_SERVICE_ROLE_KEY for n8n webhook updates.",
+            details: e instanceof Error ? e.message : String(e),
+          },
+          { status: 503 },
+        )
+      }
+
+      let previewExpiresAtExisting: string | null = null
+      if (status === "preview") {
+        const { data: expiryRow } = await db
+          .from("pet_portraits")
+          .select("preview_expires_at")
+          .eq("id", portraitId)
+          .maybeSingle()
+        previewExpiresAtExisting = expiryRow?.preview_expires_at ?? null
+      }
+
       const updatePayload: Record<string, unknown> = {
         status,
+      }
+      if (status === "preview" && !previewExpiresAtExisting) {
+        updatePayload.preview_expires_at = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
       }
       if (avifUrl) {
         updatePayload.image_url = avifUrl
@@ -81,20 +108,6 @@ export async function POST(request: NextRequest) {
       }
       if (petImageUrl) {
         updatePayload.pet_image_url = petImageUrl
-      }
-
-      let db
-      try {
-        db = getSupabaseAdmin()
-      } catch (e) {
-        console.error("[receive-n8n-image] SUPABASE_SERVICE_ROLE_KEY required for portrait_id updates:", e)
-        return NextResponse.json(
-          {
-            error: "Server misconfigured: set SUPABASE_SERVICE_ROLE_KEY for n8n webhook updates.",
-            details: e instanceof Error ? e.message : String(e),
-          },
-          { status: 503 },
-        )
       }
 
       const { data: updatedRows, error: updateError } = await db
