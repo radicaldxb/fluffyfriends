@@ -66,8 +66,8 @@ export default async function UnsubscribePage({ params }: Props) {
               You&apos;re unsubscribed.
             </h1>
             <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
-              We won&apos;t send you any more reminders about {petName}&apos;s portrait. The portrait is still
-              saved if you change your mind — just visit the site to find it.
+              We won&apos;t send you any more reminders about {petName}&apos;s portrait. If you change your mind
+              later, you can always create a new one.
             </p>
           </>
         )}
