@@ -1,10 +1,23 @@
 "use client"
 
+/**
+ * Mother's Day landing page.
+ *
+ * URL convention:
+ * - /mothers-day            → defaults to dog hero (organic/direct traffic)
+ * - /mothers-day?pet=cat    → cat hero (cat creative ads land here)
+ * - /mothers-day?pet=dog    → dog hero (dog creative ads land here)
+ *
+ * The `pet` param is forwarded to /create so future work can filter theme
+ * previews to match (cat-clicker sees cats throughout the funnel).
+ */
+
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { GalleryImageLightbox } from "@/components/gallery-image-lightbox"
 
 // Print cutoff: US shipping time for a printed portrait by Mother's Day (May 11, 2026).
 // 23:59:59 UTC on May 8 corresponds to late afternoon Pacific on the 8th.
@@ -37,6 +50,8 @@ export default function MothersDayPageClient() {
   const codeCountdown = useCountdown(CODE_EXPIRY)
 
   const ctaHref = `/create?promo=FORMUM20${pet === "cat" ? "&pet=cat" : ""}`
+
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null)
 
   return (
     <>
@@ -243,6 +258,83 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
+      {/* SOCIAL PROOF GALLERY — real customer portraits (cats + dogs, 4 themes) */}
+      <section className="bg-card py-14 md:py-20">
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Real pets, real moms</p>
+            <h2 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              From cats to dogs, every pet becomes the art.
+            </h2>
+          </div>
+
+          <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
+            {[
+              {
+                src: "https://res.cloudinary.com/radical-thinking/image/upload/v1774603488/u3mztrerxqukk2oue24b.jpg",
+                name: "Mochi",
+                theme: "Fireman",
+                location: "Houston, United States",
+              },
+              {
+                src: "https://res.cloudinary.com/radical-thinking/image/upload/v1774335527/xdjupp5oebzhk3mclz0s.jpg",
+                name: "Misty",
+                theme: "Queen",
+                location: "New York, United States",
+              },
+              {
+                src: "https://res.cloudinary.com/radical-thinking/image/upload/v1775149148/Fluffyfriends/h6qqohgzavsvwg0zbehz.jpg",
+                name: "Raddix",
+                theme: "King",
+                location: "Huntington Beach, United States",
+              },
+              {
+                src: "https://res.cloudinary.com/radical-thinking/image/upload/v1774335833/utruzpjmo0uhwp9btv3i.jpg",
+                name: "Bruce",
+                theme: "Admiral",
+                location: "Perth, Australia",
+              },
+            ].map((p) => (
+              <button
+                key={p.src}
+                type="button"
+                onClick={() =>
+                  setLightbox({
+                    src: p.src,
+                    alt: `${p.name} as a ${p.theme}, FluffyFriends portrait`,
+                  })
+                }
+                className="group block overflow-hidden rounded-organic border border-border bg-background text-left transition-transform hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                  <Image
+                    src={p.src}
+                    alt={`${p.name} as a ${p.theme}`}
+                    fill
+                    className="object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                </div>
+                <div className="px-3 py-3">
+                  <p className="text-sm font-bold text-foreground">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">{p.theme}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground/80">{p.location}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <p className="mt-8 text-center">
+            <Link
+              href="/gallery"
+              className="text-xs text-muted-foreground/70 underline underline-offset-4 hover:text-muted-foreground"
+            >
+              See more pets in our gallery
+            </Link>
+          </p>
+        </div>
+      </section>
+
       {/* SECONDARY CTA */}
       <section className="bg-card py-14 md:py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
@@ -263,6 +355,13 @@ export default function MothersDayPageClient() {
           </div>
         </div>
       </section>
+
+      <GalleryImageLightbox
+        open={lightbox !== null}
+        src={lightbox?.src ?? null}
+        alt={lightbox?.alt ?? ""}
+        onClose={() => setLightbox(null)}
+      />
     </>
   )
 }

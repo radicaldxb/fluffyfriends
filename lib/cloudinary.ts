@@ -7,3 +7,33 @@ export function applyWatermark(cloudinaryUrl: string): string {
     "l_text:Arial_60_bold:FluffyFriends,co_white,o_20/a_-20,fl_layer_apply,fl_tiled"
   return cloudinaryUrl.replace("/image/upload/", `/image/upload/${overlay}/`)
 }
+
+/**
+ * Transform a Cloudinary image URL into a download-ready URL:
+ * - fl_attachment: triggers Content-Disposition: attachment so the browser saves the file
+ * - f_jpg: forces JPEG format, defeating Cloudinary's auto-AVIF/WebP negotiation
+ * - q_auto:best: highest-quality auto-encode
+ *
+ * Print services like Walgreens/Walmart/CVS require JPG, not AVIF or WebP.
+ * Always use this for any user-facing "download" link to a Cloudinary asset.
+ *
+ * Pass through non-Cloudinary URLs unchanged (Supabase storage etc).
+ */
+export function getDownloadUrl(url: string | null | undefined): string | null {
+  if (!url || typeof url !== "string") return null
+  const trimmed = url.trim()
+  if (!trimmed) return null
+
+  if (!trimmed.includes("res.cloudinary.com") || !trimmed.includes("/image/upload/")) {
+    return trimmed
+  }
+
+  if (trimmed.includes("fl_attachment") && trimmed.includes("f_jpg")) {
+    return trimmed
+  }
+
+  return trimmed.replace(
+    "/image/upload/",
+    "/image/upload/fl_attachment,f_jpg,q_auto:best/",
+  )
+}

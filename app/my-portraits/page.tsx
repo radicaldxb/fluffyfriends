@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { isValidDownloadUrl, getDisplayUrl } from "@/lib/utils"
+import { getDownloadUrl } from "@/lib/cloudinary"
 
 export const dynamic = "force-dynamic"
 
@@ -242,6 +243,8 @@ function MyPortraitsContent() {
               {portraits.map((p, index) => {
                 const landscapeUrl = getDisplayUrl(p.landscape_url)
                 const portraitUrl = getDisplayUrl(p.portrait_url)
+                const landscapeDownloadHref = getDownloadUrl(landscapeUrl)
+                const portraitDownloadHref = getDownloadUrl(portraitUrl)
                 const landscapeValid = !!landscapeUrl
                 const portraitValid = !!portraitUrl
                 const imageValid = isValidDownloadUrl(p.image_url)
@@ -303,23 +306,23 @@ function MyPortraitsContent() {
                         </p>
                       )}
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        {landscapeValid && landscapeUrl && (
+                        {landscapeValid && landscapeDownloadHref && (
                           <Button
                             asChild
                             className="rounded-organic-sm px-3 py-1 text-xs"
                           >
-                            <a href={landscapeUrl} target="_blank" rel="noreferrer">
+                            <a href={landscapeDownloadHref} target="_blank" rel="noreferrer">
                               Download wide
                             </a>
                           </Button>
                         )}
-                        {portraitValid && portraitUrl && (
+                        {portraitValid && portraitDownloadHref && (
                           <Button
                             asChild
                             variant="outline"
                             className="rounded-organic-sm px-3 py-1 text-xs"
                           >
-                            <a href={portraitUrl} target="_blank" rel="noreferrer">
+                            <a href={portraitDownloadHref} target="_blank" rel="noreferrer">
                               Download portrait
                             </a>
                           </Button>

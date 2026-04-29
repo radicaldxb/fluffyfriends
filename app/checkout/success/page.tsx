@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import { PRINT_GUIDE_PDF_HREF } from "@/lib/print-guide"
 import { trackGa4Purchase } from "@/lib/ga4"
 import { purchase } from "@/lib/fpixel"
+import { getDownloadUrl } from "@/lib/cloudinary"
 
 export const dynamic = "force-dynamic"
 
@@ -365,6 +366,39 @@ function SuccessContent() {
   const isError = preview.status === "error"
   const isSubmitLoading =
     approveStatus === "submitting" || wf3Status === "waiting"
+
+  const portraitIdForDownloads = preview.status === "ready" ? preview.portraitId : null
+
+  useEffect(() => {
+    if (!portraitIdForDownloads) {
+      setDownloadLinks(null)
+      return
+    }
+    let cancelled = false
+    const poll = async () => {
+      const { data: row } = await supabase
+        .from("pet_portraits")
+        .select("landscape_url, portrait_url")
+        .eq("id", portraitIdForDownloads)
+        .maybeSingle()
+      if (cancelled || !row) return
+      const rawL = typeof row.landscape_url === "string" ? row.landscape_url.trim() : ""
+      const rawP = typeof row.portrait_url === "string" ? row.portrait_url.trim() : ""
+      if (!rawL.startsWith("https://") || !rawP.startsWith("https://")) return
+      const landscapeUrl = getDownloadUrl(rawL)
+      const portraitUrl = getDownloadUrl(rawP)
+      if (!landscapeUrl || !portraitUrl) return
+      setDownloadLinks({ landscapeUrl, portraitUrl })
+    }
+    void poll()
+    const intervalId = window.setInterval(() => {
+      void poll()
+    }, 4000)
+    return () => {
+      cancelled = true
+      window.clearInterval(intervalId)
+    }
+  }, [portraitIdForDownloads])
 
   const successPageStepStrip = (
     <div className="mb-6 flex w-full items-center justify-center gap-0 text-xs text-muted-foreground">
