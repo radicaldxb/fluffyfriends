@@ -5,10 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 
-// Print cutoff — give US shipping enough time to receive a printed portrait by Mother's Day (May 11, 2026).
-// 23:59:59 UTC on May 8 corresponds to late afternoon Pacific time on the 8th.
+// Print cutoff: US shipping time for a printed portrait by Mother's Day (May 11, 2026).
+// 23:59:59 UTC on May 8 corresponds to late afternoon Pacific on the 8th.
 const PRINT_CUTOFF = new Date("2026-05-08T23:59:59Z")
-// Discount code expiry
 const CODE_EXPIRY = new Date("2026-05-10T23:59:59Z")
 
 function useCountdown(target: Date) {
@@ -32,8 +31,7 @@ export default function MothersDayPageClient() {
   const printCountdown = useCountdown(PRINT_CUTOFF)
   const codeCountdown = useCountdown(CODE_EXPIRY)
 
-  // CTA destination — drives Cindy into /create with FORMUM20 pre-applied.
-  const ctaHref = "/create?theme=king&promo=FORMUM20"
+  const ctaHref = "/create?promo=FORMUM20"
 
   return (
     <>
@@ -41,7 +39,6 @@ export default function MothersDayPageClient() {
       <section className="relative overflow-hidden bg-background pt-10 pb-12 md:pt-16 md:pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-2">
-            {/* Copy column */}
             <div className="order-2 lg:order-1">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Mother&apos;s Day · May 11
@@ -50,22 +47,20 @@ export default function MothersDayPageClient() {
                 The gift she&apos;ll keep <span className="text-primary">on her wall.</span>
               </h1>
               <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-                A personalised portrait of her pet — name crafted into the artwork itself. Delivered to your inbox
+                A personalised portrait of her pet, with their name crafted into the artwork itself. Delivered to your inbox
                 in minutes. Print-ready in two formats.
               </p>
 
-              {/* Discount badge */}
               <div className="mt-6 inline-flex items-center gap-2 rounded-organic-sm border border-primary/40 bg-primary/10 px-4 py-2">
                 <span className="text-sm font-bold tracking-wide text-primary">FORMUM20</span>
                 <span className="text-sm text-foreground">
-                  — 20% off, ends{" "}
+                  · 20% off, ends{" "}
                   {codeCountdown.mounted && !codeCountdown.ended
-                    ? `${codeCountdown.days}d ${codeCountdown.hours}h ${codeCountdown.minutes}m ${codeCountdown.seconds}s`
+                    ? `in ${codeCountdown.days}d ${codeCountdown.hours}h`
                     : "May 10"}
                 </span>
               </div>
 
-              {/* Primary CTA */}
               <div className="mt-7">
                 <Button
                   asChild
@@ -78,13 +73,11 @@ export default function MothersDayPageClient() {
               </div>
             </div>
 
-            {/* Image column */}
             <div className="order-1 lg:order-2">
               <div className="relative aspect-square w-full overflow-hidden rounded-organic shadow-xl shadow-foreground/10 ring-1 ring-border/50">
-                {/* Swap src when dedicated Mother&apos;s Day hero image is ready */}
                 <Image
                   src="/images/pet-after.webp"
-                  alt="A framed pet portrait — a Mother's Day gift idea"
+                  alt="A framed pet portrait, a Mother's Day gift idea"
                   fill
                   className="object-cover object-center"
                   sizes="(max-width: 1024px) 100vw, 36rem"
@@ -97,33 +90,28 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
-      {/* URGENCY STRIP */}
-      <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex min-h-[2.75rem] flex-col items-center justify-center gap-3 text-center sm:flex-row sm:gap-6">
-            <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-              Order by May 8 to print &amp; frame in time
-            </p>
+      {/* URGENCY STRIP: print cutoff countdown */}
+      <section className="bg-primary py-5">
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center gap-2 text-center sm:flex-row sm:gap-5">
+            <p className="text-base font-bold uppercase tracking-wider text-primary-foreground">Print cutoff: May 8</p>
             {printCountdown.mounted && !printCountdown.ended ? (
-              <div className="flex items-center gap-2 font-mono text-base tabular-nums text-foreground">
-                <span>
-                  <span className="font-bold">{printCountdown.days}</span>d
+              <div className="flex items-center gap-2 text-lg font-extrabold tabular-nums text-primary-foreground">
+                <span>{printCountdown.days}d</span>
+                <span aria-hidden className="opacity-60">
+                  ·
                 </span>
-                <span aria-hidden>·</span>
-                <span>
-                  <span className="font-bold">{printCountdown.hours}</span>h
+                <span>{printCountdown.hours}h</span>
+                <span aria-hidden className="opacity-60">
+                  ·
                 </span>
-                <span aria-hidden>·</span>
-                <span>
-                  <span className="font-bold">{printCountdown.minutes}</span>m
-                </span>
+                <span>{printCountdown.minutes}m</span>
+                <span className="ml-2 hidden text-sm font-semibold opacity-90 sm:inline">left to order in time</span>
               </div>
-            ) : printCountdown.mounted && printCountdown.ended ? (
-              <p className="text-sm text-muted-foreground">Digital delivery still available — order today</p>
+            ) : printCountdown.ended ? (
+              <p className="text-sm font-semibold text-primary-foreground">Digital delivery still available. Order today.</p>
             ) : (
-              <span className="inline-block font-mono text-base tabular-nums text-transparent opacity-0" aria-hidden>
-                —
-              </span>
+              <div className="min-h-[1.75rem] w-full max-w-xs" aria-hidden />
             )}
           </div>
         </div>
@@ -136,15 +124,15 @@ export default function MothersDayPageClient() {
             Not another candle. Not another mug.
           </h2>
           <p className="mt-5 text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-            A portrait of the pet she loves — with their name part of the artwork — is the kind of gift that stays on the
-            wall long after the flowers wilt. It speaks to who she is, not what the gift category is.
+            A portrait of the pet she loves, with their name woven into the artwork, is the kind of gift that stays on the wall
+            long after the flowers wilt. It speaks to who she is, not what the gift category is.
           </p>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {[
               {
                 title: "Their name in the art.",
-                body: "Crafted into the painting itself — not a caption underneath.",
+                body: "Crafted into the painting itself, not a caption underneath.",
               },
               {
                 title: "Two formats included.",
@@ -161,6 +149,78 @@ export default function MothersDayPageClient() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* HOW TO PRINT AND FRAME */}
+      <section className="bg-background py-14 md:py-20">
+        <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Three days. Three steps.</p>
+            <h2 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              From your inbox to her wall.
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground">
+              We email you two print-ready files (portrait and landscape). Order a print at any major US retailer. Frame it.
+              Wrap it.
+            </p>
+          </div>
+
+          <ol className="mt-10 space-y-5 text-left">
+            <li className="rounded-organic border border-border bg-card p-5">
+              <div className="flex items-start gap-4">
+                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground">
+                  1
+                </span>
+                <div>
+                  <p className="text-base font-bold text-foreground">Order today, get the file in minutes.</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Both portrait and landscape formats arrive in your inbox the same day, ready to print.
+                  </p>
+                </div>
+              </div>
+            </li>
+
+            <li className="rounded-organic border border-border bg-card p-5">
+              <div className="flex items-start gap-4">
+                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground">
+                  2
+                </span>
+                <div>
+                  <p className="text-base font-bold text-foreground">Print it at a US retailer.</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Walgreens Photo, Walmart Photo, CVS Photo, or Costco Photo all offer same-day or next-day pickup.
+                    Recommended sizes: 8×10 or 11×14 for shelves and small walls, 16×20 for a statement piece.
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Typical cost: $5–$15 for an 8×10 print, $15–$30 for 16×20.
+                  </p>
+                </div>
+              </div>
+            </li>
+
+            <li className="rounded-organic border border-border bg-card p-5">
+              <div className="flex items-start gap-4">
+                <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground">
+                  3
+                </span>
+                <div>
+                  <p className="text-base font-bold text-foreground">Frame it the same day.</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Pick up a ready-made frame at Target, Michaels, Hobby Lobby, or Walmart. Most stock frames in standard
+                    print sizes for under $25.
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Tip: a simple black or natural wood frame lets the portrait do the talking.
+                  </p>
+                </div>
+              </div>
+            </li>
+          </ol>
+
+          <p className="mt-8 text-center text-sm text-muted-foreground">
+            Order by May 8 to print and frame in time for Mother&apos;s Day.
+          </p>
         </div>
       </section>
 

@@ -750,17 +750,60 @@ function CreatePortraitContent() {
     }
   }
 
-  // Auto-apply promo code from URL (?promo=FORMUM20). Sets the field, calls validator,
-  // and lets the existing voucher state machine handle the rest.
+  // Auto-apply promo code from URL (?promo=FORMUM20): validate with URL value directly
+  // so we don't rely on voucherCode state before commit.
   useEffect(() => {
     if (!promoFromQuery) return
     if (voucherStatus === "valid" || voucherStatus === "loading") return
+
+    let cancelled = false
+
     setVoucherCode(promoFromQuery)
-    const t = window.setTimeout(() => {
-      void handleApplyVoucher(promoFromQuery)
-    }, 0)
-    return () => window.clearTimeout(t)
-  }, [promoFromQuery]) // eslint-disable-line react-hooks/exhaustive-deps
+    setVoucherStatus("loading")
+    setVoucherMessage("")
+
+    ;(async () => {
+      try {
+        const res = await fetch("/api/validate-voucher", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: promoFromQuery }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (cancelled) return
+        if (!res.ok || !data.valid) {
+          setVoucherStatus("invalid")
+          setVoucherMessage(
+            typeof data.error === "string" && data.error ? data.error : "This code is not valid",
+          )
+          setPromotionCodeId(null)
+          setVoucherPercentOff(null)
+          setVoucherAmountOffCents(null)
+          return
+        }
+        setVoucherStatus("valid")
+        setPromotionCodeId(typeof data.promotionCodeId === "string" ? data.promotionCodeId : null)
+        setVoucherPercentOff(typeof data.percent_off === "number" ? data.percent_off : null)
+        setVoucherAmountOffCents(typeof data.amount_off === "number" ? data.amount_off : null)
+        const appliedCode = (data.code as string | undefined) ?? promoFromQuery
+        const discountText =
+          typeof data.discountText === "string" && data.discountText ? data.discountText : "discount applied"
+        setVoucherMessage(`✓ ${appliedCode} applied — ${discountText}`)
+      } catch {
+        if (cancelled) return
+        setPromotionCodeId(null)
+        setVoucherPercentOff(null)
+        setVoucherAmountOffCents(null)
+        setVoucherStatus("invalid")
+        setVoucherMessage("We couldn't validate this code. Please try again.")
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promoFromQuery])
 
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
