@@ -106,6 +106,12 @@ const productSchema = {
 export default function Home() {
   return (
     <>
+      <link
+        rel="preload"
+        as="image"
+        href="/images/pet-after.webp"
+        fetchPriority="high"
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
