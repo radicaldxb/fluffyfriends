@@ -12,7 +12,7 @@ export function applyWatermark(cloudinaryUrl: string): string {
  * Transform a Cloudinary image URL into a download-ready URL:
  * - fl_attachment: Content-Disposition: attachment (browser saves the file instead of displaying inline)
  * - f_jpg: forces JPEG format, defeating Cloudinary's auto-AVIF/WebP negotiation
- * - q_auto:best: highest-quality auto-encode
+ * - q_100: maximum JPEG quality, minimal recompression (delivers ~95% of source size)
  *
  * Print services (Walgreens/Walmart/CVS/Costco) require JPG, not AVIF or WebP.
  * Always use this for any user-facing "download" link to a Cloudinary asset.
@@ -39,6 +39,6 @@ export function getDownloadUrl(url: string | null | undefined): string | null {
   // Preserves any subsequent transformations (like c_crop for the portrait variant).
   return trimmed.replace(
     "/image/upload/",
-    "/image/upload/fl_attachment,f_jpg,q_auto:best/",
+    "/image/upload/fl_attachment,f_jpg,q_100/",
   )
 }

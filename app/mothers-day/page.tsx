@@ -18,14 +18,14 @@ export const metadata = {
       "Order by May 8 to print and frame in time for Mother's Day. 20% off with FORMUM20.",
     url: `${SITE}/mothers-day`,
     siteName: "FluffyFriends",
-    images: [{ url: `${SITE}/images/og/OG-Home.webp`, alt: "FluffyFriends — AI pet portraits" }],
+    images: [{ url: `${SITE}/images/og/OG-Mothersday.webp`, alt: "FluffyFriends — Mother's Day pet portrait gift" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mother's Day Pet Portrait — A Gift She'll Keep on Her Wall",
     description:
       "Order by May 8 to print and frame in time for Mother's Day. 20% off with FORMUM20.",
-    images: [`${SITE}/images/og/OG-Home.webp`],
+    images: [`${SITE}/images/og/OG-Mothersday.webp`],
   },
 }
 
