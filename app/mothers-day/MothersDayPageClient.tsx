@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
 // Print cutoff: US shipping time for a printed portrait by Mother's Day (May 11, 2026).
@@ -28,10 +29,14 @@ function useCountdown(target: Date) {
 }
 
 export default function MothersDayPageClient() {
+  const searchParams = useSearchParams()
+  const petParam = searchParams.get("pet")?.toLowerCase().trim()
+  const pet: "cat" | "dog" = petParam === "cat" ? "cat" : "dog"
+
   const printCountdown = useCountdown(PRINT_CUTOFF)
   const codeCountdown = useCountdown(CODE_EXPIRY)
 
-  const ctaHref = "/create?promo=FORMUM20"
+  const ctaHref = `/create?promo=FORMUM20${pet === "cat" ? "&pet=cat" : ""}`
 
   return (
     <>
@@ -76,13 +81,27 @@ export default function MothersDayPageClient() {
             <div className="order-1 lg:order-2">
               <div className="relative aspect-square w-full overflow-hidden rounded-organic shadow-xl shadow-foreground/10 ring-1 ring-border/50">
                 <Image
-                  src="/images/pet-after.webp"
-                  alt="A framed pet portrait, a Mother's Day gift idea"
+                  src={
+                    pet === "cat"
+                      ? "/images/mothers-day-hero-cat.webp"
+                      : "/images/mothers-day-hero-dog.webp"
+                  }
+                  alt={
+                    pet === "cat"
+                      ? "A Mother's Day cat portrait gift on a breakfast tray"
+                      : "A Mother's Day dog portrait gift on a breakfast tray"
+                  }
                   fill
                   className="object-cover object-center"
                   sizes="(max-width: 1024px) 100vw, 36rem"
                   priority
                   fetchPriority="high"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement
+                    if (!target.src.includes("pet-after")) {
+                      target.src = "/images/pet-after.webp"
+                    }
+                  }}
                 />
               </div>
             </div>

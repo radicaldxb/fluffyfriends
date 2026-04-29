@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import MothersDayPageClient from "./MothersDayPageClient"
@@ -32,7 +33,13 @@ export default function MothersDayPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <MothersDayPageClient />
+      <Suspense
+        fallback={
+          <div className="min-h-[min(100vw,36rem)] bg-background" aria-hidden />
+        }
+      >
+        <MothersDayPageClient />
+      </Suspense>
       <Footer />
     </main>
   )
