@@ -123,6 +123,7 @@ function CreatePortraitContent() {
   const searchParams = useSearchParams()
   const emailFromQuery = searchParams.get("email")?.trim() || ""
   const themeFromQuery = searchParams.get("theme")?.trim().toLowerCase() || ""
+  const promoFromQuery = searchParams.get("promo")?.trim().toUpperCase() || ""
   const [themes] = useState<ThemeItem[]>([
     { id: "fireman", name: "Fireman", previewUrl: "/images/themes/fireman-preview.webp" },
     { id: "police", name: "Police Officer", previewUrl: "/images/themes/police-preview.webp" },
@@ -698,8 +699,8 @@ function CreatePortraitContent() {
   const petNameDisplay = petName.trim()
   const cleanedRejectionMessage = cleanValidatorMessage(message)
 
-  async function handleApplyVoucher() {
-    const code = voucherCode.trim()
+  async function handleApplyVoucher(codeOverride?: string) {
+    const code = String(codeOverride ?? voucherCode).trim()
     if (!code) {
       setVoucherStatus("invalid")
       setVoucherMessage("Please enter a code.")
@@ -748,6 +749,18 @@ function CreatePortraitContent() {
       setVoucherAmountOffCents(null)
     }
   }
+
+  // Auto-apply promo code from URL (?promo=FORMUM20). Sets the field, calls validator,
+  // and lets the existing voucher state machine handle the rest.
+  useEffect(() => {
+    if (!promoFromQuery) return
+    if (voucherStatus === "valid" || voucherStatus === "loading") return
+    setVoucherCode(promoFromQuery)
+    const t = window.setTimeout(() => {
+      void handleApplyVoucher(promoFromQuery)
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [promoFromQuery]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Show wizard only when idle or error (and not after submit)
   const showWizard = status === "idle" || status === "error"
