@@ -185,8 +185,13 @@ export default function PetmasterLayout({
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="min-h-screen pt-14 md:ml-[220px] md:pt-0">
+      {/* Main — charcoal background on Agents routes so tall pages never show cream from the outer shell */}
+      <main
+        className={cn(
+          "min-h-screen pt-14 md:ml-[220px] md:pt-0",
+          pathname.startsWith("/petmaster/agents") ? "bg-[#111827]" : "",
+        )}
+      >
         <div className="p-6 md:p-8">{children}</div>
       </main>
     </div>

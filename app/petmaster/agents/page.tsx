@@ -58,7 +58,44 @@ function healthPresentation(sev: string | null | undefined): {
   if (s === "high" || s === "critical") {
     return { dot: "bg-red-500", label: "Action required" }
   }
-  return { dot: "bg-slate-500", label: "Status unknown" }
+  return { dot: "bg-slate-500", label: "Health status unknown" }
+}
+
+/** Summary line when issues exist and finding is JSON array; otherwise generic severity label when not ok. */
+function healthIssueFindingLabel(
+  severity: string | null | undefined,
+  finding: string | null | undefined,
+): string | null {
+  const sev = (severity ?? "").toLowerCase().trim()
+  if (sev === "ok") return null
+  let findingSummary: string | null = null
+  if (finding && finding !== "All systems healthy") {
+    try {
+      const findings = JSON.parse(finding)
+      if (Array.isArray(findings) && findings.length > 0) {
+        const first = findings[0] as { check?: string }
+        const check =
+          typeof first?.check === "string"
+            ? first.check.replace(/_/g, " ")
+            : String(first?.check ?? "").replace(/_/g, " ")
+        findingSummary = `${findings.length} issue${findings.length > 1 ? "s" : ""} — ${check || "see logs"}`
+      }
+    } catch {
+      findingSummary = finding
+    }
+  }
+  return findingSummary
+}
+
+function staleUnknownLabel(minutesAgo: number | null): string {
+  if (minutesAgo === null) {
+    return "Health status unknown — last scan time missing"
+  }
+  const hours = Math.floor(minutesAgo / 60)
+  if (hours >= 1) {
+    return `Health status unknown — last scanned ${hours} hour${hours === 1 ? "" : "s"} ago`
+  }
+  return `Health status unknown — last scanned ${minutesAgo} minute${minutesAgo === 1 ? "" : "s"} ago`
 }
 
 function lastScannedText(createdAt: string | null | undefined): string {
@@ -124,11 +161,27 @@ export default function PetmasterAgentsPage() {
   }, [load])
 
   const h = data?.health
-  const { dot, label: healthLabel } = healthPresentation(h?.severity)
+  const lastScanTime =
+    h?.created_at != null ? new Date(h.created_at) : null
+  const minutesAgo =
+    lastScanTime && !Number.isNaN(lastScanTime.getTime())
+      ? Math.floor((Date.now() - lastScanTime.getTime()) / 60_000)
+      : null
+  const isStale = minutesAgo === null || minutesAgo > 120
+  const displaySeverity = isStale ? undefined : (h?.severity ?? undefined)
+  const { dot, label: genericSeverityLabel } = healthPresentation(
+    isStale ? "unknown" : displaySeverity,
+  )
+
+  const issueFindingLabel =
+    !isStale && h ? healthIssueFindingLabel(h.severity, h.finding ?? null) : null
+  const healthBarPrimary = isStale
+    ? staleUnknownLabel(minutesAgo)
+    : issueFindingLabel ?? genericSeverityLabel
 
   return (
     <div
-      className="-m-6 space-y-10 bg-[#111827] p-6 text-[#F2EEE2] md:-m-8 md:p-8"
+      className="-m-6 min-h-screen space-y-10 bg-[#111827] p-6 text-[#F2EEE2] md:-m-8 md:p-8"
       data-page="petmaster-agents"
     >
       <h1 className="font-heading text-2xl font-extrabold tracking-tight text-[#F2EEE2]">
@@ -143,12 +196,14 @@ export default function PetmasterAgentsPage() {
           {/* Section 1 — System Health Bar */}
           <section aria-label="System health">
             <div className="flex flex-col gap-4 rounded-lg border border-white/10 bg-[#1F2937] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-6">
-              <div className="flex min-w-0 flex-wrap items-center gap-3">
-                <span className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-col gap-1 sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+                <span className="flex min-w-0 flex-wrap items-center gap-2">
                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot}`} aria-hidden />
-                  <span className="text-sm font-medium text-[#F2EEE2]">{healthLabel}</span>
+                  <span className="break-words text-sm font-medium text-[#F2EEE2]">{healthBarPrimary}</span>
                 </span>
-                <span className="text-sm text-[#F2EEE2]/60">{lastScannedText(h?.created_at)}</span>
+                {!isStale && (
+                  <span className="text-sm text-[#F2EEE2]/60">{lastScannedText(h?.created_at)}</span>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {AGENT_PILLS.map((name) => (
