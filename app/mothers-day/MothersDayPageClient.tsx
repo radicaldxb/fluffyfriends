@@ -59,7 +59,7 @@ export default function MothersDayPageClient() {
       <section className="relative overflow-hidden bg-background pt-10 pb-12 md:pt-16 md:pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div className="order-2 lg:order-1">
+            <div className="order-2 min-w-0 lg:order-1">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Mother&apos;s Day · May 11
               </p>
@@ -93,8 +93,16 @@ export default function MothersDayPageClient() {
               </div>
             </div>
 
-            <div className="order-1 lg:order-2">
-              <div className="relative aspect-square w-full overflow-hidden rounded-organic shadow-xl shadow-foreground/10 ring-1 ring-border/50">
+            <div className="order-1 min-w-0 lg:order-2">
+              {/*
+                Source assets are 1024×572 (~16:9). A 4:3 box forced object-cover to crop
+                left/right (tray edges). Match native aspect + center so the full scene shows.
+                For retina sharpness, replace files with 2× width (e.g. 2048w) same ratio.
+              */}
+              <div
+                className="relative w-full min-w-0 overflow-hidden rounded-organic shadow-xl shadow-foreground/10 ring-1 ring-border/50"
+                style={{ aspectRatio: "1024 / 572" }}
+              >
                 <Image
                   src={
                     pet === "cat"
@@ -108,7 +116,8 @@ export default function MothersDayPageClient() {
                   }
                   fill
                   className="object-cover object-center"
-                  sizes="(max-width: 1024px) 100vw, 36rem"
+                  sizes="(max-width: 1024px) 100vw, (max-width: 1536px) 50vw, 720px"
+                  quality={95}
                   priority
                   fetchPriority="high"
                   onError={(e) => {
