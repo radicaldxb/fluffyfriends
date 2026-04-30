@@ -244,20 +244,8 @@ export default function PetmasterAgentsApprovalsPage() {
           [
             { id: "content" as const, label: "Content" },
             { id: "playbook" as const, label: "Playbook Proposals" },
-            { id: "ads" as const, label: "Ad Drafts (coming soon)", disabled: true },
           ] as const
         ).map((t) => {
-          if ("disabled" in t && t.disabled) {
-            return (
-              <span
-                key={t.id}
-                className="cursor-not-allowed rounded-full px-4 py-2 text-sm font-medium text-[#F2EEE2]/40"
-                aria-disabled
-              >
-                {t.label}
-              </span>
-            )
-          }
           const id = t.id
           const active = tab === id
           return (
@@ -280,6 +268,9 @@ export default function PetmasterAgentsApprovalsPage() {
             </button>
           )
         })}
+        <span className="cursor-not-allowed rounded-full px-4 py-2 text-sm font-medium text-[#F2EEE2]/40" aria-disabled>
+          Ad Drafts (coming soon)
+        </span>
       </div>
 
       {loading && <p className="text-sm text-[#F2EEE2]/60">Loading…</p>}

@@ -1671,7 +1671,9 @@ function CreatePortraitContent() {
                           type="button"
                           size="sm"
                           disabled={voucherStatus === "loading"}
-                          onClick={handleApplyVoucher}
+                          onClick={() => {
+                            void handleApplyVoucher()
+                          }}
                           className="mt-1 inline-flex items-center justify-center rounded-organic-sm px-4 py-2 text-sm font-semibold sm:mt-0"
                         >
                           {voucherStatus === "loading" ? "Checking…" : "Apply"}
