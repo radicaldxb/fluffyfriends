@@ -13,7 +13,7 @@ const PRINT_DEADLINE = new Date("2026-05-08T23:59:59-04:00")
 
 const FALLBACK_IMG = "/images/pet-after.webp"
 
-/** Native ratio of mothersday-*.webp proofs (1024×572) — matches box so images aren’t cropped. */
+/** Native ratio of mothersday-*.webp proofs (1024×572); matches box so images aren’t cropped. */
 const MD_PROOF_ASPECT = "1024 / 572"
 
 function useCountdown(target: Date) {
@@ -125,7 +125,7 @@ export default function MothersDayPageClient() {
 
   return (
     <>
-      {/* HERO — unchanged */}
+      {/* HERO */}
       <section className="relative isolate overflow-hidden bg-background pb-12 pt-10 sm:pt-14 md:pb-20 md:pt-20">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
@@ -138,12 +138,12 @@ export default function MothersDayPageClient() {
                 <span className="text-primary">wall</span>.
               </h1>
               <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                A personalised portrait of her pet — name crafted into the artwork itself.
+                A personalised portrait of her pet, with their name crafted into the artwork itself.
                 Delivered to your inbox in minutes. Print-ready in two formats.
               </p>
               <div className="mt-6 inline-flex items-center gap-2 rounded-organic-sm border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground">
                 <span className="font-semibold text-primary">{PROMO_CODE}</span>
-                <span>— 20% off, ends May 10</span>
+                <span>· 20% off, ends May 10</span>
               </div>
               <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                 <Button
@@ -183,21 +183,35 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
-      {/* NOT ANOTHER CANDLE — 3 visual cards */}
+      {/* NOT ANOTHER CANDLE: 3 visual cards */}
       <section className="bg-card py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="font-heading text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-              Not another candle. Not another mug.
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
-              A portrait of the pet she loves — with their name part of the artwork — is the kind
-              of gift that stays on the wall long after the flowers wilt.
-            </p>
+          <div className="mx-auto max-w-3xl">
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8 sm:text-left">
+              <div className="relative aspect-square w-32 shrink-0 overflow-hidden rounded-organic-sm shadow-md shadow-foreground/10 sm:w-40">
+                <Image
+                  src="/images/mothers-day-ouch.webp"
+                  alt="A wilted Mother's Day bouquet, last year's gift"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 8rem, 10rem"
+                  onError={handleImgError}
+                />
+              </div>
+              <div className="text-center sm:text-left">
+                <h2 className="font-heading text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+                  Not another candle. Not another mug.
+                </h2>
+                <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground">
+                  A portrait of the pet she loves, with their name part of the artwork, is the kind of
+                  gift that stays on the wall long after the flowers wilt.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3 md:gap-8">
-            {/* Card 1 — Name in art */}
+            {/* Card 1: Name in art */}
             <div className="overflow-hidden rounded-organic border border-border bg-background shadow-sm">
               <div
                 className="relative w-full overflow-hidden bg-muted"
@@ -217,12 +231,12 @@ export default function MothersDayPageClient() {
                   Their name in the art.
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  Crafted into the painting itself — not a caption underneath.
+                  Crafted into the painting itself, not a caption underneath.
                 </p>
               </div>
             </div>
 
-            {/* Card 2 — Two formats */}
+            {/* Card 2: Two formats */}
             <div className="overflow-hidden rounded-organic border border-border bg-background shadow-sm">
               <div
                 className="relative w-full overflow-hidden bg-muted"
@@ -230,7 +244,7 @@ export default function MothersDayPageClient() {
               >
                 <Image
                   src="/images/mothersday-wall.webp"
-                  alt="A cat and dog portrait framed on a wall — landscape and portrait formats"
+                  alt="A cat and dog portrait framed on a wall, landscape and portrait formats"
                   fill
                   className="object-cover object-center"
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -247,7 +261,7 @@ export default function MothersDayPageClient() {
               </div>
             </div>
 
-            {/* Card 3 — Framing */}
+            {/* Card 3: Framing */}
             <div className="overflow-hidden rounded-organic border border-border bg-background shadow-sm">
               <div
                 className="relative w-full overflow-hidden bg-muted"
@@ -275,7 +289,7 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
-      {/* Print cutoff countdown — between proof cards and How it works */}
+      {/* Print cutoff countdown between proof cards and How it works */}
       <section className="border-y border-primary-foreground/10 bg-primary py-8 md:py-10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-8 text-center">
@@ -292,7 +306,7 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
-      {/* THREE DAYS, THREE STEPS — with lucide icons */}
+      {/* THREE DAYS, THREE STEPS (Lucide icons) */}
       <section className="bg-background py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center">
@@ -362,14 +376,14 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
-      {/* BLOG EXCERPT — emotional human voice, lower on the page */}
+      {/* BLOG EXCERPT */}
       <section className="bg-secondary py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-organic shadow-xl shadow-foreground/10">
               <Image
                 src="/images/Oscar-portrait.webp"
-                alt="A king portrait hanging in a living room — pet's name in the crown"
+                alt="A king portrait hanging in a living room, pet&apos;s name in the crown"
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 28rem"
@@ -387,7 +401,7 @@ export default function MothersDayPageClient() {
                 &ldquo;Every morning, before the rest of the house is awake, she&apos;s already up.
                 She&apos;s let the dog out, filled the bowl, waited patiently by the back door. By
                 the time anyone else comes downstairs, she&apos;s already done more for this family
-                than most people do before lunch — and nobody has said a word about it.&rdquo;
+                than most people do before lunch, and nobody has said a word about it.&rdquo;
               </blockquote>
               <Link
                 href="/blog/mothers-day-dog-mum"
