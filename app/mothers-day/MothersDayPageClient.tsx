@@ -107,7 +107,6 @@ export default function MothersDayPageClient() {
   const petParam = searchParams.get("pet")?.toLowerCase().trim()
   const pet: "cat" | "dog" = petParam === "cat" ? "cat" : "dog"
 
-  const printCountdown = useCountdown(PRINT_DEADLINE)
   const livePrintCountdown = useLivePrintCountdown(PRINT_DEADLINE)
   const promoCountdown = useCountdown(PROMO_DEADLINE)
 
@@ -161,7 +160,7 @@ export default function MothersDayPageClient() {
             </div>
             <div className="relative">
               <div
-                className="relative mx-auto w-full max-w-md overflow-hidden rounded-organic shadow-xl shadow-foreground/10"
+                className="relative mx-auto w-full max-w-xl overflow-hidden rounded-organic shadow-xl shadow-foreground/10 lg:max-w-2xl"
                 style={{ aspectRatio: "1024 / 572" }}
               >
                 <Image
@@ -173,17 +172,12 @@ export default function MothersDayPageClient() {
                   }
                   fill
                   className="object-cover object-center"
-                  sizes="(max-width: 1024px) 100vw, 36rem"
+                  sizes="(max-width: 1024px) 100vw, 42rem"
                   priority
                   fetchPriority="high"
                   onError={handleImgError}
                 />
               </div>
-              {printCountdown && !printCountdown.expired && (
-                <p className="mx-auto mt-4 max-w-md text-center text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  Order by May 8 to print &amp; frame in time
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -360,13 +354,10 @@ export default function MothersDayPageClient() {
           </ol>
 
           <p className="mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">
-              Coming
-              <br />
-              soon:
-            </span>{" "}
-            FluffyFriends will print &amp; frame for you, delivered to her door. For now, your
-            local print service has you covered.
+            <span className="font-medium text-foreground">Coming soon:</span>
+            <br />
+            FluffyFriends will print &amp; frame for you, delivered to her door. For now, your local
+            print service has you covered.
           </p>
         </div>
       </section>
