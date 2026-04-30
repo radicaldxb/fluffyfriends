@@ -41,6 +41,56 @@ function useCountdown(target: Date) {
   return { days, hours, minutes, seconds, ended: false, mounted: true }
 }
 
+/** Print cutoff strip — segmented countdown aligned with homepage visual weight */
+function PrintCutoffCountdown(props: ReturnType<typeof useCountdown>) {
+  const { mounted, ended, days, hours, minutes, seconds } = props
+  const segments = [
+    { label: "Days", value: days },
+    { label: "Hours", value: hours },
+    { label: "Min", value: minutes },
+    { label: "Sec", value: seconds },
+  ] as const
+
+  if (!mounted) {
+    return <div className="min-h-[5.25rem] w-full max-w-xl sm:max-w-none" aria-hidden />
+  }
+  if (ended) {
+    return (
+      <p className="max-w-xl text-center text-base font-semibold leading-snug text-primary-foreground sm:text-lg">
+        Digital delivery still available. Order today.
+      </p>
+    )
+  }
+  return (
+    <div
+      role="timer"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label={`Time remaining until May 8 print cutoff: ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`}
+      className="flex w-full flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-10"
+    >
+      <span className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 sm:hidden">
+        Time left to order prints in time
+      </span>
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-5">
+        {segments.map(({ label, value }) => (
+          <div
+            key={label}
+            className="flex min-w-[4.75rem] flex-col items-center rounded-organic-sm border border-primary-foreground/25 bg-primary-foreground/12 px-3 py-3 shadow-inner sm:min-w-[5.5rem] sm:px-4 sm:py-3.5 md:min-w-[6.25rem] md:px-5 md:py-4"
+          >
+            <span className="text-2xl font-extrabold tabular-nums leading-none tracking-tight text-primary-foreground sm:text-3xl md:text-[2.125rem]">
+              {value}
+            </span>
+            <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/80 sm:text-xs">
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function MothersDayPageClient() {
   const searchParams = useSearchParams()
   const petParam = searchParams.get("pet")?.toLowerCase().trim()
@@ -58,42 +108,19 @@ export default function MothersDayPageClient() {
       {/* HERO */}
       <section className="relative overflow-hidden bg-background pt-10 pb-12 md:pt-16 md:pb-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div className="order-2 min-w-0 lg:order-1">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
+            {/* Mobile: eyebrow + title first · Desktop: stacks in left column */}
+            <div className="order-1 lg:col-start-1 lg:row-start-1">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Mother&apos;s Day · May 11
               </p>
               <h1 className="font-heading mt-3 text-balance text-3xl font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
                 The gift she&apos;ll keep <span className="text-primary">on her wall.</span>
               </h1>
-              <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
-                A personalised portrait of her pet, with their name crafted into the artwork itself. Delivered to your inbox
-                in minutes. Print-ready in two formats.
-              </p>
-
-              <div className="mt-6 inline-flex items-center gap-2 rounded-organic-sm border border-primary/40 bg-primary/10 px-4 py-2">
-                <span className="text-sm font-bold tracking-wide text-primary">FORMUM20</span>
-                <span className="text-sm text-foreground">
-                  · 20% off, ends{" "}
-                  {codeCountdown.mounted && !codeCountdown.ended
-                    ? `in ${codeCountdown.days}d ${codeCountdown.hours}h`
-                    : "May 10"}
-                </span>
-              </div>
-
-              <div className="mt-7">
-                <Button
-                  asChild
-                  size="lg"
-                  className="inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 sm:w-auto"
-                >
-                  <Link href={ctaHref}>Make her gift →</Link>
-                </Button>
-                <p className="mt-3 text-sm text-muted-foreground">From $17 · One-time · Satisfaction guaranteed</p>
-              </div>
             </div>
 
-            <div className="order-1 min-w-0 lg:order-2">
+            {/* Mobile: hero image directly under headline · Desktop: right column */}
+            <div className="order-2 min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-start">
               {/*
                 Source assets are 1024×572 (~16:9). A 4:3 box forced object-cover to crop
                 left/right (tray edges). Match native aspect + center so the full scene shows.
@@ -129,33 +156,52 @@ export default function MothersDayPageClient() {
                 />
               </div>
             </div>
+
+            {/* Mobile: deck + promo + CTA under image */}
+            <div className="order-3 lg:col-start-1 lg:row-start-2">
+              <p className="max-w-lg text-pretty text-base leading-relaxed text-muted-foreground md:text-lg lg:mt-0">
+                A personalised portrait of her pet, with their name crafted into the artwork itself. Delivered to your inbox
+                in minutes. Print-ready in two formats.
+              </p>
+
+              <div className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-organic-sm border border-primary/40 bg-primary/10 px-4 py-2">
+                <span className="text-sm font-bold tracking-wide text-primary">FORMUM20</span>
+                <span className="text-sm text-foreground">
+                  · 20% off, ends{" "}
+                  {codeCountdown.mounted && !codeCountdown.ended
+                    ? `in ${codeCountdown.days}d ${codeCountdown.hours}h`
+                    : "May 10"}
+                </span>
+              </div>
+
+              <div className="mt-7">
+                <Button
+                  asChild
+                  size="lg"
+                  className="inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 sm:w-auto"
+                >
+                  <Link href={ctaHref}>Make her gift →</Link>
+                </Button>
+                <p className="mt-3 text-sm text-muted-foreground">From $17 · One-time · Satisfaction guaranteed</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* URGENCY STRIP: print cutoff countdown */}
-      <section className="bg-primary py-5">
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-center gap-2 text-center sm:flex-row sm:gap-5">
-            <p className="text-base font-bold uppercase tracking-wider text-primary-foreground">Print cutoff: May 8</p>
-            {printCountdown.mounted && !printCountdown.ended ? (
-              <div className="flex items-center gap-2 text-lg font-extrabold tabular-nums text-primary-foreground">
-                <span>{printCountdown.days}d</span>
-                <span aria-hidden className="opacity-60">
-                  ·
-                </span>
-                <span>{printCountdown.hours}h</span>
-                <span aria-hidden className="opacity-60">
-                  ·
-                </span>
-                <span>{printCountdown.minutes}m</span>
-                <span className="ml-2 hidden text-sm font-semibold opacity-90 sm:inline">left to order in time</span>
-              </div>
-            ) : printCountdown.ended ? (
-              <p className="text-sm font-semibold text-primary-foreground">Digital delivery still available. Order today.</p>
-            ) : (
-              <div className="min-h-[1.75rem] w-full max-w-xs" aria-hidden />
-            )}
+      <section className="border-y border-primary-foreground/10 bg-primary py-8 md:py-10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-8 text-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 md:text-base">
+                Print cutoff: May 8
+              </p>
+              <p className="mt-2 hidden text-sm font-medium text-primary-foreground/80 md:block md:text-base">
+                Order in time so you can pick up prints before Mother&apos;s Day
+              </p>
+            </div>
+            <PrintCutoffCountdown {...printCountdown} />
           </div>
         </div>
       </section>
@@ -267,17 +313,17 @@ export default function MothersDayPageClient() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF GALLERY — real customer portraits (cats + dogs, 4 themes) */}
-      <section className="bg-card py-14 md:py-20">
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Real pets, real moms</p>
-            <h2 className="mt-3 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+      {/* SOCIAL PROOF — same card treatment as homepage GallerySection */}
+      <section className="bg-background py-14 md:py-20">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-medium uppercase tracking-widest text-primary">Real pets, real moms</p>
+            <h2 className="mt-3 text-balance text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
               From cats to dogs, every pet becomes the art.
             </h2>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
+          <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {[
               {
                 src: "https://res.cloudinary.com/radical-thinking/image/upload/v1774603488/u3mztrerxqukk2oue24b.jpg",
@@ -303,44 +349,53 @@ export default function MothersDayPageClient() {
                 theme: "Admiral",
                 location: "Perth, Australia",
               },
-            ].map((p) => (
-              <button
-                key={p.src}
-                type="button"
-                onClick={() =>
-                  setLightbox({
-                    src: p.src,
-                    alt: `${p.name} as a ${p.theme}, FluffyFriends portrait`,
-                  })
-                }
-                className="group block overflow-hidden rounded-organic border border-border bg-background text-left transition-transform hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                <div className="relative aspect-square w-full overflow-hidden bg-muted">
+            ].map((p, index) => {
+              const line = `${p.name} · ${p.location}`
+              const caption = `${p.name} · ${p.theme}`
+              return (
+                <div
+                  key={`${p.src}-${index}`}
+                  className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-organic border border-border/50"
+                >
                   <Image
                     src={p.src}
-                    alt={`${p.name} as a ${p.theme}`}
+                    alt={caption}
                     fill
-                    className="object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                    sizes="(max-width: 768px) 50vw, 25vw"
+                    loading="lazy"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    unoptimized
                   />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLightbox({
+                        src: p.src,
+                        alt: `${p.name} as a ${p.theme}, FluffyFriends portrait`,
+                      })
+                    }
+                    className="absolute inset-0 z-10 rounded-organic focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label={`View larger — ${line}`}
+                  />
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
+                    <p className="text-sm font-semibold text-white drop-shadow-sm">
+                      {p.name}
+                      <span className="font-normal text-white/90"> · {p.location}</span>
+                    </p>
+                  </div>
                 </div>
-                <div className="px-3 py-3">
-                  <p className="text-sm font-bold text-foreground">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{p.theme}</p>
-                  <p className="mt-1 text-[11px] text-muted-foreground/80">{p.location}</p>
-                </div>
-              </button>
-            ))}
+              )
+            })}
           </div>
 
-          <p className="mt-8 text-center">
+          <div className="mt-10 flex justify-center">
             <Link
               href="/gallery"
-              className="text-xs text-muted-foreground/70 underline underline-offset-4 hover:text-muted-foreground"
+              className="text-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/90 hover:underline"
             >
-              See more pets in our gallery
+              See more pets in our gallery →
             </Link>
-          </p>
+          </div>
         </div>
       </section>
 
