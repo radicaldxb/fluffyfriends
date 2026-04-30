@@ -167,6 +167,13 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 - **Used by:** all public routes via `app/layout.tsx`
 - **Last updated:** 29 Apr 2026
 
+### `components/seasonal-campaign-section.tsx`
+
+- **What:** Homepage seasonal campaign card. Reusable across occasions (Mother's Day, Father's Day, etc.)
+- **Used by:** `app/page.tsx`
+- **Activation:** edit `ACTIVE` constant. Set to `null` to hide.
+- **Last updated:** 30 Apr 2026 (Brief 27 — created for Mother's Day)
+
 ---
 
 ## Database surfaces
