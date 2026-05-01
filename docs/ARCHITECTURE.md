@@ -63,14 +63,14 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 
 - **What:** Post-purchase landing page; polls for upscale completion, then redirects to `/my-portraits`. Captures showcase consent.
 - **Files:** `app/checkout/success/page.tsx`
-- **Touches:** WF3-NEW (upscale completion writes URLs), `pet_portraits.landscape_url`, `pet_portraits.showcase_consent`. NOTE: declares `downloadLinks` state but never populates it — download buttons in this file are dead code. Real downloads happen on `/my-portraits` after redirect.
-- **Last updated:** 29 Apr 2026
+- **Touches:** WF3-NEW (upscale completion writes URLs), `pet_portraits.landscape_url`, **`pet_portraits.image_url`** (poll treats upscale-ready as URL mismatch vs placeholder AVIF — Brief 28), `pet_portraits.showcase_consent`. NOTE: declares `downloadLinks` state but never populates it — download buttons in this file are dead code. Real downloads happen on `/my-portraits` after redirect.
+- **Last updated:** 30 Apr 2026 (Brief 28 — completion gate now requires landscape_url ≠ image_url, 30s minimum loader, fixes AVIF download race condition)
 
 ### `/my-portraits`
 
 - **What:** Returning-customer entry to access already-paid portraits and remaining credits. Single source of truth for download buttons. Will eventually become the print upsell entry point (Gelato).
 - **Files:** `app/my-portraits/page.tsx`, `app/my-portraits/layout.tsx`
-- **Touches:** `pet_portraits.landscape_url`/`portrait_url`, `portrait_purchases.portraits_remaining`, **`getDownloadUrl()` in `lib/cloudinary.ts`** (forces JPG for downloads)
+- **Touches:** `pet_portraits.landscape_url`/`portrait_url`, `portrait_purchases.portraits_remaining`, **`getDownloadUrl()` in `lib/cloudinary.ts`** (forces JPG for downloads), **receives only fully-upscaled portraits via `/checkout/success` gate (Brief 28)**
 - **Last updated:** 29 Apr 2026 (Brief 21+22 — JPG-forced download URLs, q_100 quality)
 - **Known styling drift — refresh planned.**
 - **Future commerce surface for Gelato print orders — design with that in mind.**
@@ -242,6 +242,8 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 
 ## Known issues / drift
 
+- **Returning-customer `/my-portraits` download race (AVIF placeholder before upscale finished): resolved Brief 28** — `/checkout/success` gates redirect on `landscape_url !== image_url` plus a 30s minimum loader before sending customers to downloads.
+
 - **`?promo=FORMUM20` auto-apply on `/create` is broken.** Effect doesn't fire (no `/api/validate-voucher` network call on page load). Diagnosed but not fixed. Workaround: discount badge visible on `/mothers-day`, Cindy types code manually. Revisit post-Mother's-Day.
 
 - **`/my-portraits` styling drift** vs. the rest of the site. Returning-customer entry point is functional but visually disconnected from `/create`. Refresh planned. Critical because this becomes the Gelato commerce entry point.
@@ -257,6 +259,8 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 - **WF3 delivery email** sends raw Cloudinary URLs in download links — same AVIF auto-conversion + recompression issue that `/my-portraits` had pre-Brief-21+22. To be fixed via n8n by injecting `fl_attachment,f_jpg,q_100/` into the URLs in the Build Payload Code node.
 
 - **Cloudinary `q_100` is a workaround.** Delivers ~95% of source bytes (3.5MB from a 3.8MB source) — print-acceptable but not bit-perfect. True bit-perfect downloads would require uploading to Cloudinary as `resource_type: raw` or moving storage to Supabase Storage. Will become more relevant when Gelato API is in scope (their print queue may be stricter than self-service print shops). Phase-2 architectural cleanup.
+
+- **Mid-pipeline AVIF placeholder window:** between WF3 start and upscale completion, `pet_portraits.landscape_url` and `portrait_url` temporarily contain the AVIF preview URL (often equal to `image_url`). `/checkout/success` gates redirect on this distinction (`landscape_url !== image_url`). Other surfaces that read these columns directly (admin tools, future analytics) should apply the same check or expect AVIF placeholders during this window.
 
 - **Returning-customer flow has redundant consent step** (age + terms checkboxes on the "looking great" page). They accepted at original purchase. To be removed as part of the returning-customer flow alignment (Option B) work scheduled for 30 Apr 2026.
 

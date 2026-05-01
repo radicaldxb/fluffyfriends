@@ -319,26 +319,56 @@ function SuccessContent() {
             const emailNorm = email.trim().toLowerCase()
             const portraitId = preview.status === "ready" ? preview.portraitId : portraitFromQuery
             const pollStart = Date.now()
+            const MIN_LOADER_MS = 30_000 // Always show the loader for at least 30s — feels polished, gives upscale time to finish
+            const MAX_POLL_MS = 90_000 // Hard cutoff — if upscale isn't done in 90s, push anyway
+
+            const isUpscaleComplete = (row: {
+              landscape_url: string | null
+              image_url: string | null
+            } | null): boolean => {
+              if (!row) return false
+              const lUrl = row.landscape_url
+              const iUrl = row.image_url
+              // landscape_url must exist, be a real URL, AND differ from image_url
+              // (n8n writes the AVIF preview into landscape_url as a placeholder before upscale completes;
+              // once upscale finishes, n8n overwrites landscape_url with the upscaled JPG, making the two differ)
+              return (
+                typeof lUrl === "string" &&
+                lUrl.startsWith("https://") &&
+                lUrl !== iUrl
+              )
+            }
+
+            const finish = () => {
+              setWf3Status("ready")
+              router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
+            }
+
             const poll = async () => {
-              if (Date.now() - pollStart > 90_000) {
-                router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
+              const elapsed = Date.now() - pollStart
+
+              // Hard cutoff — push regardless after MAX_POLL_MS
+              if (elapsed > MAX_POLL_MS) {
+                finish()
                 return
               }
+
               const { data: row } = await supabase
                 .from("pet_portraits")
-                .select("landscape_url")
+                .select("landscape_url, image_url")
                 .eq("id", portraitId)
                 .single()
-              if (
-                row?.landscape_url &&
-                typeof row.landscape_url === "string" &&
-                row.landscape_url.startsWith("https://")
-              ) {
-                setWf3Status("ready")
-                router.push(`/my-portraits?email=${encodeURIComponent(emailNorm)}`)
-              } else {
-                setTimeout(poll, 4000)
+
+              if (isUpscaleComplete(row)) {
+                // Upscale is done. Wait until the minimum loader time has elapsed before redirecting,
+                // so the customer always sees a smooth "preparing your portrait" experience
+                // and never sees a half-baked /my-portraits page.
+                const remainingMs = Math.max(0, MIN_LOADER_MS - elapsed)
+                setTimeout(finish, remainingMs)
+                return
               }
+
+              setTimeout(poll, 4000)
             }
             setTimeout(poll, 4000)
             return
