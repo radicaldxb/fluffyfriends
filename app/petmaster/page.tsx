@@ -18,12 +18,12 @@ type AnalyticsDailyRow = {
   meta_campaigns?: unknown
   clarity_sessions?: number | null
   clarity_mobile_pct?: number | null
-  clarity_engagement_time?: number | null
-  clarity_pages_per_session?: number | null
   clarity_rage_clicks?: number | null
   clarity_dead_clicks?: number | null
   clarity_excessive_scroll?: number | null
   clarity_quickback_clicks?: number | null
+  clarity_js_errors?: number | null
+  clarity_engaged_sessions?: number | null
   clarity_top_pages?: unknown
 }
 
@@ -221,20 +221,6 @@ function formatClarityMobilePct(v: number | null | undefined): string {
   return `${pct.toFixed(1)}%`
 }
 
-function formatClarityEngagementSeconds(v: number | null | undefined): string {
-  if (v === null || v === undefined) return "—"
-  const n = Number(v)
-  if (!Number.isFinite(n)) return "—"
-  return `${n.toLocaleString(undefined, { maximumFractionDigits: 1 })} s`
-}
-
-function formatClarityPagesPerSession(v: number | null | undefined): string {
-  if (v === null || v === undefined) return "—"
-  const n = Number(v)
-  if (!Number.isFinite(n)) return "—"
-  return n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })
-}
-
 function parseClarityTopPages(raw: unknown): { displayUrl: string; sessions: number }[] {
   const list = parseCampaignsPayload(raw)
   return list
@@ -243,7 +229,7 @@ function parseClarityTopPages(raw: unknown): { displayUrl: string; sessions: num
       const sessionsVal = num(row, "sessions", "session_count", "count")
       const s = sessionsVal != null && Number.isFinite(sessionsVal) ? sessionsVal : 0
       const displayUrl =
-        full.length === 0 ? "—" : full.length > 40 ? `${full.slice(0, 37)}…` : full
+        full.length === 0 ? "—" : full.length > 45 ? `${full.slice(0, 42)}…` : full
       return { displayUrl, sessions: s }
     })
     .filter((r) => r.displayUrl !== "—")
@@ -266,7 +252,7 @@ function RageClicksCard({ value, n }: { value: string; n: number | null | undefi
             : "text-xs font-medium uppercase tracking-wide text-[#F2EEE2]/60"
         }
       >
-        Rage clicks
+        Rage Clicks
       </p>
       <p
         className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${alert ? "text-[#A32D2D]" : "text-[#F2EEE2]"}`}
@@ -628,46 +614,41 @@ export default function PetmasterDashboardPage() {
       <section>
         {latest?.clarity_sessions != null ? (
           <>
-            <div className="mb-4">
+            <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-[#111827]/70">
                 Behaviour — Clarity
               </h2>
-              <p className="mt-1 text-xs text-[#111827]/50">Updated daily at 7am UAE</p>
+              <p className="text-xs text-[#111827]/50">Updated daily at 5am UAE</p>
             </div>
-            <p className="mb-3 text-xs font-semibold text-[#111827]/65">Session quality</p>
-            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Sessions" value={formatSessions(latest.clarity_sessions)} />
               <StatCard label="Mobile %" value={formatClarityMobilePct(latest.clarity_mobile_pct)} />
-              <StatCard
-                label="Engagement time"
-                value={formatClarityEngagementSeconds(latest.clarity_engagement_time)}
-              />
-              <StatCard
-                label="Pages / session"
-                value={formatClarityPagesPerSession(latest.clarity_pages_per_session)}
-              />
-            </div>
-            <p className="mb-3 text-xs font-semibold text-[#111827]/65">Friction signals</p>
-            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <RageClicksCard
                 n={latest.clarity_rage_clicks}
                 value={formatSessions(latest.clarity_rage_clicks)}
               />
-              <StatCard label="Dead clicks" value={formatSessions(latest.clarity_dead_clicks)} />
+              <StatCard label="Dead Clicks" value={formatSessions(latest.clarity_dead_clicks)} />
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
-                label="Excessive scroll"
+                label="Excessive Scroll"
                 value={formatSessions(latest.clarity_excessive_scroll)}
               />
-              <div title="User went back immediately" className="h-full">
-                <StatCard
-                  label="Quickback clicks"
-                  value={formatSessions(latest.clarity_quickback_clicks)}
-                />
-              </div>
+              <StatCard
+                label="Quickback Clicks"
+                value={formatSessions(latest.clarity_quickback_clicks)}
+              />
+              <StatCard label="JS Errors" value={formatSessions(latest.clarity_js_errors)} />
+              <StatCard
+                label="Engaged Sessions"
+                value={formatSessions(latest.clarity_engaged_sessions)}
+              />
             </div>
             {clarityTopPagesRows.length > 0 ? (
-              <div>
-                <p className="mb-2 text-xs font-semibold text-[#111827]/65">Top pages by sessions</p>
+              <div className="mt-8">
+                <p className="mb-2 text-xs font-semibold tracking-wider text-[#111827]/65">
+                  TOP PAGES BY SESSIONS
+                </p>
                 <div
                   className="overflow-x-auto rounded-organic-sm p-3"
                   style={{ backgroundColor: "#1F2937", color: "#F2EEE2" }}
@@ -696,7 +677,7 @@ export default function PetmasterDashboardPage() {
           </>
         ) : (
           <p className="text-sm text-[#111827]/55">
-            Clarity data updates at 7am UAE — check back tomorrow.
+            Clarity data updates at 5am UAE — check back tomorrow.
           </p>
         )}
       </section>
