@@ -22,8 +22,8 @@ const ACTIVE: SeasonalCampaign | null = {
   body: "A personalised portrait of her pet — name crafted into the artwork itself. 20% off with FORMUM20 through May 10.",
   ctaLabel: "See the gift →",
   ctaHref: "/mothers-day",
-  imageSrc: "/images/pet-after.webp",
-  imageAlt: "Mother's Day pet portrait gift",
+  imageSrc: "/images/mothers-day-hero-cat.webp",
+  imageAlt: "A Mother's Day cat portrait gift on a breakfast tray",
   endsOn: "May 10",
 }
 
