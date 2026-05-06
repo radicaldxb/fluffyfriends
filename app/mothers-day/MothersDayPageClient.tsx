@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 
 const PROMO_CODE = "FORMUM20"
 const PROMO_DEADLINE = new Date("2026-05-10T23:59:59-04:00")
-const PRINT_DEADLINE = new Date("2026-05-08T23:59:59-04:00")
+const PRINT_DEADLINE = new Date("2026-05-09T23:59:59-04:00")
 
 const FALLBACK_IMG = "/images/pet-after.webp"
 
@@ -80,7 +80,7 @@ function PrintCutoffCountdownBanner(
       role="timer"
       aria-live="polite"
       aria-atomic="true"
-      aria-label={`Time remaining until May 8 print cutoff: ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`}
+      aria-label={`Time remaining until May 9 print cutoff: ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`}
       className="flex w-full flex-col items-center gap-5 sm:flex-row sm:justify-center sm:gap-10"
     >
       <span className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 sm:hidden">
@@ -298,7 +298,7 @@ export default function MothersDayPageClient() {
           <div className="flex flex-col items-center gap-8 text-center">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 md:text-base">
-                Print cutoff: May 8
+                Print cutoff: May 9
               </p>
               <p className="mt-2 hidden text-sm font-medium text-primary-foreground/80 md:block md:text-base">
                 Order in time so you can pick up prints before Mother&apos;s Day
@@ -369,13 +369,6 @@ export default function MothersDayPageClient() {
               </p>
             </li>
           </ol>
-
-          <p className="mx-auto mt-10 max-w-2xl text-center text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">Coming soon:</span>
-            <br />
-            FluffyFriends will print &amp; frame for you, delivered to her door. For now, your local
-            print service has you covered.
-          </p>
         </div>
       </section>
 
