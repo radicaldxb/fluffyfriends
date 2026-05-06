@@ -13,6 +13,9 @@ const PRINT_DEADLINE = new Date("2026-05-08T23:59:59-04:00")
 
 const FALLBACK_IMG = "/images/pet-after.webp"
 
+/** Native ratio of hero assets (630×572; cat/dog swap). */
+const MD_HERO_ASPECT = "630 / 572"
+
 /** Native ratio of mothersday-*.webp proofs (1024×572); matches box so images aren’t cropped. */
 const MD_PROOF_ASPECT = "1024 / 572"
 
@@ -116,7 +119,7 @@ export default function MothersDayPageClient() {
   )
 
   const heroImg =
-    pet === "cat" ? "/images/mothers-day-hero-cat.webp" : "/images/mothers-day-hero-dog.webp"
+    pet === "cat" ? "/images/mothers-day-cat-new.webp" : "/images/mothers-day-dog-new.webp"
 
   const handleImgError = (e: SyntheticEvent<HTMLImageElement>) => {
     const t = e.currentTarget
@@ -158,10 +161,10 @@ export default function MothersDayPageClient() {
                 </p>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative flex w-full justify-center lg:justify-end">
               <div
-                className="relative mx-auto w-full max-w-xl overflow-hidden rounded-organic shadow-xl shadow-foreground/10 lg:max-w-2xl"
-                style={{ aspectRatio: "1024 / 572" }}
+                className="relative w-full max-w-[min(100%,22.5rem)] overflow-hidden rounded-organic-sm bg-muted shadow-lg shadow-foreground/10 ring-1 ring-border/35 sm:max-w-md md:max-w-lg lg:w-full lg:max-w-xl"
+                style={{ aspectRatio: MD_HERO_ASPECT }}
               >
                 <Image
                   src={heroImg}
@@ -171,8 +174,8 @@ export default function MothersDayPageClient() {
                       : "A Mother's Day dog portrait gift on a breakfast tray"
                   }
                   fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 1024px) 100vw, 42rem"
+                  className="object-contain object-center"
+                  sizes="(max-width: 640px) 360px, (max-width: 1024px) 448px, 512px"
                   priority
                   fetchPriority="high"
                   onError={handleImgError}

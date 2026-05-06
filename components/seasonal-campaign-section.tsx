@@ -22,7 +22,7 @@ const ACTIVE: SeasonalCampaign | null = {
   body: "A personalised portrait of her pet — name crafted into the artwork itself. 20% off with FORMUM20 through May 10.",
   ctaLabel: "See the gift →",
   ctaHref: "/mothers-day",
-  imageSrc: "/images/mothers-day-hero-cat.webp",
+  imageSrc: "/images/mothers-day-cat-new.webp",
   imageAlt: "A Mother's Day cat portrait gift on a breakfast tray",
   endsOn: "May 10",
 }
@@ -34,12 +34,15 @@ export function SeasonalCampaignSection() {
     <section className="bg-secondary py-14 md:py-20">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="grid items-center gap-8 rounded-organic border border-border bg-card p-6 shadow-sm md:grid-cols-2 md:gap-12 md:p-10">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-organic-sm">
+          <div
+            className="relative w-full overflow-hidden rounded-organic-sm bg-muted"
+            style={{ aspectRatio: "630 / 572" }}
+          >
             <Image
               src={ACTIVE.imageSrc}
               alt={ACTIVE.imageAlt}
               fill
-              className="object-cover"
+              className="object-contain object-center"
               sizes="(max-width: 768px) 100vw, 32rem"
             />
           </div>
