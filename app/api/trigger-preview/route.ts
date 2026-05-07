@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Database update failed" }, { status: 500 })
     }
 
-    // Fire WF2-NEW — do not await, fire and forget
-    fetch(N8N_PREVIEW_WEBHOOK, {
+    // Fire WF2-NEW — awaited to prevent Netlify killing the request before dispatch
+    const n8nRes = await fetch(N8N_PREVIEW_WEBHOOK, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -59,7 +59,11 @@ export async function POST(req: NextRequest) {
         order_id: portrait_id,
         payment_intent_id: "",
       }),
-    }).catch((err) => console.error("WF2-NEW trigger failed:", err))
+    })
+
+    if (!n8nRes.ok) {
+      console.error("WF2-NEW trigger failed:", n8nRes.status)
+    }
 
     return NextResponse.json({ ok: true, portrait_id })
   } catch (err) {
