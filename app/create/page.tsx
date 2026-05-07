@@ -25,6 +25,7 @@ type Status =
   | "idle"
   | "uploading"
   | "processing"
+  | "early_email"
   | "generating"
   | "preview"
   | "success"
@@ -168,6 +169,13 @@ function CreatePortraitContent() {
   const [previewEmailError, setPreviewEmailError] = useState("")
   const [previewEmailSubmitting, setPreviewEmailSubmitting] = useState(false)
   const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
+  /** Sync before poll callback runs — avoids stale closure skipping the post-preview email gate. */
+  const instantRevealEmailRef = useRef("")
+  /** early_email gate visibility (paired with status `early_email`). */
+  const [showEarlyEmailGate, setShowEarlyEmailGate] = useState(false)
+  const [earlyEmail, setEarlyEmail] = useState("")
+  const [earlyEmailError, setEarlyEmailError] = useState("")
+  const [earlyEmailSubmitting, setEarlyEmailSubmitting] = useState(false)
   /** Raw DB URL (portrait_url preferred) — used for watermarked preview + load fallbacks */
   const previewCloudinaryRawRef = useRef<string | null>(null)
   const portraitPreviewShownRef = useRef(false)
@@ -177,6 +185,7 @@ function CreatePortraitContent() {
   const createQueryDeepLinkApplied = useRef(false)
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0)
   const portraitLoadingActiveRef = useRef(false)
+  const [generateCountdown, setGenerateCountdown] = useState<number | null>(null)
 
   const portraitLoadingMessages = useMemo(() => {
     const n = petName.trim() || "your pet"
@@ -214,12 +223,24 @@ function CreatePortraitContent() {
   }, [status, portraitLoadingMessages.length])
 
   useEffect(() => {
+    if (status !== "generating") {
+      setGenerateCountdown(null)
+      return
+    }
+    setGenerateCountdown(60)
+    const id = window.setInterval(() => {
+      setGenerateCountdown((c) => (c === null || c <= 0 ? 0 : c - 1))
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [status])
+
+  useEffect(() => {
     if (wizardStep !== 2) return
     window.scrollTo(0, 0)
   }, [wizardStep])
 
   useEffect(() => {
-    if (status === "processing" || status === "generating") {
+    if (status === "processing" || status === "generating" || status === "early_email") {
       window.scrollTo(0, 0)
     }
   }, [status])
@@ -415,7 +436,8 @@ function CreatePortraitContent() {
       if (packCustomer) {
         setStatus("success")
       } else {
-        void handleTriggerPreview(normalizedId)
+        setShowEarlyEmailGate(true)
+        setStatus("early_email")
       }
     } catch (err) {
       setStatus("error")
@@ -428,7 +450,60 @@ function CreatePortraitContent() {
     void handleSubmit({ preventDefault() {} } as unknown as React.FormEvent)
   }
 
-  async function handleTriggerPreview(portraitId: string) {
+  function skipEarlyEmailGate() {
+    if (!resultPortraitId) return
+    instantRevealEmailRef.current = ""
+    setEarlyEmail("")
+    setEarlyEmailError("")
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: "preview_email_skipped",
+      ...funnelDatalayerPayload(theme, resultPortraitId),
+    })
+    void handleTriggerPreview(resultPortraitId, "")
+  }
+
+  async function submitEarlyEmailGate() {
+    const trimmed = earlyEmail.trim()
+    if (!trimmed) {
+      setEarlyEmailError("Please enter your email")
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEarlyEmailError("Please enter a valid email address")
+      return
+    }
+    if (!resultPortraitId) return
+
+    setEarlyEmailSubmitting(true)
+    setEarlyEmailError("")
+    try {
+      const res = await fetch("/api/save-preview-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: resultPortraitId, email: trimmed }),
+      })
+      if (!res.ok) {
+        setEarlyEmailError("We couldn't save your email. Please try again.")
+        return
+      }
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({
+        event: "email_captured_preview",
+        ...funnelDatalayerPayload(theme, resultPortraitId),
+      })
+      setEarlyEmail(trimmed)
+      void handleTriggerPreview(resultPortraitId, trimmed)
+    } catch {
+      setEarlyEmailError("We couldn't save your email. Please try again.")
+    } finally {
+      setEarlyEmailSubmitting(false)
+    }
+  }
+
+  async function handleTriggerPreview(portraitId: string, webhookUserEmail = "") {
+    instantRevealEmailRef.current = webhookUserEmail.trim()
+    setShowEarlyEmailGate(false)
     setStatus("generating")
     try {
       const res = await fetch("/api/trigger-preview", {
@@ -439,7 +514,10 @@ function CreatePortraitContent() {
           pet_name: petName.trim(),
           theme: theme ?? "",
           pet_image_url: previewUrl ?? "",
-          user_email: "",
+          user_email:
+            webhookUserEmail.trim() ||
+            earlyEmail.trim() ||
+            "",
           showcase_consent: false,
         }),
       })
@@ -486,9 +564,12 @@ function CreatePortraitContent() {
               } else {
                 setPreviewLandscapeUrl(wm)
               }
-              setPreviewRevealed(false)
-              setPreviewEmail("")
-              setPreviewEmailError("")
+              const revealImmediately = instantRevealEmailRef.current.length > 0
+              setPreviewRevealed(revealImmediately)
+              if (!revealImmediately) {
+                setPreviewEmail("")
+                setPreviewEmailError("")
+              }
               setGenerationPortraitId(portraitId)
               setStatus("preview")
             }
@@ -536,6 +617,11 @@ function CreatePortraitContent() {
     portraitPreviewShownRef.current = false
     packageViewedPreviewRef.current = false
     packageViewedSuccessRef.current = false
+    instantRevealEmailRef.current = ""
+    setEarlyEmail("")
+    setEarlyEmailError("")
+    setEarlyEmailSubmitting(false)
+    setShowEarlyEmailGate(false)
   }
 
   function handleTryAnotherPhoto() {
@@ -549,6 +635,11 @@ function CreatePortraitContent() {
     setMessage("")
     setWizardStep(2)
     fileInputRef.current && (fileInputRef.current.value = "")
+    instantRevealEmailRef.current = ""
+    setEarlyEmail("")
+    setEarlyEmailError("")
+    setEarlyEmailSubmitting(false)
+    setShowEarlyEmailGate(false)
     setTimeout(() => fileInputRef.current?.click(), 100)
   }
 
@@ -812,7 +903,7 @@ function CreatePortraitContent() {
     if (status === "preview" && previewImageUrl) return 99.9
     if (status === "success" && resultPortraitId) return 99.9
     if (status === "delivered") return 99.9
-    if (status === "processing" || status === "generating") return 66.6
+    if (status === "processing" || status === "generating" || status === "early_email") return 66.6
     if (showWizard) return wizardStep === 1 ? 33.3 : 66.6
     return 99.9
   }, [status, previewImageUrl, resultPortraitId, showWizard, wizardStep])
@@ -1302,6 +1393,65 @@ function CreatePortraitContent() {
             </>
           )}
 
+          {status === "early_email" && resultPortraitId && showEarlyEmailGate ? (
+            <div className="animate-in fade-in-0 zoom-in-95 duration-300 mx-auto mt-6 max-w-md px-3 py-10 text-center md:py-14">
+              <p className="text-pretty text-lg font-medium leading-relaxed text-foreground">
+                Your portrait takes about 60 seconds to create.
+              </p>
+              <p className="mt-5 text-pretty text-base leading-relaxed text-muted-foreground">
+                Drop your email and we&apos;ll send it straight to your inbox —{" "}
+                <span className="text-foreground/90">no need to wait here.</span>
+              </p>
+              <div className="mt-7 text-left">
+                <label htmlFor="early-preview-email" className="sr-only">
+                  Email for portrait delivery
+                </label>
+                <input
+                  id="early-preview-email"
+                  type="email"
+                  name="early_preview_email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={earlyEmail}
+                  onChange={(e) => {
+                    setEarlyEmail(e.target.value)
+                    if (earlyEmailError) setEarlyEmailError("")
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      void submitEarlyEmailGate()
+                    }
+                  }}
+                  placeholder="your@email.com"
+                  disabled={earlyEmailSubmitting}
+                  className="w-full rounded-organic-sm border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 disabled:opacity-60"
+                />
+                {earlyEmailError ? (
+                  <p className="mt-1.5 text-sm text-destructive" role="alert">
+                    {earlyEmailError}
+                  </p>
+                ) : null}
+              </div>
+              <Button
+                type="button"
+                onClick={() => void submitEarlyEmailGate()}
+                disabled={earlyEmailSubmitting}
+                className="mt-4 h-auto w-full rounded-organic-sm bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-md shadow-primary/30 hover:bg-primary/90 disabled:opacity-60"
+              >
+                {earlyEmailSubmitting ? "Saving…" : "Send to my inbox →"}
+              </Button>
+              <button
+                type="button"
+                onClick={skipEarlyEmailGate}
+                disabled={earlyEmailSubmitting}
+                className="mt-4 block w-full text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline disabled:opacity-50"
+              >
+                I&apos;ll wait here →
+              </button>
+            </div>
+          ) : null}
+
           {/* Processing / generating — video loop + sequential messages */}
           {(status === "processing" || status === "generating") && (
             <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
@@ -1331,6 +1481,11 @@ function CreatePortraitContent() {
                     ? "This can take about a minute. Stay with us."
                     : "Hang tight. We're making sure everything looks great."}
                 </p>
+                {status === "generating" && generateCountdown !== null ? (
+                  <p className="mt-3 text-base font-semibold tabular-nums text-foreground" aria-live="polite">
+                    Ready in {generateCountdown}s
+                  </p>
+                ) : null}
               </div>
             </div>
           )}
