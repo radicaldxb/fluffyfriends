@@ -101,6 +101,46 @@ function pickPreviewRawUrlFromRow(data: {
   return ""
 }
 
+/** ~140px Ø ring; orange stroke drains over 60s (stroke-dashoffset). */
+function GeneratingPreviewCountdownRing({ seconds }: { seconds: number }) {
+  const radius = 54
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference * (1 - seconds / 60)
+  return (
+    <div
+      className="relative mt-4 h-[140px] w-[140px] shrink-0"
+      aria-live="polite"
+      aria-label={`About ${seconds} seconds remaining`}
+    >
+      <svg width={140} height={140} viewBox="0 0 140 140" className="block -rotate-90" aria-hidden>
+        <circle
+          cx={70}
+          cy={70}
+          r={radius}
+          fill="none"
+          className="stroke-border"
+          strokeWidth={8}
+        />
+        <circle
+          cx={70}
+          cy={70}
+          r={radius}
+          fill="none"
+          className="stroke-primary transition-[stroke-dashoffset] duration-1000 ease-linear"
+          strokeWidth={8}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+        />
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-4xl font-bold tabular-nums leading-none text-[#111827]">{seconds}</span>
+        <span className="mt-1 text-xs font-medium text-muted-foreground">seconds</span>
+      </div>
+    </div>
+  )
+}
+
 function CreatePageFallback() {
   return (
     <main className="min-h-screen bg-background flex flex-col">
@@ -1454,8 +1494,8 @@ function CreatePortraitContent() {
 
           {/* Processing / generating — video loop + sequential messages */}
           {(status === "processing" || status === "generating") && (
-            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-12 text-center md:py-16">
-              <div className="mb-6 flex justify-center" role="status" aria-label="Loading">
+            <div className="animate-in fade-in-0 duration-300 flex flex-col items-center justify-center px-2 py-8 text-center md:py-11">
+              <div className="mb-4 flex shrink-0 justify-center" role="status" aria-label="Loading">
                 <div className="relative aspect-square h-32 w-32 shrink-0 overflow-hidden rounded-organic-pill border-2 border-primary/40 bg-primary/5">
                   <video
                     src="/video/FF-Loader.mp4"
@@ -1467,24 +1507,20 @@ function CreatePortraitContent() {
                   />
                 </div>
               </div>
-              <div className="max-w-md">
-                <div className="min-h-[3.5rem] md:min-h-[4rem]">
-                  <p
-                    key={loadingPhaseIndex}
-                    className="animate-in fade-in duration-300 text-lg font-medium leading-snug text-primary"
-                  >
-                    {portraitLoadingMessages[loadingPhaseIndex] ?? ""}
-                  </p>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
+              <div className="flex max-w-md flex-col items-center">
+                <p
+                  key={loadingPhaseIndex}
+                  className="animate-in fade-in duration-300 text-balance text-2xl font-bold leading-tight tracking-tight text-primary md:text-3xl"
+                >
+                  {portraitLoadingMessages[loadingPhaseIndex] ?? ""}
+                </p>
+                <p className="mt-1 max-w-sm text-sm leading-snug text-muted-foreground">
                   {status === "generating"
                     ? "This can take about a minute. Stay with us."
                     : "Hang tight. We're making sure everything looks great."}
                 </p>
                 {status === "generating" && generateCountdown !== null ? (
-                  <p className="mt-3 text-base font-semibold tabular-nums text-foreground" aria-live="polite">
-                    Ready in {generateCountdown}s
-                  </p>
+                  <GeneratingPreviewCountdownRing seconds={generateCountdown} />
                 ) : null}
               </div>
             </div>
