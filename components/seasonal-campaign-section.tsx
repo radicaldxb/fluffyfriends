@@ -17,7 +17,7 @@ type SeasonalCampaign = {
 
 // Active campaign — set to null to hide the section.
 const ACTIVE: SeasonalCampaign | null = {
-  eyebrow: "Mother's Day · May 11",
+  eyebrow: "Mother's Day · May 10th",
   headline: "The gift she'll keep on her wall.",
   body: "A personalised portrait of her pet — name crafted into the artwork itself. 20% off with FORMUM20 through May 10.",
   ctaLabel: "See the gift →",

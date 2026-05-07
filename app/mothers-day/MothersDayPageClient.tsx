@@ -129,41 +129,19 @@ export default function MothersDayPageClient() {
   return (
     <>
       {/* HERO */}
-      <section className="relative isolate overflow-hidden bg-background pb-12 pt-10 sm:pt-14 md:pb-20 md:pt-20">
+      <section className="relative isolate overflow-hidden bg-background pb-10 pt-8 sm:pb-12 sm:pt-14 md:pb-20 md:pt-20">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                Mother&apos;s Day · May 11
-              </p>
-              <h1 className="font-heading mt-3 text-balance text-4xl font-extrabold leading-tight tracking-tight text-foreground md:text-5xl lg:text-6xl">
-                The <span className="text-primary">gift</span> she&apos;ll keep on her{" "}
-                <span className="text-primary">wall</span>.
-              </h1>
-              <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                A personalised portrait of her pet, with their name crafted into the artwork itself.
-                Delivered to your inbox in minutes. Print-ready in two formats.
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 rounded-organic-sm border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground">
-                <span className="font-semibold text-primary">{PROMO_CODE}</span>
-                <span>· 20% off, ends May 10</span>
-              </div>
-              <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                <Button
-                  asChild
-                  size="lg"
-                  className="rounded-organic-sm px-7 py-6 text-base font-semibold"
-                >
-                  <Link href={ctaHref}>Make her gift →</Link>
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  From $17 · One-time · Satisfaction guaranteed
-                </p>
-              </div>
-            </div>
-            <div className="relative flex w-full justify-center lg:justify-end">
+          <div className="grid grid-cols-1 items-center gap-3 sm:gap-6 lg:grid-cols-2 lg:gap-x-14 lg:gap-y-6">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary lg:col-start-1 lg:row-start-1">
+              Mother&apos;s Day · May 10th
+            </p>
+            <h1 className="font-heading mt-1 text-balance text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:mt-2 md:text-5xl lg:col-start-1 lg:row-start-2 lg:mt-0 lg:text-6xl">
+              The <span className="text-primary">gift</span> she&apos;ll keep on her{" "}
+              <span className="text-primary">wall</span>.
+            </h1>
+            <div className="relative flex w-full justify-center lg:col-start-2 lg:row-span-5 lg:row-start-1 lg:justify-end lg:self-center">
               <div
-                className="relative w-full max-w-[min(100%,22.5rem)] overflow-hidden rounded-organic-sm bg-muted shadow-lg shadow-foreground/10 ring-1 ring-border/35 sm:max-w-md md:max-w-lg lg:w-full lg:max-w-xl"
+                className="relative mx-auto w-full max-w-[min(100%,20rem)] overflow-hidden rounded-organic-sm bg-muted shadow-lg shadow-foreground/10 ring-1 ring-border/35 max-h-[min(12.25rem,32svh)] sm:max-w-[min(100%,22.5rem)] sm:max-h-[min(14.5rem,36svh)] md:max-w-md lg:max-h-none lg:max-w-xl lg:w-full"
                 style={{ aspectRatio: MD_HERO_ASPECT }}
               >
                 <Image
@@ -175,12 +153,32 @@ export default function MothersDayPageClient() {
                   }
                   fill
                   className="object-contain object-center"
-                  sizes="(max-width: 640px) 360px, (max-width: 1024px) 448px, 512px"
+                  sizes="(max-width: 640px) 280px, (max-width: 1024px) 448px, 512px"
                   priority
                   fetchPriority="high"
                   onError={handleImgError}
                 />
               </div>
+            </div>
+            <p className="mt-1 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:col-start-1 lg:row-start-3 lg:mt-0">
+              A personalised portrait of her pet, with their name crafted into the artwork itself.
+              Delivered to your inbox in minutes. Print-ready in two formats.
+            </p>
+            <div className="mt-2 inline-flex items-center gap-2 rounded-organic-sm border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground lg:col-start-1 lg:row-start-4 lg:mt-0">
+              <span className="font-semibold text-primary">{PROMO_CODE}</span>
+              <span>· 20% off, ends May 10</span>
+            </div>
+            <div className="mt-3 flex flex-col items-start gap-2 sm:mt-4 sm:flex-row sm:items-center sm:gap-3 lg:col-start-1 lg:row-start-5 lg:mt-0">
+              <Button
+                asChild
+                size="lg"
+                className="rounded-organic-sm px-7 py-5 text-base font-semibold sm:py-6"
+              >
+                <Link href={ctaHref}>Make her gift →</Link>
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                From $17 · One-time · Satisfaction guaranteed
+              </p>
             </div>
           </div>
         </div>
