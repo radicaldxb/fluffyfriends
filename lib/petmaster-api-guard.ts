@@ -2,10 +2,15 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { getPetmasterPassword } from "@/lib/petmaster-env"
 
-/** Returns a401 JSON response if the Petmaster cookie is missing or invalid; otherwise null. */
-export async function petmasterUnauthorizedResponse(): Promise<NextResponse | null> {
+type PetmasterCookieStore = Awaited<ReturnType<typeof cookies>>
+
+/** Returns a 401 JSON response if the Petmaster cookie is missing or invalid; otherwise null. */
+export async function petmasterUnauthorizedResponse(
+  cookieStore?: PetmasterCookieStore,
+): Promise<NextResponse | null> {
   const secret = getPetmasterPassword()
-  const auth = (await cookies()).get("petmaster_auth")
+  const store = cookieStore ?? (await cookies())
+  const auth = store.get("petmaster_auth")
   if (!secret || !auth || auth.value !== secret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }

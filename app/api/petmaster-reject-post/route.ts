@@ -1,3 +1,4 @@
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { petmasterUnauthorizedResponse } from "@/lib/petmaster-api-guard"
 import { getSupabaseAdmin } from "@/lib/supabase-admin"
@@ -13,8 +14,9 @@ export async function POST(request: Request) {
 }
 
 async function handleReject(request: Request) {
-  const denied = await petmasterUnauthorizedResponse()
-  if (denied) return denied
+  const cookieStore = await cookies()
+  const authError = await petmasterUnauthorizedResponse(cookieStore)
+  if (authError) return authError
 
   let body: {
     id?: string
