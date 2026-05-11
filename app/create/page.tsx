@@ -302,9 +302,9 @@ function CreatePortraitContent() {
         if (hasValidTheme) setTheme(t)
         if (nameRaw) {
           try {
-            setPetName(decodeURIComponent(nameRaw.trim()).replace(/\+/g, " ").slice(0, 12))
+            setPetName(decodeURIComponent(nameRaw.trim()).replace(/\+/g, " ").slice(0, 15))
           } catch {
-            setPetName(nameRaw.trim().slice(0, 12))
+            setPetName(nameRaw.trim().slice(0, 15))
           }
         }
         setWizardStep(2)
@@ -1124,8 +1124,8 @@ function CreatePortraitContent() {
                             ...funnelDatalayerPayload(theme, null),
                           })
                         }}
-                        onChange={(e) => setPetName(e.target.value.slice(0, 12))}
-                        maxLength={12}
+                        onChange={(e) => setPetName(e.target.value.slice(0, 15))}
+                        maxLength={15}
                         placeholder="Your pet's name"
                         className="mt-1.5 w-full rounded-organic-sm border-2 border-primary bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20"
                         aria-invalid={Boolean(theme && !petName.trim())}
