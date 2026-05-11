@@ -169,10 +169,11 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 
 ### `components/seasonal-campaign-section.tsx`
 
-- **What:** Homepage seasonal campaign card. Reusable across occasions (Mother's Day, Father's Day, etc.)
-- **Used by:** `app/page.tsx`
-- **Activation:** edit `ACTIVE` constant. Set to `null` to hide.
-- **Last updated:** 30 Apr 2026 (Brief 27 — created for Mother's Day)
+- **What:** Homepage seasonal campaign card (reusable for Mother’s Day, Father’s Day, etc.).
+- **Used by:** `app/page.tsx` (`<SeasonalCampaignSection />` renders nothing while `ACTIVE` is `null`).
+- **Activation:** set `ACTIVE` to a populated `SeasonalCampaign` object; `null` hides the entire block from the homepage.
+- **Father’s Day / future promos:** re-enable here with new eyebrow/headline/body/image/cta; add or reuse a themed landing route (pattern: `/mothers-day`). The `/mothers-day` page stays in the codebase for evergreen links regardless of homepage visibility.
+- **Last updated:** 6 May 2026 — homepage promo off after Mother’s Day; section dormant until next campaign.
 
 ---
 

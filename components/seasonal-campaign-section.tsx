@@ -15,17 +15,10 @@ type SeasonalCampaign = {
   endsOn?: string
 }
 
-// Active campaign — set to null to hide the section.
-const ACTIVE: SeasonalCampaign | null = {
-  eyebrow: "Mother's Day · May 10th",
-  headline: "The gift she'll keep on her wall.",
-  body: "A personalised portrait of her pet — name crafted into the artwork itself. 20% off with FORMUM20 through May 10.",
-  ctaLabel: "See the gift →",
-  ctaHref: "/mothers-day",
-  imageSrc: "/images/mothers-day-cat-new.webp",
-  imageAlt: "A Mother's Day cat portrait gift on a breakfast tray",
-  endsOn: "May 10",
-}
+// Active homepage campaign card — null hides the section.
+// Mother's Day homepage promo retired (landing page `/mothers-day` may remain for links).
+// Father's Day / next seasonal: populate ACTIVE or see `docs/ARCHITECTURE.md` → seasonal-campaign-section.
+const ACTIVE: SeasonalCampaign | null = null
 
 export function SeasonalCampaignSection() {
   if (!ACTIVE) return null

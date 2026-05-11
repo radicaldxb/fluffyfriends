@@ -33,7 +33,7 @@ _Use this file for orientation; use `docs/ARCHITECTURE.md` for the full surface 
 
 | Area | Primary files |
 |------|----------------|
-| Homepage + **seasonal campaign** | `app/page.tsx`, `components/seasonal-campaign-section.tsx` — `ACTIVE`; `null` hides the block |
+| Homepage **seasonal campaign** (optional) | `app/page.tsx`, `components/seasonal-campaign-section.tsx` — set `ACTIVE` to show the card; `null` hides it (inactive after Mother’s Day 2026 until next promo e.g. Father’s Day — see ARCHITECTURE) |
 | **Create** funnel | `app/create/page.tsx`, `components/preview-reveal-stage-b.tsx` |
 | **Checkout success** / WF3 gate | `app/checkout/success/page.tsx` |
 | **My portraits** / downloads | `app/my-portraits/*`, `lib/cloudinary.ts` |
