@@ -82,30 +82,33 @@ function SuccessContent() {
       purchaseTracked.current = true
       const value = preview.amountCents / 100
       const currency = (preview.currency || "USD").toUpperCase()
-      purchase(value, currency)
 
-      const transactionId = sessionId.trim() || `portrait_${preview.portraitId}`
-      trackGa4Purchase({
-        transaction_id: transactionId,
-        value,
-        currency,
-        items: [
-          {
-            item_id: preview.portraitId,
-            item_name: `AI pet portrait — ${preview.petName}`,
-            item_category: "pet_portrait",
-            ...(preview.theme ? { item_variant: preview.theme } : {}),
-            price: value,
-            quantity: 1,
-          },
-        ],
-      })
-      window.dataLayer.push({
-        event: "purchase",
-        transaction_id: transactionId,
-        value,
-        currency,
-      })
+      const transactionId = sessionId.trim() || ""
+
+      if (sessionId) {
+        purchase(value, currency)
+        trackGa4Purchase({
+          transaction_id: transactionId,
+          value,
+          currency,
+          items: [
+            {
+              item_id: preview.portraitId,
+              item_name: `AI pet portrait — ${preview.petName}`,
+              item_category: "pet_portrait",
+              ...(preview.theme ? { item_variant: preview.theme } : {}),
+              price: value,
+              quantity: 1,
+            },
+          ],
+        })
+        window.dataLayer.push({
+          event: "purchase",
+          transaction_id: transactionId,
+          value,
+          currency,
+        })
+      }
     } else {
       purchaseTracked.current = true
       window.dataLayer.push({ event: "purchase" })
@@ -116,6 +119,11 @@ function SuccessContent() {
   }, [preview, sessionId])
 
   useEffect(() => {
+    if (!sessionId && !portraitFromQuery) {
+      router.push("/")
+      return
+    }
+
     window.dataLayer = window.dataLayer || []
     window.dataLayer.push({
       event: "purchase",
@@ -124,14 +132,6 @@ function SuccessContent() {
     })
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
       window.fbq("track", "Purchase", { value: 0, currency: "USD" })
-    }
-
-    if (!sessionId && !portraitFromQuery) {
-      setPreview({
-        status: "error",
-        message: "Missing payment session. Please return to checkout and try again.",
-      })
-      return
     }
 
     let cancelled = false

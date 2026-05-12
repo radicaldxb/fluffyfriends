@@ -1722,34 +1722,6 @@ function CreatePortraitContent() {
               {/* When user has remaining portraits + email: single CTA, no package selection */}
               {showPackFlow ? (
                 <div className="mt-8 flex flex-col items-center gap-3 w-full max-w-xl mx-auto">
-                  <div className="w-full space-y-2.5 rounded-organic-sm border border-border/60 bg-muted/20 px-4 py-3 text-left">
-                    <label className="flex cursor-pointer items-start gap-3">
-                      <Checkbox
-                        checked={ageConfirm}
-                        onCheckedChange={(c) => setAgeConfirm(c === true)}
-                        className="mt-0.5 rounded border-2"
-                        aria-required
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        I&apos;m 18 or older{" "}
-                        <span className="text-xs">(required to purchase online)</span>
-                      </span>
-                    </label>
-                    <label className="flex cursor-pointer items-start gap-3">
-                      <Checkbox
-                        checked={agreeTerms}
-                        onCheckedChange={(c) => setAgreeTerms(c === true)}
-                        className="mt-0.5 rounded border-2"
-                        aria-required
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        I agree with the{" "}
-                        <a href="/terms" className="text-primary underline hover:no-underline">
-                          Terms &amp; Conditions
-                        </a>
-                      </span>
-                    </label>
-                  </div>
                   <Button
                     onClick={async () => {
                       if (!resultPortraitId) return
@@ -1769,7 +1741,7 @@ function CreatePortraitContent() {
                         `/checkout/success?portrait=${encodeURIComponent(resultPortraitId)}&email=${encodeURIComponent(effectivePackEmail)}`,
                       )
                     }}
-                    disabled={checkoutStatus === "submitting" || !ageConfirm || !agreeTerms}
+                    disabled={checkoutStatus === "submitting"}
                     className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
                   >
                     {checkoutStatus === "submitting" ? "Taking you there…" : "Use 1 portrait from my pack →"}
