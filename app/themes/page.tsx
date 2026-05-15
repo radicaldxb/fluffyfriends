@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { THEME_DISPLAY_ORDER, themes } from "@/lib/themes"
 
 export const metadata: Metadata = {
-  title: "Pet Portrait Themes — King, Queen, Pilot & More | FluffyFriends",
+  title: "Themes — Eight Ways to See Your Pet | FluffyFriends",
   description:
-    "Browse all FluffyFriends AI pet portrait themes: royal, heroes, pilots, samurai, and more. Pick a style and create a print-ready portrait in minutes.",
+    "Eight costume themes for personalised pet portraits—royal, heroes, pilots, samurai, and more. Pick a style and create a print-ready portrait in minutes.",
 }
 
 export default function ThemesIndexPage() {

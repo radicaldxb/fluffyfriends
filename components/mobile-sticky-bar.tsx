@@ -24,10 +24,10 @@ export default function MobileStickyBar() {
         href="/create"
         className="block w-full rounded-organic-sm bg-primary py-3.5 text-center text-base font-semibold text-primary-foreground no-underline"
       >
-        Create My Portrait
+        See Yours Free →
       </Link>
       <p className="m-0 text-center text-xs text-muted-foreground">
-        From $17 · Satisfaction guaranteed
+        Free preview. No signup. Pay only if you love it.
       </p>
     </div>
   )

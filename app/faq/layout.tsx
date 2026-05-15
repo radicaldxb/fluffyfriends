@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions | FluffyFriends",
+  title: "Questions Answered | FluffyFriends",
   description:
-    "Everything you need to know about FluffyFriends AI pet portraits — quality, delivery, printing, and pricing.",
+    "Answers on print quality, delivery, remakes, pricing, and privacy—personalised pet portraits with their name in the art.",
   alternates: {
     canonical: "https://fluffyfriends.online/faq",
   },

@@ -14,22 +14,22 @@ import MobileStickyBar from "@/components/mobile-sticky-bar"
 const SITE = "https://fluffyfriends.online"
 
 export const metadata: Metadata = {
-  title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
+  title: "Personalised Pet Portraits with Their Name in the Art | FluffyFriends",
   description:
-    "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+    "Personalised pet portraits with your pet's name woven into the artwork. Print-ready in minutes. One photo.",
   openGraph: {
-    title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
+    title: "Personalised Pet Portraits with Their Name in the Art | FluffyFriends",
     description:
-      "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+      "Personalised pet portraits with your pet's name woven into the artwork. Print-ready in minutes. One photo.",
     url: SITE,
     siteName: "FluffyFriends",
-    images: [{ url: `${SITE}/images/og/OG-Home.webp`, alt: "FluffyFriends — AI pet portraits" }],
+    images: [{ url: `${SITE}/images/og/OG-Home.webp`, alt: "FluffyFriends — personalised pet portraits" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI Pet Portraits — Named & Personalised | FluffyFriends",
+    title: "Personalised Pet Portraits with Their Name in the Art | FluffyFriends",
     description:
-      "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+      "Personalised pet portraits with your pet's name woven into the artwork. Print-ready in minutes. One photo.",
     images: [`${SITE}/images/og/OG-Home.webp`],
   },
 }
@@ -41,7 +41,7 @@ const organizationSchema = {
   url: "https://fluffyfriends.online",
   logo: "https://fluffyfriends.online/logos/FluffyFriends-logo.webp",
   description:
-    "FluffyFriends is an AI pet portrait service that transforms your pet photo into a museum-quality, print-ready portrait in minutes. Choose from 8 themed costumes including King, Queen, Fireman, Police Officer, Admiral, Veterinarian, Samurai, and Pilot.",
+    "FluffyFriends creates personalised pet portraits from your photo—your pet's name in the artwork, museum-quality and print-ready in minutes. Eight themed styles including King, Queen, Fireman, Police Officer, Admiral, Veterinarian, Samurai, and Pilot.",
   contactPoint: {
     "@type": "ContactPoint",
     email: "hello@fluffyfriends.online",
@@ -61,7 +61,7 @@ const websiteSchema = {
   name: "FluffyFriends",
   url: "https://fluffyfriends.online",
   description:
-    "Transform your pet photo into a stunning AI portrait. Print-ready files delivered in minutes.",
+    "Turn your pet photo into a personalised portrait—print-ready files with their name in the art, delivered in minutes.",
   potentialAction: {
     "@type": "OrderAction",
     target: "https://fluffyfriends.online/create",
@@ -71,9 +71,9 @@ const websiteSchema = {
 const productSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
-  name: "AI Pet Portrait",
+  name: "Personalised Pet Portrait",
   description:
-    "Transform your pet photo into a personalised, print-ready portrait with their name in the artwork. Choose from 8 themes. From $17.",
+    "Transform your pet photo into a print-ready portrait with their name in the artwork. Choose from 8 themes.",
   url: "https://fluffyfriends.online/create",
   brand: { "@type": "Brand", name: "FluffyFriends" },
   offers: [

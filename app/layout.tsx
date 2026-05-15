@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito", weight: ["400", "600", "700", "800"] })
 
 export const metadata: Metadata = {
-  title: "FluffyFriends — AI Pet Portraits",
+  title: "FluffyFriends — Personalised Pet Portraits",
   description:
-    "Named, print-ready, and delivered in minutes. One photo is all it takes. From $17, one-time.",
+    "Named, print-ready pet portraits with their name in the art. Delivered in minutes. One photo.",
   alternates: {
     canonical: "https://fluffyfriends.online",
   },

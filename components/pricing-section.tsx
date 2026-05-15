@@ -228,7 +228,7 @@ export function PricingSection() {
                     className="hidden px-4 py-4 text-center text-sm font-medium text-muted-foreground md:table-cell sm:px-6"
                     scope="col"
                   >
-                    Other AI portrait apps
+                    Other pet portrait services
                   </th>
                 </tr>
               </thead>
@@ -322,7 +322,7 @@ export function PricingSection() {
               className="mt-5 inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
               asChild
             >
-              <Link href="/create">Create My Portrait →</Link>
+              <Link href="/create">See Yours Free →</Link>
             </Button>
           </div>
         </div>

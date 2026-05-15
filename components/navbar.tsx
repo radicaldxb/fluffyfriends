@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button"
 
 /**
  * Home anchors must match section ids: gallery-section (#gallery), how-it-works (#process),
- * pricing-section (#pricing), about-section (#about). (When Reviews is re-enabled: #reviews.)
+ * pricing-section (#pricing). About uses `/about` for a dedicated page with meta. (When Reviews is re-enabled: #reviews.)
  * See app/page.tsx.
  */
 const navLinks = [
   { label: "Gallery", href: "/#gallery" },
   { label: "How it works", href: "/#process" },
   { label: "Pricing", href: "/#pricing" },
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about" },
   { label: "My Portraits", href: "/my-portraits" },
 ]
 
@@ -83,7 +83,7 @@ export function Navbar({ emailGateMode = false }: NavbarProps) {
             className="hidden sm:inline-flex rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
             asChild
           >
-            <a href="/create">Create Their Portrait →</a>
+            <a href="/create">See Yours Free →</a>
           </Button>
           <button
             type="button"
@@ -120,7 +120,7 @@ export function Navbar({ emailGateMode = false }: NavbarProps) {
                 className="w-full rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02]"
                 asChild
               >
-                <a href="/create" onClick={() => setMobileOpen(false)}>Create Their Portrait →</a>
+                <a href="/create" onClick={() => setMobileOpen(false)}>See Yours Free →</a>
               </Button>
             </li>
           </ul>

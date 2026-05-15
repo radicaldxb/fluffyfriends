@@ -29,17 +29,14 @@ export function HeroSection() {
             </p>
 
             <h1 className="order-2 text-balance text-center text-4xl font-extrabold leading-tight tracking-tight text-foreground max-md:leading-[1.1] md:text-5xl lg:order-none lg:text-left lg:text-6xl">
-              Their moment.
+              Personalised pet portraits.
               <br />
-              <span className="text-primary">Forever.</span>
+              <span className="text-primary">With their name in the art.</span>
             </h1>
 
             <p className="order-4 mt-0 max-w-lg text-pretty text-center text-sm leading-relaxed text-muted-foreground max-md:max-w-[min(100%,22rem)] md:order-3 md:text-base lg:order-none lg:mt-5 lg:text-left lg:text-lg">
-              Not a filter. Not a caption.
-              <br />
-              Your pet&apos;s name is crafted into the portrait itself.
-              <br />
-              Upload one photo. Print-ready in minutes.
+              Upload one photo. We craft a portrait with your pet&apos;s name woven into the design.
+              Print-ready in under three minutes.
             </p>
 
             {/* Trust signals — hidden on small screens only */}
@@ -47,9 +44,9 @@ export function HeroSection() {
               <div className="grid gap-x-6 gap-y-3 text-sm text-muted-foreground sm:grid-cols-2">
                 {[
                   { key: "name-art", lines: ["Their name is part of the art.", "Not a caption."] as const },
-                  { key: "painting", lines: ["Looks like a real painting, not an AI filter"] as const },
+                  { key: "painting", lines: ["Looks like a real painting, not a filter"] as const },
                   { key: "formats", lines: ["Two print-ready formats: portrait and landscape"] as const },
-                  { key: "inbox", lines: ["In your inbox in minutes"] as const },
+                  { key: "inbox", lines: ["In your inbox in under 3 minutes"] as const },
                 ].map(({ key, lines }) => (
                   <div key={key} className="inline-flex items-start gap-1.5">
                     <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-organic-sm border border-primary/40 bg-primary/10 text-[12px] font-semibold text-primary">
@@ -74,10 +71,10 @@ export function HeroSection() {
                 className="inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] max-md:px-5 max-md:py-2.5 max-md:text-sm sm:w-auto"
                 asChild
               >
-                <Link href="/create">Create Their Portrait →</Link>
+                <Link href="/create">See Yours Free →</Link>
               </Button>
               <p className="mt-3 text-center text-sm text-muted-foreground sm:text-left">
-                From $17 • Satisfaction guaranteed
+                Free preview. No signup. Pay only if you love it.
               </p>
             </div>
           </div>

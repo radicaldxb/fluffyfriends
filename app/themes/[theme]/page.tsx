@@ -40,14 +40,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const pageUrl = `${BASE}/themes/${slug}`
   const ogImageUrl = ogFile ? `${BASE}/images/og/${ogFile}` : undefined
   return {
-    title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
+    title: `${theme.name} Pet Portrait Theme — Personalised | FluffyFriends`,
     description,
     alternates: {
       canonical: pageUrl,
     },
     ...(ogImageUrl && {
       openGraph: {
-        title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
+        title: `${theme.name} Pet Portrait Theme — Personalised | FluffyFriends`,
         description,
         url: pageUrl,
         siteName: "FluffyFriends",
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       twitter: {
         card: "summary_large_image" as const,
-        title: `${theme.name} Pet Portrait Theme — AI Art | FluffyFriends`,
+        title: `${theme.name} Pet Portrait Theme — Personalised | FluffyFriends`,
         description,
         images: [ogImageUrl],
       },

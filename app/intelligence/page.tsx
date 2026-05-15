@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { SketchDivider } from "@/components/sketch-divider"
 
 export const metadata: Metadata = {
-  title: "Everything about FluffyFriends — AI pet portraits | FluffyFriends",
+  title: "Everything about FluffyFriends — Personalised Pet Portraits | FluffyFriends",
   description:
-    "Structured answers about FluffyFriends: how AI pet portraits work, pricing, themes, print files, delivery, privacy, refunds, photo tips, gifts, and technical details.",
+    "Structured answers about FluffyFriends: how personalised pet portraits work, pricing, themes, print files, delivery, privacy, refunds, photo tips, gifts, and technical details.",
 }
 
 type Block =
