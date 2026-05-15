@@ -91,7 +91,7 @@ function MyPortraitsContent() {
   async function handleLookup(submittedEmail?: string, options?: { silent?: boolean }) {
     const targetEmail = (submittedEmail ?? email).trim().toLowerCase()
     if (!targetEmail) {
-      if (!options?.silent) setError("Please enter the email you used when you ordered.")
+      if (!options?.silent) setError("Please enter the email you used when you created your portrait.")
       return
     }
 
@@ -173,23 +173,40 @@ function MyPortraitsContent() {
       <Navbar />
       <section className="flex-1 mx-auto max-w-3xl px-4 py-14 md:py-20">
         <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-          My portraits
+          Find Your Portrait
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          Enter the email address you used when you ordered.
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Pick up where you left off. Enter the email you used when you created your portrait.
+          We&apos;ll show you what&apos;s saved.
         </p>
 
-        {pollingTimedOut && (
-          <div className="mb-6 rounded-organic bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-foreground">
-            This is taking longer than expected. Please check back in a few minutes or contact us at hello@fluffyfriends.online
+        <div className="mt-8 rounded-organic border border-border bg-muted/25 p-4 sm:p-5">
+          <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
+            <div>
+              <p className="font-semibold text-foreground">Already created a portrait?</p>
+              <p className="mt-1">Enter your email below to retrieve it.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">
+                Looking for a portrait you saved without buying?
+              </p>
+              <p className="mt-1">
+                We hold previews for 48 hours. Enter the same email you used during creation.
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">Haven&apos;t created one yet?</p>
+              <p className="mt-2">
+                <Link
+                  href="/create"
+                  className="font-semibold text-primary underline underline-offset-2 hover:text-primary/90"
+                >
+                  See Yours Free →
+                </Link>
+              </p>
+            </div>
           </div>
-        )}
-        {isPollingForLinks && !pollingTimedOut && (
-          <div className="mb-6 rounded-organic bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground flex items-center gap-2">
-            <span className="text-primary">⏳</span>
-            Your high-res files are being prepared — this page will update automatically.
-          </div>
-        )}
+        </div>
 
         <form
           className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -203,16 +220,28 @@ function MyPortraitsContent() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="flex-1 rounded-organic-sm border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-            placeholder="you@example.com"
+            placeholder="The email you used."
           />
           <Button
             type="submit"
             disabled={loading}
             className="rounded-organic-sm px-4 py-2 text-sm font-semibold"
           >
-            {loading ? "Finding portraits…" : "Find my portraits →"}
+            {loading ? "Finding your portrait…" : "Find My Portrait →"}
           </Button>
         </form>
+
+        {pollingTimedOut && (
+          <div className="mt-6 rounded-organic bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-foreground">
+            This is taking longer than expected. Please check back in a few minutes or contact us at hello@fluffyfriends.online
+          </div>
+        )}
+        {isPollingForLinks && !pollingTimedOut && (
+          <div className="mt-6 rounded-organic bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground flex items-center gap-2">
+            <span className="text-primary">⏳</span>
+            Your high-res files are being prepared — this page will update automatically.
+          </div>
+        )}
 
         {error && (
           <p className="mt-3 text-sm text-destructive">
@@ -223,14 +252,15 @@ function MyPortraitsContent() {
         {hasSearched && !loading && !hasResults && !error && (
           <div className="mt-8 rounded-organic border border-border bg-muted/30 p-5 text-center">
             <p className="text-sm text-muted-foreground">
-              No portraits found for this email. Did you use a different address?
+              We couldn&apos;t find any portraits for that email. Double-check the address, or{" "}
+              <Link
+                href="/create"
+                className="font-semibold text-primary underline underline-offset-2 hover:text-primary/90"
+              >
+                start a new portrait
+              </Link>
+              .
             </p>
-            <Button
-              className="mt-4 rounded-organic-sm"
-              asChild
-            >
-              <a href="/create">Start fresh →</a>
-            </Button>
           </div>
         )}
 
