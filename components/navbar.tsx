@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button"
 
 /**
  * Home anchors must match section ids: gallery-section (#gallery), how-it-works (#process),
- * pricing-section (#pricing). About uses `/about` for a dedicated page with meta. (When Reviews is re-enabled: #reviews.)
+ * pricing-section (#pricing), about-section (#about). (When Reviews is re-enabled: #reviews.)
  * See app/page.tsx.
  */
 const navLinks = [
   { label: "Gallery", href: "/#gallery" },
   { label: "How it works", href: "/#process" },
   { label: "Pricing", href: "/#pricing" },
-  { label: "About", href: "/about" },
+  { label: "About", href: "/#about" },
   { label: "My Portraits", href: "/my-portraits" },
 ]
 
