@@ -28,11 +28,16 @@ export function HeroSection() {
               Made with love. Made to last.
             </p>
 
-            <h1 className="order-2 text-balance text-center text-4xl font-extrabold leading-tight tracking-tight text-foreground max-md:leading-[1.1] md:text-5xl lg:order-none lg:text-left lg:text-6xl">
-              Personalised pet portraits.
-              <br />
-              <span className="text-primary">With their name in the art.</span>
-            </h1>
+            <div className="order-2 lg:order-none">
+              <h1 className="text-balance text-center text-4xl font-extrabold leading-tight tracking-tight text-foreground max-md:leading-[1.1] md:text-5xl lg:text-left lg:text-6xl">
+                <span className="text-foreground">Personalised </span>
+                <span className="text-primary">pet portraits</span>
+                <span className="text-foreground">.</span>
+              </h1>
+              <p className="mt-2 max-w-3xl text-center text-base font-semibold leading-snug tracking-tight text-muted-foreground sm:text-lg md:text-xl lg:text-left">
+                With their name in the art.
+              </p>
+            </div>
 
             <p className="order-4 mt-0 max-w-lg text-pretty text-center text-sm leading-relaxed text-muted-foreground max-md:max-w-[min(100%,22rem)] md:order-3 md:text-base lg:order-none lg:mt-5 lg:text-left lg:text-lg">
               Upload one photo. We craft a portrait with your pet&apos;s name woven into the design.

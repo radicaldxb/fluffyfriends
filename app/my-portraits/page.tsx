@@ -181,31 +181,49 @@ function MyPortraitsContent() {
         </p>
 
         <div className="mt-8 rounded-organic border border-border bg-muted/25 p-4 sm:p-5">
-          <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
-            <div>
-              <p className="font-semibold text-foreground">Already created a portrait?</p>
-              <p className="mt-1">Enter your email below to retrieve it.</p>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">
-                Looking for a portrait you saved without buying?
-              </p>
-              <p className="mt-1">
-                We hold previews for 48 hours. Enter the same email you used during creation.
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">Haven&apos;t created one yet?</p>
-              <p className="mt-2">
-                <Link
-                  href="/create"
-                  className="font-semibold text-primary underline underline-offset-2 hover:text-primary/90"
-                >
-                  See Yours Free →
-                </Link>
-              </p>
-            </div>
-          </div>
+          <ul className="list-none space-y-4 text-sm leading-relaxed text-muted-foreground">
+            <li className="flex gap-3">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-semibold text-foreground">Already created a portrait?</p>
+                <p className="mt-1">Enter your email below to retrieve it.</p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-semibold text-foreground">
+                  Looking for a portrait you saved without buying?
+                </p>
+                <p className="mt-1">
+                  We hold previews for 48 hours. Enter the same email you used during creation.
+                </p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                aria-hidden
+              />
+              <div>
+                <p className="font-semibold text-foreground">Haven&apos;t created one yet?</p>
+                <p className="mt-2">
+                  <Link
+                    href="/create"
+                    className="font-semibold text-primary underline underline-offset-2 hover:text-primary/90"
+                  >
+                    Try your portrait for free
+                  </Link>
+                </p>
+              </div>
+            </li>
+          </ul>
         </div>
 
         <form

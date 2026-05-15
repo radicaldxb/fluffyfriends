@@ -11,7 +11,7 @@ import { getTheme, themeIds, themes, type Theme } from "@/lib/themes"
 
 const BASE = "https://fluffyfriends.online"
 
-/** OG assets in /public/images/og — filename per theme id (Vet = Veterinarian theme) */
+/** OG assets in /public/images/og: filename per theme id (Vet = Veterinarian theme) */
 const OG_IMAGE_BY_THEME_ID: Record<string, string> = {
   pilot: "OG-Pilot.webp",
   king: "OG-King.webp",
@@ -40,14 +40,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const pageUrl = `${BASE}/themes/${slug}`
   const ogImageUrl = ogFile ? `${BASE}/images/og/${ogFile}` : undefined
   return {
-    title: `${theme.name} Pet Portrait Theme — Personalised | FluffyFriends`,
+    title: `${theme.name} Pet Portrait Theme | Personalised | FluffyFriends`,
     description,
     alternates: {
       canonical: pageUrl,
     },
     ...(ogImageUrl && {
       openGraph: {
-        title: `${theme.name} Pet Portrait Theme — Personalised | FluffyFriends`,
+        title: `${theme.name} Pet Portrait Theme | Personalised | FluffyFriends`,
         description,
         url: pageUrl,
         siteName: "FluffyFriends",
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       twitter: {
         card: "summary_large_image" as const,
-        title: `${theme.name} Pet Portrait Theme — Personalised | FluffyFriends`,
+        title: `${theme.name} Pet Portrait Theme | Personalised | FluffyFriends`,
         description,
         images: [ogImageUrl],
       },
@@ -165,7 +165,7 @@ export default async function ThemeLandingPage({ params }: PageProps) {
 
       <SketchDivider />
 
-      {/* What&apos;s included — three pillars */}
+      {/* What's included: three pillars */}
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 md:py-20">
         <h2 className="text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
           What&apos;s included
@@ -174,20 +174,20 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           <div className="rounded-organic border border-border bg-card p-5 sm:p-6">
             <h3 className="text-base font-semibold text-foreground">Personalisation</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {theme.hasNameTag && theme.nameTagFormat ? (
+      {theme.hasNameTag && theme.nameTagFormat ? (
                 <>
                   Personalised name tag:{" "}
                   <span className="font-medium text-foreground">{theme.nameTagFormat.replace(/\{\{PET_NAME\}\}/g, "your pet")}</span>
                 </>
               ) : (
-                "Artistic composition — no name tag on the artwork, for a clean classical look."
+                "Artistic composition. No name tag on the artwork, for a clean classical look."
               )}
             </p>
           </div>
           <div className="rounded-organic border border-border bg-card p-5 sm:p-6">
             <h3 className="text-base font-semibold text-foreground">Two print-ready files</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Landscape format up to 65×36cm (25×14in) and portrait format up to 22×31cm (8.5×12in) — both
+              Landscape format up to 65×36cm (25×14in) and portrait format up to 22×31cm (8.5×12in), both
               high-resolution JPEGs ready for professional printing.
             </p>
           </div>
@@ -225,7 +225,7 @@ export default async function ThemeLandingPage({ params }: PageProps) {
       {/* FAQ */}
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 md:py-20">
         <h2 className="text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-          {theme.name} — frequently asked
+          {theme.name}: frequently asked
         </h2>
         <div className="mx-auto mt-8 max-w-3xl rounded-organic border border-border bg-card px-4 py-2 sm:px-6 sm:py-3">
           <ThemePageFaq faqs={theme.faqs} sectionId={theme.id} />
@@ -276,9 +276,12 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             Ready for your {theme.name} portrait?
           </h2>
-          <p className="mt-2 text-sm font-medium uppercase tracking-widest text-primary">From $17</p>
+          <p className="mt-2 text-sm font-medium uppercase tracking-wider text-primary">
+            Free preview. No signup. Pay only if you love it.
+          </p>
           <p className="mt-4 text-sm text-muted-foreground">
-            Upload a photo, choose this theme at checkout, and get print-ready files in minutes.
+            Upload one photo. We craft a portrait with your pet&apos;s name woven into the design. Print-ready in
+            under three minutes.
           </p>
           <div className="mt-8 flex justify-center">
             <Button asChild size="lg" className="rounded-organic-sm">

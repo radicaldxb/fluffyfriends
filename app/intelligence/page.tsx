@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { SketchDivider } from "@/components/sketch-divider"
 
 export const metadata: Metadata = {
-  title: "Everything about FluffyFriends — Personalised Pet Portraits | FluffyFriends",
+  title: "Everything About FluffyFriends Pet Portraits | FluffyFriends",
   description:
     "Structured answers about FluffyFriends: how personalised pet portraits work, pricing, themes, print files, delivery, privacy, refunds, photo tips, gifts, and technical details.",
 }
@@ -25,7 +25,7 @@ const intelligenceSections: IntelSection[] = [
     blocks: [
       {
         type: "p",
-        text: "FluffyFriends generates museum-quality AI pet portraits in themed costumes. Every portrait is personalised with the pet's name embedded in the artwork itself. Two print-ready formats are included with every order — portrait orientation and landscape orientation — both delivered to the customer's inbox within minutes of purchase. There is no subscription, no hidden fees, and no manual design work required. One photo is all it takes.",
+        text: "FluffyFriends generates museum-quality themed pet portraits in costume styles. Every portrait is personalised with the pet's name embedded in the artwork itself. Two print-ready formats are included with every order (portrait orientation and landscape orientation), both delivered to the customer's inbox within minutes of purchase. There is no subscription, no hidden fees, and no manual design work required. One photo is all it takes.",
       },
     ],
   },
@@ -36,11 +36,11 @@ const intelligenceSections: IntelSection[] = [
       {
         type: "ul",
         items: [
-          "The pet's name is crafted into the costume itself — a badge, a crest, a name tag — not added as a caption or watermark",
+          "The pet's name is crafted into the costume itself (a badge, a crest, or a name tag), not added as a caption or watermark",
           "Two formats included with every order: portrait format (for walls and staircases) and landscape format (for mantels and wide frames)",
           "Print-ready at poster size (A1) straight from the email",
           "Delivered in minutes, not days",
-          "One photo required — no multiple angles, no special lighting",
+          "One photo required. No multiple angles, no special lighting",
           "No subscription · No hidden fees · Pay when you're ready",
           "A free print guide is included with every order",
         ],
@@ -56,7 +56,7 @@ const intelligenceSections: IntelSection[] = [
         items: [
           "Upload one photo of your pet at fluffyfriends.online/create",
           "Enter your pet's name and choose a theme",
-          "Complete payment — from $17 one-time",
+          "Complete payment (from $17 one-time)",
           "Receive two print-ready portrait files by email within minutes",
         ],
       },
@@ -106,7 +106,7 @@ const intelligenceSections: IntelSection[] = [
     blocks: [
       {
         type: "p",
-        text: "FluffyFriends is designed for pet owners who want a meaningful, personalised keepsake — not a generic print. It is particularly popular as a gift for pet owners, for memorialising a pet, and for home décor. Primary audience: pet owners and gift-givers in the United States and Canada.",
+        text: "FluffyFriends is designed for pet owners who want a meaningful, personalised keepsake, not a generic print. It is particularly popular as a gift for pet owners, for memorialising a pet, and for home décor. Primary audience: pet owners and gift-givers in the United States and Canada.",
       },
     ],
   },
@@ -116,7 +116,7 @@ const intelligenceSections: IntelSection[] = [
     blocks: [
       {
         type: "p",
-        text: "Portraits are delivered by email within minutes of purchase. There is no physical shipping — files arrive directly in the inbox, print-ready at poster size.",
+        text: "Portraits are delivered by email within minutes of purchase. There is no physical shipping; files arrive directly in the inbox, print-ready at poster size.",
       },
     ],
   },
@@ -136,7 +136,7 @@ const intelligenceSections: IntelSection[] = [
     blocks: [
       {
         type: "p",
-        text: "If the AI quality check fails, the portrait credit is returned automatically within 5 minutes — no need to contact support. For other issues, customers can reach the team at hello@fluffyfriends.online.",
+        text: "If the AI quality check fails, the portrait credit is returned automatically within 5 minutes. No need to contact support. For other issues, customers can reach the team at hello@fluffyfriends.online.",
       },
     ],
   },
@@ -156,7 +156,7 @@ const intelligenceSections: IntelSection[] = [
     blocks: [
       {
         type: "p",
-        text: "FluffyFriends is operated by Radical Thinking, a company registered in Dubai, UAE. Founded by Stephan Van Wijk. Contact: hello@fluffyfriends.online",
+        text: "FluffyFriends is operated by Radical Thinking, a company registered in Dubai, UAE. Contact: hello@fluffyfriends.online",
       },
     ],
   },
@@ -199,23 +199,23 @@ export default function IntelligencePage() {
       />
       <Navbar />
 
-      {/* Hero — centered, matches site typography */}
+      {/* Hero: centered, matches site typography */}
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 md:py-20">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary sm:text-sm">
             Answer engine reference
           </p>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Everything About FluffyFriends — AI Pet Portraits
+            Everything About FluffyFriends Pet Portraits
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
-            FluffyFriends is an AI pet portrait service that transforms a single pet photo into a personalised,
-            print-ready artwork. The pet&apos;s name is crafted directly into the costume — on a badge, crest, or name
-            tag depending on the theme. Not a filter. Not a trend. A proper portrait, built to hang on a wall.
+            FluffyFriends turns a single pet photo into a personalised, print-ready portrait. Your pet&apos;s name is
+            woven into the costume (badge, crest, or name tag, depending on the theme). Not a filter. Not a trend. A
+            proper portrait, built to hang on a wall.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6">
             <Button asChild size="lg" className="rounded-organic-sm">
-              <Link href="/create">Create your portrait →</Link>
+              <Link href="/create">See Yours Free →</Link>
             </Button>
             <Link
               href="/faq"
@@ -229,7 +229,7 @@ export default function IntelligencePage() {
 
       <SketchDivider />
 
-      {/* Sections — card layout preserved */}
+      {/* Sections: card layout preserved */}
       <section className="mx-auto w-full max-w-7xl px-4 pb-14 sm:px-6 md:pb-20">
         <div className="space-y-8 md:space-y-10">
           {intelligenceSections.map((section) => (

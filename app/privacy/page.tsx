@@ -176,9 +176,11 @@ export default function PrivacyPage() {
               9. Cookies
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              We use only essential cookies and similar technologies necessary to operate the website, keep
-              you signed in (where applicable), and maintain security. We do not use advertising cookies or
-              third-party tracking cookies for behavioural advertising.
+              We use cookies and similar technologies where necessary to operate the website, maintain security,
+              remember preferences, and keep you signed in where applicable. We also allow analytics and measurement
+              partners (described in Section 15) to use cookies or similar technologies so we can understand
+              traffic, improve the site, and measure advertising performance. You can control cookies through your
+              browser settings; blocking some cookies may affect how certain features work.
             </p>
           </section>
 
@@ -250,18 +252,20 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-base font-semibold text-foreground">
-              Analytics and Behaviour Tracking
+              15. Analytics and measurement
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              We partner with Microsoft Clarity to understand how visitors use our website. Microsoft Clarity
-              captures behavioural metrics, heatmaps, and session replays to help us improve our product and
-              experience. Website usage data is collected using first and third-party cookies and other
-              tracking technologies.
+              We use analytics and measurement tools to understand how visitors use FluffyFriends.online and to
+              improve our product and marketing. Depending on how you interact with the site, these tools may
+              process technical information such as pages viewed, approximate location, device and browser type,
+              referring URLs, and events such as purchases or funnel steps. They may use cookies, pixels, or similar
+              technologies. Where required by law, advertising or analytics consent may be handled through our
+              cookie or consent tooling on the site.
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              We use this information solely for site optimisation and to improve the FluffyFriends experience.
-              We do not use it for advertising profiling. For more information about how Microsoft collects
-              and uses your data, visit the{" "}
+              <span className="font-medium text-foreground">Microsoft Clarity:</span> We partner with Microsoft
+              Clarity to capture behavioural metrics, heatmaps, and session replays that help us improve the
+              experience. For more information, see the{" "}
               <a
                 href="https://www.microsoft.com/privacy/privacystatement"
                 target="_blank"
@@ -271,6 +275,40 @@ export default function PrivacyPage() {
                 Microsoft Privacy Statement
               </a>
               .
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Google Analytics 4 (GA4):</span> We use Google Analytics
+              to collect aggregated statistics about how our website is used. Google processes this information in
+              accordance with Google&apos;s Privacy Policy. See{" "}
+              <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 hover:text-foreground"
+              >
+                Google Privacy Policy
+              </a>{" "}
+              for details.
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Meta Pixel:</span> We use the Meta Pixel (Facebook Pixel)
+              to measure visits and conversions from our ads and to improve how we advertise on Meta platforms. Meta
+              may process information about your activity on our site in accordance with Meta&apos;s Data Policy.
+              See{" "}
+              <a
+                href="https://www.facebook.com/privacy/policy/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 hover:text-foreground"
+              >
+                Meta Data Policy
+              </a>
+              .
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We use these tools for analytics, site optimisation, and (where relevant) measuring advertising
+              performance. We do not sell your personal information to unrelated third parties for their own
+              marketing lists. Third parties operate under their own policies and terms.
             </p>
           </section>
         </div>

@@ -125,7 +125,7 @@ export function HowItWorksVisualSection() {
             className="inline-flex items-center gap-2 rounded-organic-sm px-7 py-3.5 text-base font-semibold shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] h-auto"
             asChild
           >
-            <Link href="/create">Create My Portrait →</Link>
+            <Link href="/create">See Yours Free →</Link>
           </Button>
         </div>
       </div>

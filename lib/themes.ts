@@ -18,11 +18,11 @@ export const themes: Record<string, Theme> = {
     name: "Pilot",
     tagline: "Your pet, born to fly.",
     story:
-      "Every great aviator needs a portrait worthy of the hangar wall. Dressed in a worn leather A-2 bomber jacket, aviator sunglasses hanging from the zipper, your pet takes their place among the legends of flight. This is not just a portrait — it is a statement.",
+      "Every great aviator needs a portrait worthy of the hangar wall. Dressed in a worn leather A-2 bomber jacket, aviator sunglasses hanging from the zipper, your pet takes their place among the legends of flight. This is not just a portrait. It is a statement.",
     hasNameTag: true,
     nameTagFormat: "{{PET_NAME}} on gold chest name tag",
     printIdeas: [
-      "Above a home office desk — commanding and characterful",
+      "Above a home office desk, commanding and characterful",
       "In a hallway gallery wall alongside other theme portraits",
       "As a gift for a pilot, aviation enthusiast, or Top Gun fan",
       "Framed in dark wood at 50x28cm for maximum impact",
@@ -31,7 +31,7 @@ export const themes: Record<string, Theme> = {
       {
         question: "Does the Pilot portrait include my pet's name?",
         answer:
-          "Yes — your pet's name appears on a gold name tag on the left chest of the bomber jacket, rendered in engraved capital letters.",
+          "Yes. Your pet's name appears on a gold name tag on the left chest of the bomber jacket, rendered in engraved capital letters.",
       },
       {
         question: "What is the background of the Pilot portrait?",
@@ -46,7 +46,7 @@ export const themes: Record<string, Theme> = {
       {
         question: "Can I order the Pilot portrait as a gift?",
         answer:
-          "Absolutely — the Pilot portrait makes an exceptional gift for aviation enthusiasts, dog lovers, or anyone who appreciates bold, cinematic wall art.",
+          "Absolutely. The Pilot portrait makes an exceptional gift for aviation enthusiasts, dog lovers, or anyone who appreciates bold, cinematic wall art.",
       },
     ],
     relatedThemes: ["admiral", "fireman", "police"],
@@ -59,10 +59,10 @@ export const themes: Record<string, Theme> = {
     name: "King",
     tagline: "Long may they reign.",
     story:
-      "Your pet has always ruled the household — now it is official. Draped in ermine fur, adorned with a gold crown and sapphire pendant, your pet sits for their royal portrait in the tradition of 17th century court painters. Regal, timeless, and unmistakably yours.",
+      "Your pet has always ruled the household. Now it is official. Draped in ermine fur, adorned with a gold crown and sapphire pendant, your pet sits for their royal portrait in the tradition of 17th century court painters. Regal, timeless, and unmistakably yours.",
     hasNameTag: false,
     printIdeas: [
-      "Above a fireplace mantle — the classic royal portrait position",
+      "Above a fireplace mantle, the classic royal portrait position",
       "In a living room as a conversation-starting centrepiece",
       "As a housewarming or birthday gift for a pet-obsessed friend",
       "Framed in ornate gold at 65x36cm for full royal impact",
@@ -71,22 +71,22 @@ export const themes: Record<string, Theme> = {
       {
         question: "Does the King portrait include my pet's name?",
         answer:
-          "The King portrait does not include a name tag — the classical oil painting style keeps the composition clean and regal.",
+          "The King portrait does not include a name tag. The classical oil painting style keeps the composition clean and regal.",
       },
       {
         question: "What artistic style is the King portrait?",
         answer:
-          "The King portrait is rendered as a classical oil painting — rich, warm tones with detailed brushwork, as if painted by a 17th century court artist.",
+          "The King portrait is rendered as a classical oil painting with rich, warm tones and detailed brushwork, as if painted by a 17th century court artist.",
       },
       {
         question: "What is the background of the King portrait?",
         answer:
-          "A deep dark charcoal background with subtle vignette, keeping all focus on the subject — exactly as in classical royal portraiture.",
+          "A deep dark charcoal background with subtle vignette, keeping all focus on the subject, exactly as in classical royal portraiture.",
       },
       {
         question: "Does the King portrait work for cats as well as dogs?",
         answer:
-          "Yes — the King portrait works beautifully for both dogs and cats. The costume and composition are designed to suit any pet.",
+          "Yes. The King portrait works beautifully for both dogs and cats. The costume and composition are designed to suit any pet.",
       },
     ],
     relatedThemes: ["queen", "samurai", "admiral"],
@@ -99,10 +99,10 @@ export const themes: Record<string, Theme> = {
     name: "Queen",
     tagline: "She has always been royalty.",
     story:
-      "Pearl necklaces, a sapphire crown with gold filigree, and a crimson robe with dense gold brocade — your pet steps into a portrait fit for the grandest of galleries. Painted in the style of the great classical masters, this is wall art that commands a room.",
+      "Pearl necklaces, a sapphire crown with gold filigree, and a crimson robe with dense gold brocade. Your pet steps into a portrait fit for the grandest of galleries. Painted in the style of the great classical masters, this is wall art that commands a room.",
     hasNameTag: false,
     printIdeas: [
-      "Above a bedroom dresser or vanity — elegant and personal",
+      "Above a bedroom dresser or vanity, elegant and personal",
       "Paired with the King portrait for a matching royal set",
       "As a gift for a cat owner, dog mum, or anyone who spoils their pet",
       "Framed in antique gold at 65x36cm",
@@ -111,17 +111,17 @@ export const themes: Record<string, Theme> = {
       {
         question: "Does the Queen portrait include my pet's name?",
         answer:
-          "The Queen portrait does not include a name tag — the classical oil painting style keeps the composition elegant and uncluttered.",
+          "The Queen portrait does not include a name tag. The classical oil painting style keeps the composition elegant and uncluttered.",
       },
       {
         question: "Can I order King and Queen portraits as a matching pair?",
         answer:
-          "Yes — the King and Queen portraits share the same background, artistic style, and dimensions, making them a perfect matching pair for display together.",
+          "Yes. The King and Queen portraits share the same background, artistic style, and dimensions, making them a perfect matching pair for display together.",
       },
       {
         question: "What makes the Queen portrait different from the King?",
         answer:
-          "The Queen portrait features a sapphire crown with filigree finials, layered pearl necklaces, a lace ruffled collar, and a jewelled brooch clasp — distinct from the King's simpler crown and gold chain.",
+          "The Queen portrait features a sapphire crown with filigree finials, layered pearl necklaces, a lace ruffled collar, and a jewelled brooch clasp, distinct from the King's simpler crown and gold chain.",
       },
       {
         question: "What size should I print the Queen portrait?",
@@ -143,7 +143,7 @@ export const themes: Record<string, Theme> = {
     hasNameTag: true,
     nameTagFormat: "{{PET_NAME}} on chest patch",
     printIdeas: [
-      "In a child's bedroom — bold, colourful, and inspiring",
+      "In a child's bedroom, bold, colourful, and inspiring",
       "As a gift for a firefighter who loves their pet",
       "In a playroom or family room as a fun conversation piece",
       "Paired with the Police Officer portrait for a first responder set",
@@ -151,7 +151,7 @@ export const themes: Record<string, Theme> = {
     faqs: [
       {
         question: "Does the Fireman portrait include my pet's name?",
-        answer: "Yes — your pet's name is personalised on the chest patch of the firefighter uniform in the portrait.",
+        answer: "Yes. Your pet's name is personalised on the chest patch of the firefighter uniform in the portrait.",
       },
       {
         question: "What is the background of the Fireman portrait?",
@@ -160,12 +160,12 @@ export const themes: Record<string, Theme> = {
       {
         question: "Is the Fireman portrait suitable as a gift?",
         answer:
-          "It makes an excellent gift — especially for families with children, firefighters, or anyone with a brave and energetic pet.",
+          "It makes an excellent gift, especially for families with children, firefighters, or anyone with a brave and energetic pet.",
       },
       {
         question: "Can I order Fireman and Police Officer portraits together?",
         answer:
-          "Yes — both share a similar bold style and work well as a matching first responder pair displayed side by side.",
+          "Yes. Both share a similar bold style and work well as a matching first responder pair displayed side by side.",
       },
     ],
     relatedThemes: ["police", "pilot", "admiral"],
@@ -178,19 +178,19 @@ export const themes: Record<string, Theme> = {
     name: "Police Officer",
     tagline: "To protect and to sit.",
     story:
-      "Badge polished, expression serious, your pet upholds the law with dignity. The Police Officer portrait captures your pet in full uniform with their name on the badge — a portrait that demands respect and raises a smile in equal measure.",
+      "Badge polished, expression serious, your pet upholds the law with dignity. The Police Officer portrait captures your pet in full uniform with their name on the badge. A portrait that demands respect and raises a smile in equal measure.",
     hasNameTag: true,
     nameTagFormat: "{{PET_NAME}} on chest badge",
     printIdeas: [
-      "In a home office or study — authoritative and amusing",
+      "In a home office or study, authoritative and amusing",
       "As a gift for a police officer, security professional, or law enthusiast",
       "Paired with the Fireman portrait for a matching first responder duo",
-      "In a child's room — fun, bold, and character-building",
+      "In a child's room, fun, bold, and character-building",
     ],
     faqs: [
       {
         question: "Does the Police Officer portrait include my pet's name?",
-        answer: "Yes — your pet's name is personalised on the chest badge of the police uniform.",
+        answer: "Yes. Your pet's name is personalised on the chest badge of the police uniform.",
       },
       {
         question: "What is the background of the Police Officer portrait?",
@@ -199,7 +199,7 @@ export const themes: Record<string, Theme> = {
       },
       {
         question: "Does this work for cats as well as dogs?",
-        answer: "Yes — the Police Officer portrait works for both dogs and cats. The uniform is designed to sit naturally on any pet.",
+        answer: "Yes. The Police Officer portrait works for both dogs and cats. The uniform is designed to sit naturally on any pet.",
       },
       {
         question: "What frame style works best for the Police Officer portrait?",
@@ -221,7 +221,7 @@ export const themes: Record<string, Theme> = {
     hasNameTag: true,
     nameTagFormat: "ADMIRAL {{PET_NAME}} on gold breast plate",
     printIdeas: [
-      "In a study, library, or home office — distinguished and characterful",
+      "In a study, library, or home office, distinguished and characterful",
       "As a gift for a navy veteran, sailor, or maritime enthusiast",
       "Above a bookshelf alongside other classic portraits",
       "Framed in dark mahogany at 65x36cm for full naval gravitas",
@@ -230,7 +230,7 @@ export const themes: Record<string, Theme> = {
       {
         question: "Does the Admiral portrait include my pet's name?",
         answer:
-          'Yes — your pet\'s name appears on a gold name plate on the left breast of the uniform, reading "ADMIRAL [PET NAME]" in engraved capital letters.',
+          'Yes. Your pet\'s name appears on a gold name plate on the left breast of the uniform, reading "ADMIRAL [PET NAME]" in engraved capital letters.',
       },
       {
         question: "What is the background of the Admiral portrait?",
@@ -245,7 +245,7 @@ export const themes: Record<string, Theme> = {
       {
         question: "Is the Admiral portrait suitable as a gift for a sailor or navy veteran?",
         answer:
-          "It makes an exceptional gift — the maritime setting and distinguished uniform make it a meaningful and humorous tribute for anyone with a connection to the sea.",
+          "It makes an exceptional gift. The maritime setting and distinguished uniform make it a meaningful and humorous tribute for anyone with a connection to the sea.",
       },
     ],
     relatedThemes: ["pilot", "king", "fireman"],
@@ -262,16 +262,16 @@ export const themes: Record<string, Theme> = {
     hasNameTag: true,
     nameTagFormat: "DR. {{PET_NAME}} on right lapel badge",
     printIdeas: [
-      "In a vet clinic waiting room — guaranteed to delight patients",
+      "In a vet clinic waiting room, guaranteed to delight patients",
       "As a gift for a vet, vet nurse, or animal lover",
-      "In a home office or study — professional and playful",
+      "In a home office or study, professional and playful",
       "Framed in white or light wood at 50x28cm for a clean clinical look",
     ],
     faqs: [
       {
         question: "Does the Veterinarian portrait include my pet's name?",
         answer:
-          'Yes — your pet\'s name appears on the white name badge on the right lapel of the lab coat, reading "DR. [PET NAME]" with a small paw print icon.',
+          'Yes. Your pet\'s name appears on the white name badge on the right lapel of the lab coat, reading "DR. [PET NAME]" with a small paw print icon.',
       },
       {
         question: "What is the background of the Veterinarian portrait?",
@@ -281,7 +281,7 @@ export const themes: Record<string, Theme> = {
       {
         question: "Is the Veterinarian portrait a good gift for a vet?",
         answer:
-          "It is an ideal gift for any vet, vet nurse, or animal health professional — both meaningful and genuinely funny.",
+          "It is an ideal gift for any vet, vet nurse, or animal health professional. Both meaningful and genuinely funny.",
       },
       {
         question: "What frame style works for the Veterinarian portrait?",
@@ -311,17 +311,17 @@ export const themes: Record<string, Theme> = {
       {
         question: "Does the Samurai portrait include my pet's name?",
         answer:
-          "The Samurai portrait does not include a name tag — the costume design is kept authentic to the classical samurai aesthetic with no text elements.",
+          "The Samurai portrait does not include a name tag. The costume design is kept authentic to the classical samurai aesthetic with no text elements.",
       },
       {
         question: "What is the background of the Samurai portrait?",
         answer:
-          "A sweeping East Asian mountain landscape with autumn foliage in vivid red and orange, a misty valley, and snow-capped peaks in the distance — painted in a rich classical style.",
+          "A sweeping East Asian mountain landscape with autumn foliage in vivid red and orange, a misty valley, and snow-capped peaks in the distance, painted in a rich classical style.",
       },
       {
         question: "What artistic style is the Samurai portrait?",
         answer:
-          "The Samurai portrait uses a rich painterly oil painting aesthetic — warm golden armour, detailed fur rendering, and a dramatic landscape background with high colour contrast.",
+          "The Samurai portrait uses a rich painterly oil painting aesthetic: warm golden armour, detailed fur rendering, and a dramatic landscape background with high colour contrast.",
       },
       {
         question: "What frame style suits the Samurai portrait?",
