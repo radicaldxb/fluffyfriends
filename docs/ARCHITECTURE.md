@@ -140,7 +140,7 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 ### `lib/cloudinary.ts`
 
 - **Exports:**
-  - `applyWatermark(url)` — single light diagonal text overlay on preview delivery URLs (not tiled)
+  - `applyWatermark(url)` — several light diagonal text overlays (same low opacity, not tiled) on preview delivery URLs
   - `getDownloadUrl(url)` — forces JPG + attachment disposition + q_100 quality for prints
 - **Used by:** recovery email workflow (watermark), `/create` + `/preview/[id]` preview surfaces, `/my-portraits` (downloads). Available to any future surface that needs Cloudinary transforms.
 - **Last updated:** 6 May 2026 (lighter preview watermark)
