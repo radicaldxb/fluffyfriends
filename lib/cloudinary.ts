@@ -1,10 +1,7 @@
-/** Watermark Cloudinary delivery URLs (shared by /create and /preview). */
+/** Watermark Cloudinary delivery URLs (shared by /create and /preview). Single light diagonal — not tiled. */
 export function applyWatermark(cloudinaryUrl: string): string {
-  // Tiled rotated text overlay. Note: Cloudinary requires the overlay declaration
-  // and the layer-apply (with rotation + tiling flags) in TWO separate components.
-  // Verified working syntax: l_text:...,co_white,o_20/a_-20,fl_layer_apply,fl_tiled
-  const overlay =
-    "l_text:Arial_60_bold:FluffyFriends,co_white,o_20/a_-20,fl_layer_apply,fl_tiled"
+  // Centered rotated text overlay (~16% opacity). Tiling removed — lighter emotional reveal while still deterring theft.
+  const overlay = "l_text:Arial_120_bold:FluffyFriends,co_white,o_16/a_-22,fl_layer_apply"
   return cloudinaryUrl.replace("/image/upload/", `/image/upload/${overlay}/`)
 }
 

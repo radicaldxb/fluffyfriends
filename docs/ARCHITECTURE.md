@@ -32,7 +32,7 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 
 ### `/create`
 
-- **What:** Wizard — theme selection, photo upload, preview gate, preview reveal, package selection (or credit redemption for returning customers), checkout
+- **What:** Wizard — theme selection, photo upload, **pre-generation email gate (email vs wait)**, immediate watermarked preview reveal (no second email gate), package selection (or credit redemption for returning customers), checkout
 - **Files:** `app/create/page.tsx`, `components/preview-reveal-stage-b.tsx`, `components/image-upload.tsx`
 - **Touches:**
   - WF1 (photo validation) via `/api/create-portrait` calling `N8N_WEBHOOK_URL` env var
@@ -40,10 +40,11 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
   - **OLD WF3** (upscale + email) for returning customers via `/api/trigger-generation` calling `N8N_ORDER_PAID_WEBHOOK_URL = webhook/order-paid`
   - **NEW WF3** (upscale + email) for new customers via `/api/stripe-webhook-v2` calling `webhook/upscale-and-deliver-v2`
   - `/api/validate-voucher` (voucher state machine)
+  - `/api/save-preview-email` — optional email on Gate 1 and soft capture under pricing on `PreviewRevealStageB`
   - `pet_portraits` schema, `portrait_purchases` schema
   - GTM funnel events
   - URL deep-link convention (`?theme=`, `?name=`, `?email=`, `?promo=`)
-- **Last updated:** 29 Apr 2026
+- **Last updated:** 6 May 2026 (single reveal + lighter watermark + soft email under pricing)
 
 ### `/preview/[id]?token=xxx`
 
@@ -109,10 +110,10 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 
 ### Recovery email sequence
 
-- **What:** 3-stage drip (30min / 24h / 47h) re-engaging preview-stage portraits without payment
+- **What:** Re-engaging preview-stage portraits without payment. **Target cadence (app + n8n alignment May 2026):** (1) when preview is ready — immediate; (2) **2 hours** later — “still here” nudge; (3) **24 hours** later — final reminder. **Removed:** third wave at ~48h. Implement timing in n8n + `get_recovery_email_candidates()` — see `docs/N8N_RECOVERY_EMAIL_CADENCE.md`.
 - **Files:** n8n workflow `59jKJ6Ot1kkaw5Zf`, `get_recovery_email_candidates()` Postgres function, `/preview/[id]/page.tsx`, `/unsubscribe/[token]/page.tsx`
 - **Touches:** `pet_portraits.preview_token`, `pet_portraits.preview_expires_at`, `pet_portraits.recovery_email_*_sent_at`, `pet_portraits.recovery_emails_paused`, watermark via `applyWatermark` in `lib/cloudinary.ts`, SMTP credential `FF - Mail - Stephan`
-- **Last updated:** 28 Apr 2026 (live)
+- **Last updated:** 6 May 2026 (cadence brief; n8n execution pending)
 
 ### Preview-first portrait flow (production)
 
@@ -139,10 +140,10 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 ### `lib/cloudinary.ts`
 
 - **Exports:**
-  - `applyWatermark(url)` — adds tiled watermark for preview reveal
+  - `applyWatermark(url)` — single light diagonal text overlay on preview delivery URLs (not tiled)
   - `getDownloadUrl(url)` — forces JPG + attachment disposition + q_100 quality for prints
-- **Used by:** recovery email workflow (watermark), `/my-portraits` (downloads). Available to any future surface that needs Cloudinary transforms.
-- **Last updated:** 29 Apr 2026 (Brief 21 — added `getDownloadUrl`; Brief 22 — q_100 quality)
+- **Used by:** recovery email workflow (watermark), `/create` + `/preview/[id]` preview surfaces, `/my-portraits` (downloads). Available to any future surface that needs Cloudinary transforms.
+- **Last updated:** 6 May 2026 (lighter preview watermark)
 
 ### `/api/validate-voucher`
 

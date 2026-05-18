@@ -47,6 +47,10 @@ export function PreviewRevealStageB({
   const [voucherAmountOffCents, setVoucherAmountOffCents] = useState<number | null>(null)
   const [inspectModalOpen, setInspectModalOpen] = useState(false)
   const [displayLandscapeSrc, setDisplayLandscapeSrc] = useState(watermarkLandscapeSrc)
+  const [savePortraitEmail, setSavePortraitEmail] = useState("")
+  const [savePortraitEmailError, setSavePortraitEmailError] = useState("")
+  const [savePortraitSubmitting, setSavePortraitSubmitting] = useState(false)
+  const [savePortraitOk, setSavePortraitOk] = useState(false)
 
   const selectedProduct = PRODUCTS.find((p) => p.id === selectedProductId)
 
@@ -111,6 +115,42 @@ export function PreviewRevealStageB({
       setPromotionCodeId(null)
       setVoucherPercentOff(null)
       setVoucherAmountOffCents(null)
+    }
+  }
+
+  async function handleSavePortraitEmail() {
+    const trimmed = savePortraitEmail.trim()
+    if (!trimmed) {
+      setSavePortraitEmailError("Please enter your email")
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setSavePortraitEmailError("Please enter a valid email address")
+      return
+    }
+    if (!portraitId) return
+    setSavePortraitSubmitting(true)
+    setSavePortraitEmailError("")
+    try {
+      const res = await fetch("/api/save-preview-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: portraitId, email: trimmed }),
+      })
+      if (!res.ok) {
+        setSavePortraitEmailError("We couldn't save your email. Try again.")
+        return
+      }
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({
+        event: "email_captured_preview",
+        ...funnelDatalayerPayload(theme, portraitId),
+      })
+      setSavePortraitOk(true)
+    } catch {
+      setSavePortraitEmailError("We couldn't save your email. Try again.")
+    } finally {
+      setSavePortraitSubmitting(false)
     }
   }
 
@@ -225,45 +265,6 @@ export function PreviewRevealStageB({
                 setDisplayLandscapeSrc((cur) => (cur === rawFallbackUrl ? cur : rawFallbackUrl))
               }}
             />
-            <div
-              className="pointer-events-none absolute inset-0 select-none"
-              style={{
-                background: `repeating-linear-gradient(
-                        -35deg,
-                        transparent,
-                        transparent 60px,
-                        rgba(255,255,255,0.07) 60px,
-                        rgba(255,255,255,0.07) 61px
-                      )`,
-              }}
-            >
-              {[
-                { top: "8%", left: "5%", rotate: -25 },
-                { top: "8%", left: "58%", rotate: -25 },
-                { top: "22%", left: "30%", rotate: -25 },
-                { top: "36%", left: "5%", rotate: -25 },
-                { top: "36%", left: "58%", rotate: -25 },
-                { top: "50%", left: "30%", rotate: -25 },
-                { top: "64%", left: "5%", rotate: -25 },
-                { top: "64%", left: "58%", rotate: -25 },
-                { top: "78%", left: "30%", rotate: -25 },
-              ].map((pos, i) => (
-                <span
-                  key={i}
-                  className="pointer-events-none absolute select-none text-sm font-bold tracking-widest text-white/20"
-                  style={{
-                    top: pos.top,
-                    left: pos.left,
-                    transform: `rotate(${pos.rotate}deg)`,
-                    whiteSpace: "nowrap",
-                    maxWidth: "none",
-                    overflow: "visible",
-                  }}
-                >
-                  FluffyFriends
-                </span>
-              ))}
-            </div>
             <button
               type="button"
               onClick={() => setInspectModalOpen(true)}
@@ -337,6 +338,57 @@ export function PreviewRevealStageB({
                 )}
               </button>
             ))}
+          </div>
+          <div className="mt-8 rounded-organic border border-border bg-card px-4 py-5 md:px-5">
+            <p className="text-sm font-semibold text-foreground">Not ready to decide?</p>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              We&apos;ll hold your portrait for 48 hours. Drop your email and we&apos;ll send the preview to you.
+            </p>
+            {savePortraitOk ? (
+              <p className="mt-3 text-sm font-medium text-emerald-600">You&apos;re on the list — check your inbox soon.</p>
+            ) : (
+              <>
+                <label htmlFor={`save-portrait-email-${portraitId}`} className="sr-only">
+                  Email to receive preview
+                </label>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                  <input
+                    id={`save-portrait-email-${portraitId}`}
+                    type="email"
+                    name="save_portrait_email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={savePortraitEmail}
+                    onChange={(e) => {
+                      setSavePortraitEmail(e.target.value)
+                      if (savePortraitEmailError) setSavePortraitEmailError("")
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        void handleSavePortraitEmail()
+                      }
+                    }}
+                    placeholder="your@email.com"
+                    disabled={savePortraitSubmitting}
+                    className="w-full min-h-11 flex-1 rounded-organic-sm border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20 disabled:opacity-60"
+                  />
+                  <Button
+                    type="button"
+                    disabled={savePortraitSubmitting}
+                    onClick={() => void handleSavePortraitEmail()}
+                    className="h-auto shrink-0 rounded-organic-sm px-5 py-2.5 text-sm font-semibold sm:self-start"
+                  >
+                    {savePortraitSubmitting ? "Saving…" : "Save my portrait →"}
+                  </Button>
+                </div>
+                {savePortraitEmailError ? (
+                  <p className="mt-2 text-sm text-destructive" role="alert">
+                    {savePortraitEmailError}
+                  </p>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
         {checkoutError && (
