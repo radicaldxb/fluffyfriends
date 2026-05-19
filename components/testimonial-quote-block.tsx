@@ -1,6 +1,5 @@
 import Image from "next/image"
 import Link from "next/link"
-import type { ReactNode } from "react"
 import { SketchSquiggle } from "@/components/sketch-divider"
 import { cn } from "@/lib/utils"
 
@@ -9,8 +8,10 @@ type TestimonialQuoteBlockProps = {
   eyebrow: string
   /** One or more lines of the quote (joined with line breaks) */
   quoteLines: string[]
-  /** Full attribution line(s), centred — include links as needed */
-  attribution: ReactNode
+  /** Linked Instagram handle, shown bold (e.g. @theremingtonkai) */
+  instagram: { href: string; handle: string }
+  /** Second line: role / location / date — muted */
+  detailLine: string
   /** Optional centred avatar between quote and attribution */
   avatar?: { src: string; alt?: string; instagramHref: string; label: string }
   className?: string
@@ -30,7 +31,8 @@ const quoteMarkClass =
 export function TestimonialQuoteBlock({
   eyebrow,
   quoteLines,
-  attribution,
+  instagram,
+  detailLine,
   avatar,
   className,
   squiggleAbove = false,
@@ -45,7 +47,7 @@ export function TestimonialQuoteBlock({
     <div className={className}>
       {squiggleAbove ? (
         <div className="mx-auto max-w-7xl px-6 pb-6 md:pb-8" aria-hidden>
-          <SketchSquiggle />
+          <SketchSquiggle narrow />
         </div>
       ) : null}
 
@@ -90,40 +92,30 @@ export function TestimonialQuoteBlock({
         </div>
       ) : null}
 
-      <p
+      <div
         className={cn(
-          "mx-auto max-w-2xl text-center text-sm font-normal leading-relaxed text-muted-foreground md:text-[15px] md:leading-relaxed",
+          "mx-auto flex max-w-2xl flex-col items-center gap-1.5 text-center",
           gapAttribution,
         )}
       >
-        {attribution}
-      </p>
+        <Link
+          href={instagram.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-base font-bold text-foreground transition-colors hover:text-primary md:text-[17px]"
+        >
+          {instagram.handle}
+        </Link>
+        <p className="text-sm font-normal leading-relaxed text-muted-foreground md:text-[15px] md:leading-relaxed">
+          {detailLine}
+        </p>
+      </div>
 
       {squiggleBelow ? (
         <div className="mx-auto mt-8 max-w-7xl px-6 pt-4 md:mt-10 md:pt-6" aria-hidden>
-          <SketchSquiggle />
+          <SketchSquiggle narrow />
         </div>
       ) : null}
     </div>
-  )
-}
-
-/** Convenience: standard linked @handle in attribution row */
-export function InstagramHandleLink({
-  href,
-  children,
-}: {
-  href: string
-  children: string
-}) {
-  return (
-    <Link
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-foreground underline decoration-primary/40 underline-offset-2 transition-colors hover:decoration-primary"
-    >
-      {children}
-    </Link>
   )
 }

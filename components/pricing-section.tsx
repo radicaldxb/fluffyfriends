@@ -14,7 +14,7 @@ import {
   ZoomIn,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { InstagramHandleLink, TestimonialQuoteBlock } from "@/components/testimonial-quote-block"
+import { TestimonialQuoteBlock } from "@/components/testimonial-quote-block"
 import { cn } from "@/lib/utils"
 
 const BENNY_IG = "https://www.instagram.com/life_with_our_malchi_benny/"
@@ -208,6 +208,8 @@ export function PricingSection() {
           quoteLines={[
             `Can't wait to get these on display. The image quality was excellent.`,
           ]}
+          instagram={{ href: BENNY_IG, handle: "@life_with_our_malchi_benny" }}
+          detailLine="Benny's family · York, United Kingdom · May 2026"
           squiggleAbove
           squiggleBelow
           relaxed
@@ -217,14 +219,6 @@ export function PricingSection() {
             instagramHref: BENNY_IG,
             label: "Benny's family on Instagram (@life_with_our_malchi_benny)",
           }}
-          attribution={
-            <>
-              Benny&apos;s family ·{" "}
-              <InstagramHandleLink href={BENNY_IG}>@life_with_our_malchi_benny</InstagramHandleLink>
-              {" · "}
-              York, United Kingdom · May 2026
-            </>
-          }
         />
 
         {/* Comparison table — light card + CTA */}
@@ -357,8 +351,8 @@ export function PricingSection() {
         </div>
 
         {/* Trust line below comparison */}
-        <p className="mt-10 text-center text-sm font-medium text-foreground">
-          Create your portrait first. Choose your package when you&apos;re ready.
+        <p className="mx-auto mt-10 max-w-2xl text-center text-sm font-medium text-pretty text-foreground md:text-base">
+          Custom pet portraits typically cost $150 or more. FluffyFriends starts at $17.
         </p>
       </div>
     </section>

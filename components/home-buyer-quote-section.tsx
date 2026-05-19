@@ -1,4 +1,4 @@
-import { InstagramHandleLink, TestimonialQuoteBlock } from "@/components/testimonial-quote-block"
+import { TestimonialQuoteBlock } from "@/components/testimonial-quote-block"
 
 const REMI_IG = "https://www.instagram.com/theremingtonkai/"
 
@@ -13,18 +13,14 @@ export function HomeBuyerQuoteSection() {
           `I'll be putting them in frames in`,
           `Remi's doggy corner of the living room.`,
         ]}
+        instagram={{ href: REMI_IG, handle: "@theremingtonkai" }}
+        detailLine="Remi's owner · United States · May 2026"
         avatar={{
           src: "/images/testimonials/remi-owner-avatar.webp",
           alt: "",
           instagramHref: REMI_IG,
           label: "Remi's owner on Instagram (@theremingtonkai)",
         }}
-        attribution={
-          <>
-            Remi&apos;s owner · <InstagramHandleLink href={REMI_IG}>@theremingtonkai</InstagramHandleLink> · United
-            States · May 2026
-          </>
-        }
       />
     </section>
   )

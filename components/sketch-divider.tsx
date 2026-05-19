@@ -5,8 +5,15 @@ import { cn } from "@/lib/utils"
 /**
  * Inline SVG squiggle — hand-drawn divider line (used in SketchDivider and under testimonials).
  */
-export function SketchSquiggle({ className }: { className?: string }) {
-  return (
+export function SketchSquiggle({
+  className,
+  /** Short centred line (~160–192px) instead of full width */
+  narrow,
+}: {
+  className?: string
+  narrow?: boolean
+}) {
+  const svg = (
     <svg
       width="100%"
       height="28"
@@ -36,6 +43,16 @@ export function SketchSquiggle({ className }: { className?: string }) {
       />
     </svg>
   )
+
+  if (narrow) {
+    return (
+      <div className="mx-auto w-40 sm:w-48" aria-hidden>
+        {svg}
+      </div>
+    )
+  }
+
+  return svg
 }
 
 /**
