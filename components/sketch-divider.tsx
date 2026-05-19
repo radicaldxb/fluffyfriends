@@ -6,7 +6,7 @@
  */
 export function SketchDivider() {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-3" aria-hidden>
+    <div className="mx-auto max-w-7xl px-6 py-2" aria-hidden>
       <svg
         width="100%"
         height="28"

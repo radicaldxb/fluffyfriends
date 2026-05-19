@@ -14,7 +14,10 @@ import {
   ZoomIn,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { InstagramHandleLink, TestimonialQuoteBlock } from "@/components/testimonial-quote-block"
 import { cn } from "@/lib/utils"
+
+const BENNY_IG = "https://www.instagram.com/life_with_our_malchi_benny/"
 
 const comparisonRows: {
   feature: string
@@ -85,7 +88,7 @@ const plans = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="relative py-14 md:py-20">
+    <section id="pricing" className="relative py-10 md:py-14">
       <div className="mx-auto max-w-7xl px-6">
         {/* Section header */}
         <div className="mx-auto max-w-2xl text-center">
@@ -191,37 +194,32 @@ export function PricingSection() {
           ))}
         </div>
 
-        <div className="mx-auto max-w-2xl px-1 py-10 md:py-12">
-          <div className="mx-auto mb-8 h-px w-12 bg-border" aria-hidden />
-          <blockquote className="text-center">
-            <p className="font-sans text-lg italic leading-relaxed text-foreground md:text-xl">
-              Can&apos;t wait to get these on display. The image quality was excellent.
-            </p>
-            <footer className="mt-4 text-[13px] text-muted-foreground md:text-sm">
-              —{" "}
-              <a
-                href="https://www.instagram.com/life_with_our_malchi_benny/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground underline decoration-primary/40 underline-offset-2 transition-colors hover:decoration-primary"
-              >
-                @life_with_our_malchi_benny
-              </a>
-              {" · "}
-              York, United Kingdom
-            </footer>
-          </blockquote>
-        </div>
-
-        <div className="mt-8 flex flex-col items-center justify-center gap-2 text-center">
+        {/* Guarantee — sits above buyer quote (ties to pricing tiers) */}
+        <div className="mt-10 flex flex-col items-center justify-center gap-2 text-center">
           <ShieldCheck className="h-6 w-6 text-primary" strokeWidth={1.5} aria-hidden />
           <p className="text-sm font-semibold text-foreground">
             Not happy with your portrait? We will recreate it or refund your credit. No questions asked.
           </p>
         </div>
 
+        <TestimonialQuoteBlock
+          className="mt-10"
+          eyebrow="What buyers are doing with theirs"
+          quoteLines={[
+            `Can't wait to get these on display. The image quality was excellent.`,
+          ]}
+          attribution={
+            <>
+              —{" "}
+              <InstagramHandleLink href={BENNY_IG}>@life_with_our_malchi_benny</InstagramHandleLink>
+              {" · "}
+              York, United Kingdom
+            </>
+          }
+        />
+
         {/* Comparison table — light card + CTA */}
-        <div className="mt-16 text-center">
+        <div className="mt-10 text-center">
           <h2 className="text-balance text-3xl font-bold text-foreground">
             No One Else does it
           </h2>
