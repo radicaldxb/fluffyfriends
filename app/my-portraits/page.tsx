@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { TestimonialQuoteBlock } from "@/components/testimonial-quote-block"
 import { isValidDownloadUrl, getDisplayUrl } from "@/lib/utils"
 import { getDownloadUrl } from "@/lib/cloudinary"
 
@@ -33,6 +34,8 @@ type Portrait = {
   order_reference?: string | null
   status?: string | null
 }
+
+const REMI_IG = "https://www.instagram.com/theremingtonkai/"
 
 /** Show only last 7 characters of order ID/reference (e.g. Stripe session ID). */
 function orderDisplay(idOrRef: string | null | undefined): string {
@@ -172,12 +175,11 @@ function MyPortraitsContent() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <section className="flex-1 mx-auto max-w-3xl px-4 py-14 md:py-20">
-        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-          Find Your Portrait
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+          Your portrait is waiting.
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Pick up where you left off. Enter the email you used when you created your portrait.
-          We&apos;ll show you what&apos;s saved.
+          Enter the email you used when you created it. We&apos;ll show you exactly where you left off.
         </p>
 
         <div className="mt-8 rounded-organic border border-border bg-muted/25 p-4 sm:p-5">
@@ -198,11 +200,10 @@ function MyPortraitsContent() {
                 aria-hidden
               />
               <div>
-                <p className="font-semibold text-foreground">
-                  Looking for a portrait you saved without buying?
-                </p>
+                <p className="font-semibold text-foreground">Saved a portrait without buying?</p>
                 <p className="mt-1">
-                  We hold previews for 48 hours. Enter the same email you used during creation.
+                  We hold it for 48 hours — after that, it&apos;s gone. Enter your email to check if yours is still
+                  there.
                 </p>
               </div>
             </li>
@@ -248,6 +249,27 @@ function MyPortraitsContent() {
             {loading ? "Finding your portrait…" : "Find My Portrait →"}
           </Button>
         </form>
+
+        <div className="mt-10" aria-label="Customer story">
+          <TestimonialQuoteBlock
+            relaxed
+            squiggleAbove={false}
+            squiggleBelow={false}
+            eyebrow="What buyers are doing with theirs"
+            quoteLines={[
+              `I'll be putting them in frames in`,
+              `Remi's doggy corner of the living room.`,
+            ]}
+            instagram={{ href: REMI_IG, handle: "@theremingtonkai" }}
+            detailLine="Remi's owner · United States · May 2026"
+            avatar={{
+              src: "/images/testimonials/remi-owner-avatar.webp",
+              alt: "",
+              instagramHref: REMI_IG,
+              label: "Remi's owner on Instagram (@theremingtonkai)",
+            }}
+          />
+        </div>
 
         {pollingTimedOut && (
           <div className="mt-6 rounded-organic bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-foreground">
