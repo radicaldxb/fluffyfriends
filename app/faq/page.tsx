@@ -3,6 +3,7 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+import { ContactRichText } from "@/components/contact-rich-text"
 
 const faqs = [
   {
@@ -342,7 +343,7 @@ export default function FaqPage() {
                     <AccordionContent className="text-sm text-muted-foreground">
                       {item.answer.map((paragraph, idx) => (
                         <p key={idx} className={idx > 0 ? "mt-2" : ""}>
-                          {paragraph}
+                          <ContactRichText text={paragraph} />
                         </p>
                       ))}
                     </AccordionContent>

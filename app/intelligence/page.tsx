@@ -4,6 +4,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { SketchDivider } from "@/components/sketch-divider"
+import { ContactRichText } from "@/components/contact-rich-text"
 
 export const metadata: Metadata = {
   title: "Everything About FluffyFriends Pet Portraits | FluffyFriends",
@@ -243,7 +244,7 @@ export default function IntelligencePage() {
                   if (block.type === "p") {
                     return (
                       <p key={idx} className="text-foreground/95">
-                        {block.text}
+                        <ContactRichText text={block.text} />
                       </p>
                     )
                   }
@@ -251,7 +252,9 @@ export default function IntelligencePage() {
                     return (
                       <ul key={idx} className="list-disc space-y-2 pl-5 text-foreground/95">
                         {block.items.map((item) => (
-                          <li key={item}>{item}</li>
+                          <li key={item}>
+                            <ContactRichText text={item} />
+                          </li>
                         ))}
                       </ul>
                     )
@@ -259,7 +262,9 @@ export default function IntelligencePage() {
                   return (
                     <ol key={idx} className="list-decimal space-y-2 pl-5 text-foreground/95">
                       {block.items.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item}>
+                          <ContactRichText text={item} />
+                        </li>
                       ))}
                     </ol>
                   )
