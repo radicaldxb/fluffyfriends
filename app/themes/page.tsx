@@ -23,8 +23,8 @@ export default function ThemesIndexPage() {
             Choose your pet&apos;s portrait theme
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg text-pretty">
-            Every theme is designed to match your pet&apos;s personality — from regal royalty to brave first responders.
-            Click a theme to learn more, then create your portrait in a few minutes.
+            Every theme is designed to match your pet&apos;s personality, from regal royalty to brave first
+            responders. Click a theme to learn more, then create your portrait in a few minutes.
           </p>
         </header>
 

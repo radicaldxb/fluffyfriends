@@ -164,8 +164,8 @@ export default async function ThemeLandingPage({ params }: PageProps) {
 
       <SketchDivider />
 
-      {/* Story */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 md:py-20">
+      {/* Story — tighter bottom so the next CTA sits closer to the copy */}
+      <section className="mx-auto w-full max-w-7xl px-4 pt-14 pb-6 sm:px-6 md:pt-20 md:pb-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-primary">The story</h2>
           <p className="mt-4 text-base leading-relaxed text-foreground sm:text-lg md:text-xl text-pretty">
@@ -174,18 +174,20 @@ export default async function ThemeLandingPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Mid-page CTA — immediately after The Story (before optional gallery + What&apos;s included) */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      {/* Mid-page CTA — extra bottom padding when gallery follows for clear separation */}
+      <section
+        className={`mx-auto w-full max-w-7xl px-4 pt-2 sm:px-6 sm:pt-3 ${galleryPortraits.length > 0 ? "pb-12 md:pb-16" : "pb-8 md:pb-10"}`}
+      >
         <div className="flex justify-center">
           <Button asChild size="lg" className="rounded-organic-sm">
-            <Link href={createHref}>Create your {theme.name} portrait →</Link>
+            <Link href={createHref}>See yours Free →</Link>
           </Button>
         </div>
       </section>
 
       {/* Real customer portraits (only when ≥2 for this theme) */}
       {galleryPortraits.length > 0 ? (
-        <section className="mx-auto w-full max-w-7xl px-4 pb-8 pt-2 sm:px-6 sm:pb-10">
+        <section className="mx-auto w-full max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pb-10 md:pt-8">
           <h2 className="font-heading text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             From the gallery
           </h2>
