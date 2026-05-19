@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Fragment, useState, useEffect } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
@@ -81,11 +81,11 @@ export default function GalleryPage() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-                Gallery
+              <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                Real pets. Real names. Real people.
               </h1>
-              <p className="mt-1 text-muted-foreground">
-                All community portraits shared with consent.
+              <p className="mt-2 max-w-2xl text-pretty text-muted-foreground">
+                Every portrait below belongs to someone who loved their pet enough to give them a wall.
               </p>
             </div>
             <Button variant="outline" className="rounded-organic-sm shrink-0" asChild>
@@ -130,39 +130,58 @@ export default function GalleryPage() {
                   ? `${portrait.pet} · ${locationLine}`
                   : portrait.pet
                 return (
-                  <div
-                    key={`${portrait.src}-${index}`}
-                    className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-organic border border-border/50"
-                  >
-                    {/* Native img: portrait URLs come from Supabase (or other hosts); avoids Next/Image remotePatterns mismatches and matches unoptimized delivery */}
-                    <img
-                      src={portrait.src}
-                      alt={portrait.pet}
-                      loading={index < 10 ? "eager" : "lazy"}
-                      decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setLightbox({ src: portrait.src, alt })}
-                      className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-organic"
-                      aria-label={`View larger — ${portrait.pet}`}
-                    />
-                    <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
-                      <p className="text-white text-sm font-semibold drop-shadow-sm">
-                        {portrait.pet}
-                        {locationLine && (
-                          <span className="font-normal text-white/90"> · {locationLine}</span>
-                        )}
-                      </p>
+                  <Fragment key={`${portrait.src}-${index}`}>
+                    <div className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-organic border border-border/50">
+                      {/* Native img: portrait URLs come from Supabase (or other hosts); avoids Next/Image remotePatterns mismatches and matches unoptimized delivery */}
+                      <img
+                        src={portrait.src}
+                        alt={portrait.pet}
+                        loading={index < 10 ? "eager" : "lazy"}
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setLightbox({ src: portrait.src, alt })}
+                        className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-organic"
+                        aria-label={`View larger — ${portrait.pet}`}
+                      />
+                      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-orange-500/80 to-transparent px-3 py-4">
+                        <p className="text-white text-sm font-semibold drop-shadow-sm">
+                          {portrait.pet}
+                          {locationLine && (
+                            <span className="font-normal text-white/90"> · {locationLine}</span>
+                          )}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                    {index === 9 ? (
+                      <div className="col-span-2 py-2 sm:col-span-3 sm:py-3 lg:col-span-4 xl:col-span-5">
+                        <div className="rounded-organic border border-border bg-muted/25 px-5 py-8 text-center md:px-8 md:py-10">
+                          <p className="mx-auto max-w-md font-sans text-base text-foreground md:text-lg">
+                            See what yours looks like, free, no signup.
+                          </p>
+                          <Button asChild className="mt-5 rounded-organic-sm px-7 py-3.5 text-base font-semibold">
+                            <Link href="/create">See Yours Free →</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </Fragment>
                 )
               })}
             </div>
           )}
         </div>
       </section>
+
+      <div className="border-t border-border bg-background">
+        <div className="mx-auto max-w-7xl px-6 py-6 text-center">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Portraits in this gallery are shown only when the customer has chosen to share them.
+          </p>
+        </div>
+      </div>
 
       <GalleryImageLightbox
         open={lightbox !== null}

@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button"
 import { SketchDivider } from "@/components/sketch-divider"
 import { ThemePageFaq } from "@/components/theme-page-faq"
 import { getTheme, themeIds, themes, type Theme } from "@/lib/themes"
+import { fetchThemeGalleryPortraits } from "@/lib/theme-gallery-portraits"
 
 const BASE = "https://fluffyfriends.online"
+
+/** ISR: theme-embedded gallery portraits should refresh without a full redeploy. */
+export const revalidate = 300
 
 /** OG assets in /public/images/og: filename per theme id (Vet = Veterinarian theme) */
 const OG_IMAGE_BY_THEME_ID: Record<string, string> = {
@@ -19,6 +23,8 @@ const OG_IMAGE_BY_THEME_ID: Record<string, string> = {
   fireman: "OG-Fireman.webp",
   police: "OG-Police.webp",
   admiral: "OG-Admiral.webp",
+  /** Veterinarian theme slug in app + DB */
+  vet: "OG-Vet.webp",
   veterinarian: "OG-Vet.webp",
   samurai: "OG-Samurai.webp",
 }
@@ -105,6 +111,8 @@ export default async function ThemeLandingPage({ params }: PageProps) {
   const theme = getTheme(slug)
   if (!theme) notFound()
 
+  const galleryPortraits = await fetchThemeGalleryPortraits(theme.id)
+
   const createHref = `/create?theme=${encodeURIComponent(theme.id)}`
   const productLd = buildProductJsonLd(theme)
   const faqLd = buildFaqJsonLd(theme)
@@ -139,10 +147,13 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary sm:text-sm">
             Portrait theme
           </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+          <h1 className="font-heading mt-2 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
             {theme.name}
           </h1>
           <p className="mt-3 max-w-xl text-lg font-medium text-foreground/95 sm:text-xl">{theme.tagline}</p>
+          <p className="mt-4 max-w-xl text-sm italic text-foreground/85 sm:text-base">
+            A gift they&apos;ll keep for decades.
+          </p>
           <div className="mt-8">
             <Button asChild size="lg" className="rounded-organic-sm">
               <Link href={createHref}>Create your {theme.name} portrait →</Link>
@@ -162,6 +173,44 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           </p>
         </div>
       </section>
+
+      {/* Mid-page CTA — immediately after The Story (before optional gallery + What&apos;s included) */}
+      <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="flex justify-center">
+          <Button asChild size="lg" className="rounded-organic-sm">
+            <Link href={createHref}>Create your {theme.name} portrait →</Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* Real customer portraits (only when ≥2 for this theme) */}
+      {galleryPortraits.length > 0 ? (
+        <section className="mx-auto w-full max-w-7xl px-4 pb-8 pt-2 sm:px-6 sm:pb-10">
+          <h2 className="text-center text-xs font-medium uppercase tracking-[0.2em] text-primary">From the gallery</h2>
+          <div className="mx-auto mt-8 flex flex-wrap justify-center gap-4 sm:gap-5 md:gap-6">
+            {galleryPortraits.map((p, i) => (
+              <div
+                key={`${p.src}-${i}`}
+                className="flex w-full min-w-[140px] max-w-[280px] flex-1 flex-col overflow-hidden rounded-organic border border-border bg-card shadow-sm sm:max-w-[240px] md:max-w-[260px]"
+              >
+                <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.src}
+                    alt={p.caption}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <p className="border-t border-border px-3 py-2.5 text-center text-xs text-muted-foreground sm:text-sm">
+                  {p.caption}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <SketchDivider />
 
@@ -205,14 +254,14 @@ export default async function ThemeLandingPage({ params }: PageProps) {
 
       {/* Print ideas */}
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 md:py-20">
-        <h2 className="text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+        <h2 className="font-heading text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
           Print &amp; display ideas
         </h2>
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
           {theme.printIdeas.map((idea, i) => (
             <div
               key={i}
-              className="rounded-organic border border-border bg-secondary/40 p-5 text-sm leading-relaxed text-muted-foreground sm:p-6"
+              className="rounded-organic border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground shadow-sm ring-1 ring-primary/15 sm:p-6"
             >
               {idea}
             </div>

@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 const SITE = "https://fluffyfriends.online"
-const title = "Gallery — Real Pets, Real Names | FluffyFriends"
+const title = "Gallery — Real Pets, Real Names, Real People | FluffyFriends"
 const description =
-  "Real pets, real names—each portrait personalised in the artwork. Browse the gallery, then create yours."
+  "Browse portraits from our community. Every one belongs to someone who loved their pet enough to give them a wall."
 
 export const metadata: Metadata = {
   title,
