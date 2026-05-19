@@ -156,7 +156,7 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           </p>
           <div className="mt-8">
             <Button asChild size="lg" className="rounded-organic-sm">
-              <Link href={createHref}>Create your {theme.name} portrait →</Link>
+              <Link href={createHref}>See yours Free →</Link>
             </Button>
           </div>
         </div>
@@ -338,7 +338,7 @@ export default async function ThemeLandingPage({ params }: PageProps) {
           </p>
           <div className="mt-8 flex justify-center">
             <Button asChild size="lg" className="rounded-organic-sm">
-              <Link href={createHref}>Create your {theme.name} portrait →</Link>
+              <Link href={createHref}>See yours Free →</Link>
             </Button>
           </div>
         </div>
