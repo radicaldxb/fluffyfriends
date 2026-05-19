@@ -202,6 +202,7 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 - See `fluffyfriends-petmaster.md` in project docs for full breakdown
 - Uses service-role Supabase key via `getSupabaseAdmin()` from `lib/supabase-admin.ts`
 - Cookie-protected via `middleware.ts` and `PETMASTER_PASSWORD` env var
+- **`/petmaster/agents/brain`:** Operator notes (`pb_operator_notes`) and agent decision log (`pb_decision_log`) via **`/api/petmaster-brain-note`** (GET/POST/DELETE) and **`/api/petmaster-brain-decision`** (GET/POST/PATCH). Soft-delete notes (`active`), filter expired in API; decisions split Active (last 90 days + pinned) vs Archive in the UI.
 
 ---
 

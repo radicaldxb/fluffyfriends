@@ -1,7 +1,32 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Pin, PinOff, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const MS_90_D = 90 * 24 * 60 * 60 * 1000
+
+type OperatorNoteRow = {
+  id: string
+  created_at: string
+  note: string
+  priority?: string | null
+  expires_at?: string | null
+  active?: boolean | null
+}
+
+type PbDecisionRow = {
+  id: string
+  created_at: string
+  updated_at?: string | null
+  category?: string | null
+  title?: string | null
+  body?: string | null
+  outcome?: string | null
+  tags?: string[] | null
+  pinned?: boolean | null
+  active?: boolean | null
+}
 
 type Tab = "decisions" | "brand" | "playbook"
 
@@ -49,6 +74,47 @@ function formatDecisionDate(raw: string | null | undefined): string {
     : new Date(raw)
   if (Number.isNaN(d.getTime())) return "—"
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+}
+
+function formatBrainTimestamp(raw: string | null | undefined): string {
+  if (!raw) return "—"
+  const d = new Date(raw)
+  if (Number.isNaN(d.getTime())) return "—"
+  return d.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function operatorPriorityBadgeClass(priority: string | null | undefined): string {
+  const p = (priority ?? "normal").toLowerCase()
+  if (p === "urgent") return "rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide bg-[#F09A54] text-[#F2EEE2]"
+  if (p === "low") return "rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide bg-[#1F2937] text-[#F2EEE2]"
+  return "rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide bg-[#374151] text-[#F2EEE2]"
+}
+
+function pbCategoryBadgeClass(cat: string | null | undefined): string {
+  const c = (cat ?? "").toLowerCase()
+  if (c === "campaign") return "bg-orange-900/60 text-orange-100"
+  if (c === "milestone") return "bg-emerald-800/40 text-emerald-100"
+  if (c === "strategic") return "bg-violet-800/40 text-violet-100"
+  if (c === "lesson_learned") return "bg-amber-800/40 text-amber-100"
+  return "bg-slate-700/80 text-slate-200"
+}
+
+function pbCategoryLabel(cat: string | null | undefined): string {
+  const c = (cat ?? "").toLowerCase()
+  const map: Record<string, string> = {
+    campaign: "Campaign",
+    milestone: "Milestone",
+    strategic: "Strategic",
+    operator_note: "Operator note",
+    lesson_learned: "Lesson learned",
+  }
+  return map[c] || (c ? c.replace(/_/g, " ") : "Entry")
 }
 
 function todayYmdLocal(): string {
@@ -148,6 +214,31 @@ export default function PetmasterAgentsBrainPage() {
   const [editGuide, setEditGuide] = useState<BrandGuideRow | null>(null)
   const [editGuideVal, setEditGuideVal] = useState("")
 
+  const [operatorNotes, setOperatorNotes] = useState<OperatorNoteRow[]>([])
+  const [notesLoading, setNotesLoading] = useState(true)
+  const [noteSubmitting, setNoteSubmitting] = useState(false)
+  const [noteDraft, setNoteDraft] = useState("")
+  const [notePriority, setNotePriority] = useState<"urgent" | "normal" | "low">("normal")
+  const [noteExpires7d, setNoteExpires7d] = useState(false)
+  const [noteDeletingId, setNoteDeletingId] = useState<string | null>(null)
+
+  const [pbDecisions, setPbDecisions] = useState<PbDecisionRow[]>([])
+  const [pbLoading, setPbLoading] = useState(true)
+  const [pbSaving, setPbSaving] = useState(false)
+  const [pbTab, setPbTab] = useState<"active" | "archive">("active")
+  const [showPbAdd, setShowPbAdd] = useState(false)
+  const [pbCategory, setPbCategory] = useState<
+    "campaign" | "milestone" | "strategic" | "lesson_learned"
+  >("campaign")
+  const [pbTitle, setPbTitle] = useState("")
+  const [pbBody, setPbBody] = useState("")
+  const [pbTags, setPbTags] = useState("")
+  const [pbPinned, setPbPinned] = useState(false)
+  const [expandedPbBody, setExpandedPbBody] = useState<Record<string, boolean>>({})
+  const [outcomeDraftById, setOutcomeDraftById] = useState<Record<string, string>>({})
+  const [outcomeOpenId, setOutcomeOpenId] = useState<string | null>(null)
+  const [pbBusyPatchId, setPbBusyPatchId] = useState<string | null>(null)
+
   const load = useCallback(async () => {
     setError(null)
     setLoading(true)
@@ -170,6 +261,43 @@ export default function PetmasterAgentsBrainPage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  const loadOperatorNotes = useCallback(async () => {
+    setNotesLoading(true)
+    try {
+      const res = await fetch("/api/petmaster-brain-note", { credentials: "same-origin" })
+      const j = (await res.json().catch(() => null)) as OperatorNoteRow[] | { error?: string }
+      if (!res.ok) {
+        setOperatorNotes([])
+        return
+      }
+      if (Array.isArray(j)) setOperatorNotes(j)
+      else setOperatorNotes([])
+    } finally {
+      setNotesLoading(false)
+    }
+  }, [])
+
+  const loadPbDecisions = useCallback(async () => {
+    setPbLoading(true)
+    try {
+      const res = await fetch("/api/petmaster-brain-decision", { credentials: "same-origin" })
+      const j = (await res.json().catch(() => null)) as PbDecisionRow[] | { error?: string }
+      if (!res.ok) {
+        setPbDecisions([])
+        return
+      }
+      if (Array.isArray(j)) setPbDecisions(j)
+      else setPbDecisions([])
+    } finally {
+      setPbLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadOperatorNotes()
+    void loadPbDecisions()
+  }, [loadOperatorNotes, loadPbDecisions])
 
   const playbook = data?.playbook ?? []
   const countLine = useMemo(() => countByConfidence(playbook), [playbook])
@@ -202,6 +330,123 @@ export default function PetmasterAgentsBrainPage() {
     if (!res.ok) {
       const j = (await res.json().catch(() => ({}))) as { error?: string }
       throw new Error(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
+    }
+  }
+
+  async function deleteJson(url: string, body: object) {
+    const res = await fetch(url, {
+      method: "DELETE",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const j = (await res.json().catch(() => ({}))) as { error?: string }
+      throw new Error(typeof j.error === "string" ? j.error : `HTTP ${res.status}`)
+    }
+  }
+
+  const pbActiveList = useMemo(() => {
+    const cutoff = Date.now() - MS_90_D
+    return pbDecisions.filter(
+      (e) => !!e?.pinned || (!!e.created_at && new Date(e.created_at).getTime() >= cutoff),
+    )
+  }, [pbDecisions])
+
+  const pbArchiveList = useMemo(() => {
+    const cutoff = Date.now() - MS_90_D
+    return pbDecisions.filter(
+      (e) => !e?.pinned && !!e.created_at && new Date(e.created_at).getTime() < cutoff,
+    )
+  }, [pbDecisions])
+
+  async function submitOperatorNote() {
+    const trimmed = noteDraft.trim()
+    if (!trimmed) return
+    setNoteSubmitting(true)
+    setError(null)
+    try {
+      const expires_at =
+        noteExpires7d ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : null
+      await postJson("/api/petmaster-brain-note", {
+        note: trimmed,
+        priority: notePriority,
+        expires_at,
+      })
+      setNoteDraft("")
+      setNotePriority("normal")
+      setNoteExpires7d(false)
+      await loadOperatorNotes()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save note")
+    } finally {
+      setNoteSubmitting(false)
+    }
+  }
+
+  async function deactivateNote(id: string) {
+    setNoteDeletingId(id)
+    setError(null)
+    try {
+      await deleteJson("/api/petmaster-brain-note", { id })
+      await loadOperatorNotes()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to remove note")
+    } finally {
+      setNoteDeletingId(null)
+    }
+  }
+
+  async function submitPbEntry() {
+    setPbSaving(true)
+    setError(null)
+    try {
+      await postJson("/api/petmaster-brain-decision", {
+        category: pbCategory,
+        title: pbTitle.trim(),
+        body: pbBody.trim(),
+        tags: pbTags.trim(),
+        pinned: pbPinned,
+      })
+      setShowPbAdd(false)
+      setPbTitle("")
+      setPbBody("")
+      setPbTags("")
+      setPbPinned(false)
+      setPbCategory("campaign")
+      await loadPbDecisions()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save entry")
+    } finally {
+      setPbSaving(false)
+    }
+  }
+
+  async function saveOutcome(id: string) {
+    const draft = outcomeDraftById[id] ?? ""
+    setPbBusyPatchId(id)
+    setError(null)
+    try {
+      await patchJson("/api/petmaster-brain-decision", { id, outcome: draft.trim() || null })
+      setOutcomeOpenId(null)
+      await loadPbDecisions()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save outcome")
+    } finally {
+      setPbBusyPatchId(null)
+    }
+  }
+
+  async function togglePinned(id: string, current: boolean) {
+    setPbBusyPatchId(id)
+    setError(null)
+    try {
+      await patchJson("/api/petmaster-brain-decision", { id, pinned: !current })
+      await loadPbDecisions()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update pin")
+    } finally {
+      setPbBusyPatchId(null)
     }
   }
 
@@ -295,14 +540,358 @@ export default function PetmasterAgentsBrainPage() {
   return (
     <div className="-m-6 space-y-6 bg-[#111827] p-6 text-[#F2EEE2] md:-m-8 md:p-8" data-page="petmaster-brain">
       <h1 className="font-heading text-2xl font-extrabold tracking-tight text-[#F2EEE2]">Brain</h1>
-      <p className="text-sm text-[#F2EEE2]/60">Tier 1 only — brand positioning, guide, and product decisions.</p>
+      <p className="text-sm text-[#F2EEE2]/60">
+        Tier 1 only, brand positioning, guide, and product decisions (plus agent notes below).
+      </p>
+
+      <section className="rounded-xl border border-white/10 bg-[#1F2937] p-4 sm:p-5 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-[#F2EEE2]">Operator notes</h2>
+          <p className="mt-1 text-xs text-[#F2EEE2]/50">
+            Short instructions for Strategy and agents. Sorted with urgent first, then newest.
+          </p>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-[#111827]/60 p-3 space-y-3">
+          <label className="block text-xs font-medium uppercase tracking-wide text-[#F2EEE2]/50">
+            New note
+            <textarea
+              value={noteDraft}
+              onChange={(e) => setNoteDraft(e.target.value)}
+              placeholder="Add a note for the agents, e.g. Start Father's Day content this week"
+              rows={3}
+              className="mt-2 w-full rounded-md border border-white/15 bg-[#111827] px-3 py-2 text-sm text-[#F2EEE2] placeholder:text-[#F2EEE2]/35"
+            />
+          </label>
+          <div className="flex flex-wrap items-end gap-4">
+            <label className="flex flex-col text-xs text-[#F2EEE2]/50">
+              Priority
+              <select
+                value={notePriority}
+                onChange={(e) =>
+                  setNotePriority(e.target.value as "urgent" | "normal" | "low")
+                }
+                className="mt-1 min-w-[8rem] rounded-md border border-white/15 bg-[#111827] px-2 py-2 text-sm text-[#F2EEE2]"
+              >
+                <option value="urgent">Urgent</option>
+                <option value="normal">Normal</option>
+                <option value="low">Low</option>
+              </select>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-[#F2EEE2]/80 pt-6">
+              <input
+                type="checkbox"
+                checked={noteExpires7d}
+                onChange={(e) => setNoteExpires7d(e.target.checked)}
+                className="h-4 w-4 rounded border-white/25 bg-[#111827]"
+              />
+              Expires in 7 days
+            </label>
+            <button
+              type="button"
+              disabled={noteSubmitting || !noteDraft.trim()}
+              onClick={() => void submitOperatorNote()}
+              className="rounded-md bg-[#F09A54] px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F09A54]/90 disabled:opacity-50"
+            >
+              {noteSubmitting ? "Sending…" : "Send to agents"}
+            </button>
+          </div>
+        </div>
+        {notesLoading ? (
+          <p className="text-sm text-[#F2EEE2]/50">Loading notes…</p>
+        ) : operatorNotes.length === 0 ? (
+          <p className="text-sm text-[#F2EEE2]/45">No active notes.</p>
+        ) : (
+          <ul className="space-y-3">
+            {operatorNotes.map((n) => {
+              const deleting = noteDeletingId === n.id
+              const prLabel = String(n.priority ?? "normal").toLowerCase()
+              return (
+                <li key={n.id} className="rounded-lg border border-white/10 bg-[#111827]/50 p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={operatorPriorityBadgeClass(prLabel)}>{prLabel}</span>
+                      <span className="text-xs text-[#F2EEE2]/50">
+                        {formatBrainTimestamp(n.created_at)}
+                      </span>
+                      {n.expires_at ? (
+                        <span className="text-[11px] text-[#F2EEE2]/40">
+                          Expires {formatBrainTimestamp(n.expires_at)}
+                        </span>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Remove note"
+                      disabled={deleting}
+                      onClick={() => void deactivateNote(n.id)}
+                      className="rounded p-1 text-red-400 hover:bg-white/5 hover:text-red-300 disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" strokeWidth={2} />
+                    </button>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-[#F2EEE2]/95">{n.note}</p>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-white/10 bg-[#1F2937] p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-[#F2EEE2]">Decision log</h2>
+            <p className="mt-1 text-xs text-[#F2EEE2]/50">
+              Campaign history, milestones, and lessons. Pinned rows always surface to agents with recent work.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowPbAdd((o) => !o)}
+            className="shrink-0 rounded-md border border-white/25 px-3 py-2 text-sm font-medium text-[#F2EEE2]/90 hover:bg-white/5"
+          >
+            {showPbAdd ? "Close add entry" : "Add entry"}
+          </button>
+        </div>
+
+        <div className="inline-flex rounded-full border border-white/15 bg-[#111827]/80 p-1">
+          {(["active", "archive"] as const).map((k) => {
+            const on = pbTab === k
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setPbTab(k)}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium capitalize",
+                  on ? "bg-[#F09A54] text-[#111827]" : "text-[#F2EEE2]/75 hover:text-[#F2EEE2]",
+                )}
+              >
+                {k}
+              </button>
+            )
+          })}
+        </div>
+
+        {showPbAdd && (
+          <div className="space-y-3 rounded-lg border border-white/10 bg-[#111827]/60 p-4">
+            <p className="text-sm font-medium text-[#F2EEE2]">Save to brain</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs text-[#F2EEE2]/50">
+                Category
+                <select
+                  value={pbCategory}
+                  onChange={(e) =>
+                    setPbCategory(
+                      e.target.value as "campaign" | "milestone" | "strategic" | "lesson_learned",
+                    )
+                  }
+                  className="mt-1 w-full rounded-md border border-white/15 bg-[#111827] px-2 py-2 text-sm text-[#F2EEE2]"
+                >
+                  <option value="campaign">Campaign</option>
+                  <option value="milestone">Milestone</option>
+                  <option value="strategic">Strategic</option>
+                  <option value="lesson_learned">Lesson learned</option>
+                </select>
+              </label>
+              <label className="block text-xs text-[#F2EEE2]/50 sm:col-span-2">
+                Title
+                <input
+                  value={pbTitle}
+                  onChange={(e) => setPbTitle(e.target.value)}
+                  className="mt-1 w-full rounded-md border border-white/15 bg-[#111827] px-2 py-2 text-sm text-[#F2EEE2]"
+                />
+              </label>
+            </div>
+            <label className="block text-xs text-[#F2EEE2]/50">
+              Body
+              <textarea
+                value={pbBody}
+                onChange={(e) => setPbBody(e.target.value)}
+                placeholder="What happened, what you decided, what to remember"
+                rows={4}
+                className="mt-1 w-full rounded-md border border-white/15 bg-[#111827] px-2 py-2 text-sm text-[#F2EEE2] placeholder:text-[#F2EEE2]/35"
+              />
+            </label>
+            <label className="block text-xs text-[#F2EEE2]/50">
+              Tags (comma separated)
+              <input
+                value={pbTags}
+                onChange={(e) => setPbTags(e.target.value)}
+                className="mt-1 w-full rounded-md border border-white/15 bg-[#111827] px-2 py-2 text-sm text-[#F2EEE2]"
+              />
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-[#F2EEE2]/80">
+              <input
+                type="checkbox"
+                checked={pbPinned}
+                onChange={(e) => setPbPinned(e.target.checked)}
+                className="h-4 w-4 rounded border-white/25 bg-[#111827]"
+              />
+              Always show to agents (pin)
+            </label>
+            <button
+              type="button"
+              disabled={pbSaving || !pbTitle.trim() || !pbBody.trim()}
+              onClick={() => void submitPbEntry()}
+              className="rounded-md bg-[#F09A54] px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F09A54]/90 disabled:opacity-50"
+            >
+              {pbSaving ? "Saving…" : "Save to brain"}
+            </button>
+          </div>
+        )}
+
+        {pbLoading ? (
+          <p className="text-sm text-[#F2EEE2]/50">Loading decision log…</p>
+        ) : (pbTab === "active" ? pbActiveList : pbArchiveList).length === 0 ? (
+          <p className="text-sm text-[#F2EEE2]/45">No entries in this tab.</p>
+        ) : (
+          <ul className="space-y-4">
+            {(pbTab === "active" ? pbActiveList : pbArchiveList).map((entry) => {
+              const expanded = !!expandedPbBody[entry.id]
+              const patching = pbBusyPatchId === entry.id
+              const pinned = !!entry.pinned
+              const tags = Array.isArray(entry.tags) ? entry.tags : []
+              return (
+                <li key={entry.id} className="rounded-lg border border-white/10 bg-[#111827]/50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          "rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+                          pbCategoryBadgeClass(entry.category),
+                        )}
+                      >
+                        {pbCategoryLabel(entry.category)}
+                      </span>
+                      {pinned ? (
+                        <span className="text-[11px] font-medium uppercase tracking-wide text-[#F09A54]">
+                          Pinned
+                        </span>
+                      ) : null}
+                      <span className="text-xs text-[#F2EEE2]/45">
+                        {formatBrainTimestamp(entry.created_at)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      title={pinned ? "Unpin" : "Pin for agents"}
+                      disabled={patching}
+                      onClick={() => void togglePinned(entry.id, pinned)}
+                      className="rounded p-1.5 text-[#F09A54] hover:bg-white/10 disabled:opacity-50"
+                      aria-label={pinned ? "Unpin entry" : "Pin entry"}
+                    >
+                      {pinned ? <Pin className="h-4 w-4 fill-current" /> : <PinOff className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {entry.title ? (
+                    <h3 className="mt-2 text-base font-bold text-[#F2EEE2]">{entry.title}</h3>
+                  ) : null}
+                  {entry.body ? (
+                    <div className="mt-2">
+                      <p
+                        className={cn(
+                          "text-sm leading-relaxed text-[#F2EEE2]/90 whitespace-pre-wrap",
+                          !expanded && "line-clamp-3",
+                        )}
+                      >
+                        {entry.body}
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-1 text-xs font-medium text-[#F09A54] hover:underline"
+                        onClick={() =>
+                          setExpandedPbBody((m) => ({ ...m, [entry.id]: !expanded }))
+                        }
+                      >
+                        {expanded ? "Show less" : "Expand"}
+                      </button>
+                    </div>
+                  ) : null}
+                  {entry.outcome ? (
+                    <p className="mt-2 rounded-md bg-white/5 p-2 text-sm text-[#F2EEE2]/80">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-[#F2EEE2]/50">
+                        Outcome{" "}
+                      </span>
+                      {entry.outcome}
+                    </p>
+                  ) : null}
+                  {tags.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {tags.map((tag) => (
+                        <span
+                          key={`${entry.id}-${tag}`}
+                          className="rounded-full border border-white/15 bg-[#1F2937] px-2 py-0.5 text-[11px] text-[#F2EEE2]/80"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {outcomeOpenId === entry.id ? (
+                    <div className="mt-3 space-y-2 rounded-md border border-white/15 bg-[#111827]/80 p-3">
+                      <label className="block text-xs text-[#F2EEE2]/50">
+                        Outcome
+                        <textarea
+                          rows={3}
+                          value={
+                            outcomeDraftById[entry.id] ??
+                            (typeof entry.outcome === "string" ? entry.outcome : "")
+                          }
+                          onChange={(e) =>
+                            setOutcomeDraftById((m) => ({ ...m, [entry.id]: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-md border border-white/15 bg-[#111827] px-2 py-2 text-sm text-[#F2EEE2]"
+                        />
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={patching}
+                          onClick={() => void saveOutcome(entry.id)}
+                          className="rounded-md bg-[#F09A54] px-4 py-2 text-sm font-medium text-[#111827] hover:bg-[#F09A54]/90 disabled:opacity-50"
+                        >
+                          Save outcome
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOutcomeOpenId(null)}
+                          className="rounded-md border border-white/25 px-3 py-2 text-sm text-[#F2EEE2]/80 hover:bg-white/5"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={patching}
+                      onClick={() => {
+                        setOutcomeOpenId(entry.id)
+                        setOutcomeDraftById((m) => ({
+                          ...m,
+                          [entry.id]:
+                            typeof entry.outcome === "string" ? entry.outcome : "",
+                        }))
+                      }}
+                      className="mt-3 rounded-md border border-white/25 px-3 py-1.5 text-xs font-medium text-[#F2EEE2]/90 hover:bg-white/5 disabled:opacity-50"
+                    >
+                      {entry.outcome ? "Edit outcome" : "Add outcome"}
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       <div className="flex flex-wrap items-center gap-1 rounded-full border border-white/10 bg-[#1F2937]/80 p-1">
         {(
           [
-            { id: "decisions" as const, label: "Decision log" },
+            { id: "decisions" as const, label: "Product decisions" },
             { id: "brand" as const, label: "Brand guide" },
             { id: "playbook" as const, label: "Approved playbook" },
           ] as const
