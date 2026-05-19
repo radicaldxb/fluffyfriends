@@ -186,8 +186,10 @@ export default async function ThemeLandingPage({ params }: PageProps) {
       {/* Real customer portraits (only when ≥2 for this theme) */}
       {galleryPortraits.length > 0 ? (
         <section className="mx-auto w-full max-w-7xl px-4 pb-8 pt-2 sm:px-6 sm:pb-10">
-          <h2 className="text-center text-xs font-medium uppercase tracking-[0.2em] text-primary">From the gallery</h2>
-          <div className="mx-auto mt-8 flex flex-wrap justify-center gap-4 sm:gap-5 md:gap-6">
+          <h2 className="font-heading text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            From the gallery
+          </h2>
+          <div className="mx-auto mt-10 flex flex-wrap justify-center gap-4 sm:gap-5 md:gap-6">
             {galleryPortraits.map((p, i) => (
               <div
                 key={`${p.src}-${i}`}

@@ -162,7 +162,7 @@ export default function GalleryPage() {
                             See what yours looks like, free, no signup.
                           </p>
                           <Button asChild className="mt-5 rounded-organic-sm px-7 py-3.5 text-base font-semibold">
-                            <Link href="/create">See Yours Free →</Link>
+                            <Link href="/create">See yours Free →</Link>
                           </Button>
                         </div>
                       </div>
