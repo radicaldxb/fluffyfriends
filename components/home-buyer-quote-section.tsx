@@ -7,6 +7,7 @@ export function HomeBuyerQuoteSection() {
   return (
     <section aria-label="Customer story" className="relative py-8 md:py-12">
       <TestimonialQuoteBlock
+        relaxed
         eyebrow="What buyers are doing with theirs"
         quoteLines={[
           `I'll be putting them in frames in`,

@@ -195,7 +195,7 @@ export function PricingSection() {
         </div>
 
         {/* Guarantee — sits above buyer quote (ties to pricing tiers) */}
-        <div className="mt-10 flex flex-col items-center justify-center gap-2 text-center">
+        <div className="mt-12 flex flex-col items-center justify-center gap-2 text-center md:mt-14">
           <ShieldCheck className="h-6 w-6 text-primary" strokeWidth={1.5} aria-hidden />
           <p className="text-sm font-semibold text-foreground">
             Not happy with your portrait? We will recreate it or refund your credit. No questions asked.
@@ -203,23 +203,32 @@ export function PricingSection() {
         </div>
 
         <TestimonialQuoteBlock
-          className="mt-10"
+          className="mt-12 py-8 md:mt-16 md:py-12"
           eyebrow="What buyers are doing with theirs"
           quoteLines={[
             `Can't wait to get these on display. The image quality was excellent.`,
           ]}
+          squiggleAbove
+          squiggleBelow
+          relaxed
+          avatar={{
+            src: "/images/testimonials/benny-avatar.webp",
+            alt: "",
+            instagramHref: BENNY_IG,
+            label: "Benny's family on Instagram (@life_with_our_malchi_benny)",
+          }}
           attribution={
             <>
-              —{" "}
+              Benny&apos;s family ·{" "}
               <InstagramHandleLink href={BENNY_IG}>@life_with_our_malchi_benny</InstagramHandleLink>
               {" · "}
-              York, United Kingdom
+              York, United Kingdom · May 2026
             </>
           }
         />
 
         {/* Comparison table — light card + CTA */}
-        <div className="mt-10 text-center">
+        <div className="mt-16 text-center md:mt-20">
           <h2 className="text-balance text-3xl font-bold text-foreground">
             No One Else does it
           </h2>
