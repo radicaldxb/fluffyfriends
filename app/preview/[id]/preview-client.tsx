@@ -15,6 +15,7 @@ export type PortraitForPreviewLink = {
 
 type Props = {
   portrait: PortraitForPreviewLink
+  portraitCreatedAtIso?: string | null
   expired: boolean
   watermarkLandscapeSrc: string
   watermarkPortraitSrc: string
@@ -23,6 +24,7 @@ type Props = {
 
 export function PreviewRouteClient({
   portrait,
+  portraitCreatedAtIso,
   expired,
   watermarkLandscapeSrc,
   watermarkPortraitSrc,
@@ -72,6 +74,7 @@ export function PreviewRouteClient({
             watermarkLandscapeSrc={watermarkLandscapeSrc}
             watermarkPortraitSrc={watermarkPortraitSrc}
             rawFallbackUrl={rawLandscapeFallbackUrl}
+            portraitCreatedAtIso={portraitCreatedAtIso}
           />
         </div>
       </section>

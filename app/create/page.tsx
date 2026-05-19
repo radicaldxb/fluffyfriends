@@ -205,6 +205,7 @@ function CreatePortraitContent() {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null)
   const [previewLandscapeUrl, setPreviewLandscapeUrl] = useState<string | null>(null)
   const [generationPortraitId, setGenerationPortraitId] = useState<string | null>(null)
+  const [portraitCreatedAtIso, setPortraitCreatedAtIso] = useState<string | null>(null)
   /** early_email gate visibility (paired with status `early_email`). */
   const [showEarlyEmailGate, setShowEarlyEmailGate] = useState(false)
   const [earlyEmail, setEarlyEmail] = useState("")
@@ -576,7 +577,7 @@ function CreatePortraitContent() {
         try {
           const { data } = await supabase
             .from("pet_portraits")
-            .select("status, image_url, portrait_url, landscape_url")
+            .select("status, image_url, portrait_url, landscape_url, created_at")
             .eq("id", portraitId)
             .single()
           if (data?.status === "preview") {
@@ -597,6 +598,13 @@ function CreatePortraitContent() {
                 setPreviewLandscapeUrl(wm)
               }
               setGenerationPortraitId(portraitId)
+              const created =
+                data.created_at != null
+                  ? typeof data.created_at === "string"
+                    ? data.created_at
+                    : new Date(data.created_at as string | number | Date).toISOString()
+                  : null
+              setPortraitCreatedAtIso(created)
               setStatus("preview")
             }
           }
@@ -628,6 +636,7 @@ function CreatePortraitContent() {
     setPreviewLandscapeUrl(null)
     previewCloudinaryRawRef.current = null
     setGenerationPortraitId(null)
+    setPortraitCreatedAtIso(null)
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current)
       pollIntervalRef.current = null
@@ -1362,10 +1371,18 @@ function CreatePortraitContent() {
           {status === "early_email" && resultPortraitId && showEarlyEmailGate ? (
             <div className="animate-in fade-in-0 zoom-in-95 duration-300 mx-auto mt-6 max-w-md px-3 py-10 text-center md:py-14">
               <p className="text-pretty text-lg font-medium leading-relaxed text-foreground">
-                Your portrait takes about 60 seconds to create.
+                We&apos;re crafting{" "}
+                {petNameDisplay ? (
+                  <>
+                    <span className="text-primary">{possessiveFormPet(petNameDisplay)}</span> portrait now.
+                  </>
+                ) : (
+                  "your pet&apos;s portrait now."
+                )}
               </p>
               <p className="mt-5 text-pretty text-base leading-relaxed text-muted-foreground">
-                Want it emailed? Drop your email and we&apos;ll send it as soon as it&apos;s ready.
+                Drop your email and we&apos;ll save a link for you so you won&apos;t lose it, even if you
+                close this tab
               </p>
               <div className="mt-7 text-left">
                 <label htmlFor="early-preview-email" className="sr-only">
@@ -1460,6 +1477,7 @@ function CreatePortraitContent() {
               watermarkLandscapeSrc={previewLandscapeUrl ?? previewImageUrl}
               watermarkPortraitSrc={previewImageUrl}
               rawFallbackUrl={previewCloudinaryRawRef.current}
+              portraitCreatedAtIso={portraitCreatedAtIso}
             />
           )}
 

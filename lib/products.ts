@@ -30,7 +30,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "portrait_pack",
     name: "Portrait Pack",
-    description: "Four portraits. Your choice of pets, your choice of themes.",
+    description: "Four portraits. Use them all now, or save credits for more themes later or gift them.",
     priceCents: 4900,
     priceDisplay: "$49",
     perPortrait: 4,

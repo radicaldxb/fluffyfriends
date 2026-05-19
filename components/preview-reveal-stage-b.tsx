@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Check, Search, X } from "lucide-react"
 import { PRODUCTS, type Product, type ProductId } from "@/lib/products"
 import { funnelDatalayerPayload } from "@/lib/funnel-datalayer"
+import { formatPortraitHoldExpiry } from "@/lib/format-portrait-hold-expiry"
 
 function formatCheckoutPriceFromCents(cents: number): string {
   if (cents % 100 === 0) return `$${cents / 100}`
@@ -26,6 +27,8 @@ export type PreviewRevealStageBProps = {
   watermarkLandscapeSrc: string
   watermarkPortraitSrc: string
   rawFallbackUrl: string | null
+  /** ISO from `pet_portraits.created_at` — drives 48h hold expiry line */
+  portraitCreatedAtIso?: string | null
 }
 
 export function PreviewRevealStageB({
@@ -35,6 +38,7 @@ export function PreviewRevealStageB({
   watermarkLandscapeSrc,
   watermarkPortraitSrc,
   rawFallbackUrl,
+  portraitCreatedAtIso,
 }: PreviewRevealStageBProps) {
   const [selectedProductId, setSelectedProductId] = useState<ProductId>("portrait_pack")
   const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
@@ -68,6 +72,13 @@ export function PreviewRevealStageB({
   }, [selectedProduct, voucherStatus, promotionCodeId, voucherPercentOff, voucherAmountOffCents])
 
   const petNameDisplay = petNameTrimmed
+  const holdExpiryText = useMemo(
+    () =>
+      portraitCreatedAtIso && typeof portraitCreatedAtIso === "string"
+        ? formatPortraitHoldExpiry(portraitCreatedAtIso)
+        : null,
+    [portraitCreatedAtIso],
+  )
 
   async function handleApplyVoucher() {
     const code = voucherCode.trim()
@@ -242,14 +253,21 @@ export function PreviewRevealStageB({
         <h1 className="font-heading mt-0.5 text-center text-2xl font-extrabold tracking-tight text-foreground md:mt-0 md:text-3xl">
           {petNameDisplay ? (
             <>
-              <span className="text-primary">{possessiveFormPet(petNameDisplay)}</span> portrait is ready.
+              Look at <span className="text-primary">{petNameDisplay}</span>.
             </>
           ) : (
-            <>Your pet&apos;s portrait is ready.</>
+            <>Look at them.</>
           )}
         </h1>
         <p className="mt-2 mb-3 text-center text-sm text-muted-foreground md:mb-4">
-          Unlock the full resolution below.
+          {petNameDisplay ? (
+            <>
+              <span className="text-primary font-semibold">{possessiveFormPet(petNameDisplay)}</span> portrait is
+              ready, unlock the full resolution below.
+            </>
+          ) : (
+            <>Your pet&apos;s portrait is ready, unlock the full resolution below.</>
+          )}
         </p>
         <div className="mt-4 mb-3 flex w-full justify-center px-3 md:mt-6 md:mb-4 md:px-0">
           <div className="relative w-full max-w-[min(100vw-1.5rem,36rem)] overflow-hidden rounded-organic border-4 border-primary bg-background shadow-lg shadow-primary/25 md:max-w-2xl">
@@ -342,7 +360,29 @@ export function PreviewRevealStageB({
           <div className="mt-8 rounded-organic border border-border bg-card px-4 py-5 md:px-5">
             <p className="text-sm font-semibold text-foreground">Not ready to decide?</p>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              We&apos;ll hold your portrait for 48 hours. Drop your email and we&apos;ll send the preview to you.
+              {petNameDisplay ? (
+                <>
+                  We&apos;ll hold{" "}
+                  <span className="font-semibold text-foreground">{possessiveFormPet(petNameDisplay)}</span> portrait
+                  until{" "}
+                  {holdExpiryText ? (
+                    <span className="font-bold text-primary">{holdExpiryText}</span>
+                  ) : (
+                    <span className="font-bold text-primary">48 hours from when your preview was created</span>
+                  )}
+                  . After that, it&apos;s gone.
+                </>
+              ) : (
+                <>
+                  We&apos;ll hold your pet&apos;s portrait until{" "}
+                  {holdExpiryText ? (
+                    <span className="font-bold text-primary">{holdExpiryText}</span>
+                  ) : (
+                    <span className="font-bold text-primary">48 hours from when your preview was created</span>
+                  )}
+                  . After that, it&apos;s gone.
+                </>
+              )}
             </p>
             {savePortraitOk ? (
               <p className="mt-3 text-sm font-medium text-emerald-600">You&apos;re on the list — check your inbox soon.</p>

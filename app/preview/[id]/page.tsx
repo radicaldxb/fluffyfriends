@@ -49,7 +49,7 @@ export default async function PreviewPage({ params, searchParams }: Props) {
   const { data, error } = await db
     .from("pet_portraits")
     .select(
-      "id, pet_name, theme, status, image_url, portrait_url, landscape_url, preview_token, preview_expires_at, user_email",
+      "id, pet_name, theme, status, image_url, portrait_url, landscape_url, preview_token, preview_expires_at, user_email, created_at",
     )
     .eq("id", id)
     .single()
@@ -70,6 +70,13 @@ export default async function PreviewPage({ params, searchParams }: Props) {
     landscapeRaw !== null ? applyWatermark(landscapeRaw) : ""
   const wmPortrait = portraitRaw !== null ? applyWatermark(portraitRaw) : wmLandscape
 
+  const createdAtIso =
+    data.created_at != null
+      ? typeof data.created_at === "string"
+        ? data.created_at
+        : new Date(data.created_at as string | number | Date).toISOString()
+      : null
+
   return (
     <PreviewRouteClient
       portrait={{
@@ -77,6 +84,7 @@ export default async function PreviewPage({ params, searchParams }: Props) {
         pet_name: data.pet_name,
         theme: data.theme,
       }}
+      portraitCreatedAtIso={createdAtIso}
       expired={expired}
       watermarkLandscapeSrc={wmLandscape || wmPortrait}
       watermarkPortraitSrc={wmPortrait || wmLandscape}
