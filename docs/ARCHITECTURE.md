@@ -25,10 +25,10 @@ Every time we touch it, we ask "does this still make sense when Cindy can buy a 
 
 ### Homepage `/`
 
-- **What:** Brand hero, before/after slider, gallery preview, pricing, reviews, footer
-- **Files:** `app/page.tsx`, `components/hero-section.tsx`, `components/hero-before-after-slider.tsx`, all section components
+- **What:** Brand hero, before/after slider, gallery, how it works, **buyer quotes** (above pricing + inline in pricing), pricing + comparison, about, final CTA (stars line hidden — May 2026), footer
+- **Files:** `app/page.tsx`, `components/hero-section.tsx`, `components/home-buyer-quote-section.tsx`, `components/pricing-section.tsx`, `components/final-cta-section.tsx`, other section components
 - **Touches:** GA4 pageview, Meta Pixel ViewContent, image optimization (`next.config.mjs`), cache headers (`netlify.toml`)
-- **Last updated:** 29 Apr 2026 (Brief 12, 13 — perf optimisation)
+- **Last updated:** 6 May 2026 (buyer quote blocks, hide final-cta star row)
 
 ### `/create`
 

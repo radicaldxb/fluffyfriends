@@ -5,6 +5,7 @@ import { SeasonalCampaignSection } from "@/components/seasonal-campaign-section"
 import { HowItWorksVisualSection } from "@/components/how-it-works-visual-section"
 import { GallerySection } from "@/components/gallery-section"
 import { AboutSection } from "@/components/about-section"
+import { HomeBuyerQuoteSection } from "@/components/home-buyer-quote-section"
 import { PricingSection } from "@/components/pricing-section"
 import { FinalCTASection } from "@/components/final-cta-section"
 import { Footer } from "@/components/footer"
@@ -134,7 +135,7 @@ export default function Home() {
           <SketchDivider />
           <HowItWorksVisualSection />
           <SketchDivider />
-          {/* Reviews: hidden for now — restore steps: docs/DESIGN_BASELINE.md (Hidden landing page sections) */}
+          <HomeBuyerQuoteSection />
           <PricingSection />
           <SketchDivider />
           <AboutSection />

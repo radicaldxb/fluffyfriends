@@ -191,6 +191,28 @@ export function PricingSection() {
           ))}
         </div>
 
+        <div className="mx-auto max-w-2xl px-1 py-10 md:py-12">
+          <div className="mx-auto mb-8 h-px w-12 bg-border" aria-hidden />
+          <blockquote className="text-center">
+            <p className="font-sans text-lg italic leading-relaxed text-foreground md:text-xl">
+              Can&apos;t wait to get these on display. The image quality was excellent.
+            </p>
+            <footer className="mt-4 text-[13px] text-muted-foreground md:text-sm">
+              —{" "}
+              <a
+                href="https://www.instagram.com/life_with_our_malchi_benny/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground underline decoration-primary/40 underline-offset-2 transition-colors hover:decoration-primary"
+              >
+                @life_with_our_malchi_benny
+              </a>
+              {" · "}
+              York, United Kingdom
+            </footer>
+          </blockquote>
+        </div>
+
         <div className="mt-8 flex flex-col items-center justify-center gap-2 text-center">
           <ShieldCheck className="h-6 w-6 text-primary" strokeWidth={1.5} aria-hidden />
           <p className="text-sm font-semibold text-foreground">
