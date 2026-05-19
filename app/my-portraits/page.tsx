@@ -263,7 +263,7 @@ function MyPortraitsContent() {
             instagram={{ href: REMI_IG, handle: "@theremingtonkai" }}
             detailLine="Remi's owner · United States · May 2026"
             avatar={{
-              src: "/images/testimonials/remi-owner-avatar.webp",
+              src: "/images/testimonials/remi-avatar.webp",
               alt: "",
               instagramHref: REMI_IG,
               label: "Remi's owner on Instagram (@theremingtonkai)",

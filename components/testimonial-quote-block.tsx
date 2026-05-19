@@ -84,8 +84,10 @@ export function TestimonialQuoteBlock({
             <Image
               src={avatar.src}
               alt={avatar.alt ?? ""}
-              width={72}
-              height={72}
+              width={500}
+              height={500}
+              sizes="(max-width: 640px) 64px, 72px"
+              quality={90}
               className="h-16 w-16 rounded-full object-cover sm:h-[72px] sm:w-[72px]"
             />
           </Link>
