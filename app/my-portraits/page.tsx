@@ -175,13 +175,15 @@ function MyPortraitsContent() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <section className="flex-1 mx-auto max-w-3xl px-4 py-14 md:py-20">
-        {hasResults ? (
-          <h1 className="sr-only">My portraits</h1>
-        ) : (
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+          My portraits
+        </h1>
+
+        {!hasResults ? (
           <>
-            <h1 className="font-heading text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            <h2 className="mt-6 font-heading text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
               Your portrait is waiting.
-            </h1>
+            </h2>
             <p className="mt-2 max-w-2xl text-muted-foreground">
               Enter the email you used when you created it. We&apos;ll show you exactly where you left off.
             </p>
@@ -231,10 +233,10 @@ function MyPortraitsContent() {
               </ul>
             </div>
           </>
-        )}
+        ) : null}
 
         <form
-          className={`flex flex-col gap-3 sm:flex-row sm:items-center ${hasResults ? "mt-0" : "mt-6"}`}
+          className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
           onSubmit={(e) => {
             e.preventDefault()
             void handleLookup()
