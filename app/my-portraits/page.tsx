@@ -175,60 +175,66 @@ function MyPortraitsContent() {
     <main className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <section className="flex-1 mx-auto max-w-3xl px-4 py-14 md:py-20">
-        <h1 className="font-heading text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-          Your portrait is waiting.
-        </h1>
-        <p className="mt-2 max-w-2xl text-muted-foreground">
-          Enter the email you used when you created it. We&apos;ll show you exactly where you left off.
-        </p>
+        {hasResults ? (
+          <h1 className="sr-only">My portraits</h1>
+        ) : (
+          <>
+            <h1 className="font-heading text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+              Your portrait is waiting.
+            </h1>
+            <p className="mt-2 max-w-2xl text-muted-foreground">
+              Enter the email you used when you created it. We&apos;ll show you exactly where you left off.
+            </p>
 
-        <div className="mt-8 rounded-organic border border-border bg-muted/25 p-4 sm:p-5">
-          <ul className="list-none space-y-4 text-sm leading-relaxed text-muted-foreground">
-            <li className="flex gap-3">
-              <span
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                aria-hidden
-              />
-              <div>
-                <p className="font-semibold text-foreground">Already created a portrait?</p>
-                <p className="mt-1">Enter your email below to retrieve it.</p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <span
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                aria-hidden
-              />
-              <div>
-                <p className="font-semibold text-foreground">Saved a portrait without buying?</p>
-                <p className="mt-1">
-                  We hold it for 48 hours — after that, it&apos;s gone. Enter your email to check if yours is still
-                  there.
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <span
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                aria-hidden
-              />
-              <div>
-                <p className="font-semibold text-foreground">Haven&apos;t created one yet?</p>
-                <p className="mt-2">
-                  <Link
-                    href="/create"
-                    className="font-semibold text-primary underline underline-offset-2 hover:text-primary/90"
-                  >
-                    Try your portrait for free
-                  </Link>
-                </p>
-              </div>
-            </li>
-          </ul>
-        </div>
+            <div className="mt-8 rounded-organic border border-border bg-muted/25 p-4 sm:p-5">
+              <ul className="list-none space-y-4 text-sm leading-relaxed text-muted-foreground">
+                <li className="flex gap-3">
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                    aria-hidden
+                  />
+                  <div>
+                    <p className="font-semibold text-foreground">Already created a portrait?</p>
+                    <p className="mt-1">Enter your email below to retrieve it.</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                    aria-hidden
+                  />
+                  <div>
+                    <p className="font-semibold text-foreground">Saved a portrait without buying?</p>
+                    <p className="mt-1">
+                      We hold it for 48 hours — after that, it&apos;s gone. Enter your email to check if yours is still
+                      there.
+                    </p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                    aria-hidden
+                  />
+                  <div>
+                    <p className="font-semibold text-foreground">Haven&apos;t created one yet?</p>
+                    <p className="mt-2">
+                      <Link
+                        href="/create"
+                        className="font-semibold text-primary underline underline-offset-2 hover:text-primary/90"
+                      >
+                        Try your portrait for free
+                      </Link>
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </>
+        )}
 
         <form
-          className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
+          className={`flex flex-col gap-3 sm:flex-row sm:items-center ${hasResults ? "mt-0" : "mt-6"}`}
           onSubmit={(e) => {
             e.preventDefault()
             void handleLookup()
@@ -250,26 +256,28 @@ function MyPortraitsContent() {
           </Button>
         </form>
 
-        <div className="mt-10" aria-label="Customer story">
-          <TestimonialQuoteBlock
-            relaxed
-            squiggleAbove={false}
-            squiggleBelow={false}
-            eyebrow="What buyers are doing with theirs"
-            quoteLines={[
-              `I'll be putting them in frames in`,
-              `Remi's doggy corner of the living room.`,
-            ]}
-            instagram={{ href: REMI_IG, handle: "@theremingtonkai" }}
-            detailLine="Remi's owner · United States · May 2026"
-            avatar={{
-              src: "/images/testimonials/remi-avatar.webp",
-              alt: "",
-              instagramHref: REMI_IG,
-              label: "Remi's owner on Instagram (@theremingtonkai)",
-            }}
-          />
-        </div>
+        {!hasResults && (
+          <div className="mt-10" aria-label="Customer story">
+            <TestimonialQuoteBlock
+              relaxed
+              squiggleAbove={false}
+              squiggleBelow={false}
+              eyebrow="What buyers are doing with theirs"
+              quoteLines={[
+                `I'll be putting them in frames in`,
+                `Remi's doggy corner of the living room.`,
+              ]}
+              instagram={{ href: REMI_IG, handle: "@theremingtonkai" }}
+              detailLine="Remi's owner · United States · May 2026"
+              avatar={{
+                src: "/images/testimonials/remi-avatar.webp",
+                alt: "",
+                instagramHref: REMI_IG,
+                label: "Remi's owner on Instagram (@theremingtonkai)",
+              }}
+            />
+          </div>
+        )}
 
         {pollingTimedOut && (
           <div className="mt-6 rounded-organic bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-foreground">
