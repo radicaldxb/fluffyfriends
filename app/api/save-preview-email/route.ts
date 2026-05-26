@@ -8,7 +8,8 @@ export async function POST(request: Request) {
   let body: { id?: string; email?: string }
   try {
     body = await request.json()
-  } catch {
+  } catch (err) {
+    console.error("[save-preview-email] Invalid JSON body", err)
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
@@ -21,7 +22,8 @@ export async function POST(request: Request) {
   let supabase
   try {
     supabase = getSupabase()
-  } catch {
+  } catch (err) {
+    console.error("[save-preview-email] getSupabase failed (misconfigured)", err)
     return NextResponse.json({ error: "Server misconfigured" }, { status: 503 })
   }
 

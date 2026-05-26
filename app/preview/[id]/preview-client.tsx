@@ -75,6 +75,8 @@ export function PreviewRouteClient({
             watermarkPortraitSrc={watermarkPortraitSrc}
             rawFallbackUrl={rawLandscapeFallbackUrl}
             portraitCreatedAtIso={portraitCreatedAtIso}
+            defaultProductId="starter"
+            mobileStickyPriceSuffix=" USD"
           />
         </div>
       </section>

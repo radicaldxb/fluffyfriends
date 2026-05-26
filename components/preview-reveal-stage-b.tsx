@@ -29,6 +29,13 @@ export type PreviewRevealStageBProps = {
   rawFallbackUrl: string | null
   /** ISO from `pet_portraits.created_at` — drives 48h hold expiry line */
   portraitCreatedAtIso?: string | null
+  /**
+   * Default selected package before the customer taps a tier.
+   * `/preview/[id]` uses `starter` so the mobile sticky CTA matches Starter ($17); `/create` keeps `portrait_pack`.
+   */
+  defaultProductId?: ProductId
+  /** Appended to the price on the **mobile sticky** checkout button only (e.g. " USD"). */
+  mobileStickyPriceSuffix?: string
 }
 
 export function PreviewRevealStageB({
@@ -39,8 +46,10 @@ export function PreviewRevealStageB({
   watermarkPortraitSrc,
   rawFallbackUrl,
   portraitCreatedAtIso,
+  defaultProductId = "portrait_pack",
+  mobileStickyPriceSuffix,
 }: PreviewRevealStageBProps) {
-  const [selectedProductId, setSelectedProductId] = useState<ProductId>("portrait_pack")
+  const [selectedProductId, setSelectedProductId] = useState<ProductId>(defaultProductId)
   const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "submitting" | "error">("idle")
   const [checkoutError, setCheckoutError] = useState("")
   const [voucherCode, setVoucherCode] = useState("")
@@ -182,13 +191,18 @@ export function PreviewRevealStageB({
     Boolean(portraitId) &&
     Boolean(selectedProduct)
 
-  function renderPreviewUnlockButton({ className }: { className?: string } = {}) {
+  function renderPreviewUnlockButton(opts?: {
+    className?: string
+    /** Suffix added to quoted price only for this renderer (sticky mobile passes " USD"). */
+    priceSuffix?: string
+  }) {
+    const suffix = opts?.priceSuffix ?? ""
     return (
       <Button
         data-gtm="create-step3-checkout"
         className={cn(
           "inline-flex h-auto w-full items-center justify-center gap-2 rounded-organic-sm bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/40 transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90",
-          className,
+          opts?.className,
         )}
         onClick={async () => {
           if (!portraitId) return
@@ -241,7 +255,7 @@ export function PreviewRevealStageB({
         {checkoutStatus === "submitting"
           ? "Connecting to Stripe..."
           : selectedProduct && previewCheckoutPriceDisplay
-            ? `Unlock my portrait — ${previewCheckoutPriceDisplay}`
+            ? `Unlock my portrait — ${previewCheckoutPriceDisplay}${suffix}`
             : "Unlock my portrait"}
       </Button>
     )
@@ -490,12 +504,18 @@ export function PreviewRevealStageB({
           </div>
         </div>
 
-        <div className="mt-4 hidden w-full max-w-xl md:mt-8 md:block">{renderPreviewUnlockButton({ className: "mx-auto max-w-xl" })}</div>
+        <div className="mt-4 hidden w-full max-w-xl md:mt-8 md:block">
+          {renderPreviewUnlockButton({ className: "mx-auto max-w-xl" })}
+        </div>
       </div>
 
       {showStickyUnlock ? (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex flex-col items-stretch border-t border-border bg-background px-5 pb-5 pt-3 shadow-[0_-4px_20px_hsl(0_0%_0%/0.08)] md:hidden">
-          <div className="mx-auto w-full max-w-2xl">{renderPreviewUnlockButton()}</div>
+          <div className="mx-auto w-full max-w-2xl">
+            {renderPreviewUnlockButton({
+              priceSuffix: mobileStickyPriceSuffix,
+            })}
+          </div>
         </div>
       ) : null}
 
