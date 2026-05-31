@@ -5,6 +5,7 @@ import { SeasonalCampaignSection } from "@/components/seasonal-campaign-section"
 import { HowItWorksVisualSection } from "@/components/how-it-works-visual-section"
 import { GallerySection } from "@/components/gallery-section"
 import { AboutSection } from "@/components/about-section"
+import { HomeStoryReviewsSection } from "@/components/home-story-reviews-section"
 import { HomeBuyerQuoteSection } from "@/components/home-buyer-quote-section"
 import { PricingSection } from "@/components/pricing-section"
 import { FinalCTASection } from "@/components/final-cta-section"
@@ -139,6 +140,7 @@ export default function Home() {
           <PricingSection />
           <SketchDivider />
           <AboutSection />
+          <HomeStoryReviewsSection />
           <SketchDivider />
           <FinalCTASection />
         </div>
