@@ -13,7 +13,6 @@ type Portrait = {
   src: string
   pet: string
   location?: string | null
-  users?: { city?: string | null; country?: string | null } | null
 }
 
 const GALLERY_LIMIT = 100
@@ -29,7 +28,7 @@ export default function GalleryPage() {
       setFetchError(null)
       const { data, error } = await supabase
         .from("pet_portraits")
-        .select("image_url, original_image_url, pet_name, showcase_consent, user_id, location, users(city, country)")
+        .select("image_url, original_image_url, pet_name, showcase_consent, location")
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -53,13 +52,11 @@ export default function GalleryPage() {
                 ? originalUrl!
                 : null
             if (!src) return null
-            const users = row.users as { city?: string; country?: string } | null
             const locRaw = row.location
             return {
               src,
               pet: row.pet_name || "Pet",
               location: typeof locRaw === "string" && locRaw.trim() ? locRaw.trim() : null,
-              users: users ?? null,
             }
           })
           .filter(
@@ -121,11 +118,7 @@ export default function GalleryPage() {
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
               {portraits.map((portrait, index) => {
-                const locationLine =
-                  portrait.location ||
-                  (portrait.users?.city && portrait.users?.country
-                    ? `${portrait.users.city}, ${portrait.users.country}`
-                    : null)
+                const locationLine = portrait.location || null
                 const alt = locationLine
                   ? `${portrait.pet} · ${locationLine}`
                   : portrait.pet
