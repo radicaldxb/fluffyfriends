@@ -28,7 +28,8 @@ export default function GalleryPage() {
       setFetchError(null)
       const { data, error } = await supabase
         .from("pet_portraits")
-        .select("image_url, original_image_url, pet_name, showcase_consent, location")
+        .select("image_url, original_image_url, pet_name, location")
+        .eq("showcase_consent", true)
         .not("image_url", "is", null)
         .neq("status", "rejected")
         .order("created_at", { ascending: false })
@@ -41,8 +42,7 @@ export default function GalleryPage() {
       }
 
       if (data?.length) {
-        const filtered = data.filter((row) => row.showcase_consent === true)
-        const withValidSrc = filtered
+        const withValidSrc = data
           .map((row) => {
             const imageUrl = (row.image_url as string)?.trim()
             const originalUrl = (row.original_image_url as string)?.trim()
