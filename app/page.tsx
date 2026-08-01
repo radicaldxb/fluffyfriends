@@ -77,6 +77,7 @@ const productSchema = {
   description:
     "Transform your pet photo into a print-ready portrait with their name in the artwork. Choose from 8 themes.",
   url: "https://fluffyfriends.online/create",
+  image: "https://res.cloudinary.com/radical-thinking/image/upload/v1778536315/Fluffyfriends/tzlol9apdmmhpotcqmu6.avif",
   brand: { "@type": "Brand", name: "FluffyFriends" },
   offers: [
     {
